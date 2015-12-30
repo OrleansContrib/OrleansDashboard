@@ -1,0 +1,16 @@
+{
+  "name": "OrleansDashboardApp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "react": "^0.14.3",
+    "reactify": "^1.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Richard Astbury",
+  "license": "MIT"
+}
