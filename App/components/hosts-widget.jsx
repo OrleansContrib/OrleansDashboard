@@ -18,11 +18,9 @@ module.exports = React.createClass({
         });
 
         return <tr key={host}>
-            <tr>
-                <td><a href={"#/host/" + host}>{host}</a></td>
-                <td><span className={"label label-" + labelClassMapper[status]}>{status}</span></td>
-                <td><span className="pull-right"><strong>{subTotal}</strong> <small>activations</small></span></td>
-            </tr>
+            <td><a href={"#/host/" + host}>{host}</a></td>
+            <td><span className={"label label-" + labelClassMapper[status]}>{status}</span></td>
+            <td><span className="pull-right"><strong>{subTotal}</strong> <small>activations</small></span></td>
         </tr>
     },
     render:function(){

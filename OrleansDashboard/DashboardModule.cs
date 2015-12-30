@@ -77,7 +77,7 @@ namespace OrleansDashboard
             var grain = Dashboard.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
 
             var result = Dispatch(async () => {
-                return await grain.GetRuntimeStatistics(new SiloAddress[] { address });
+                return (await grain.GetRuntimeStatistics(new SiloAddress[] { address })).FirstOrDefault();
             });
 
             return this.Response.AsJson(result);

@@ -3,10 +3,8 @@ var React = require('react');
 module.exports = React.createClass({
     renderStat:function(stat){
         return <tr key={stat.grainType}>
-            <tr>
-                <td>{stat.grainType}</td>
-                <td><span className="pull-right"><strong>{stat.activationCount}</strong> <small>activations</small></span></td>
-            </tr>
+            <td>{stat.grainType}</td>
+            <td><span className="pull-right"><strong>{stat.activationCount}</strong> <small>activations</small></span></td>
         </tr>
     },
     render:function(){
