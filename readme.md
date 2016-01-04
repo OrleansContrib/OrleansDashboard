@@ -12,9 +12,10 @@ An admin dashboard for Microsoft Orleans.
 
 Nuget is currently not available (coming soon).
 
-1. Build this project.
-1. Copy the assemblies to the location of your Orleans host.
-1. Add this bootstrap provider to your Orleans configuration:
+* Build this project.
+* Copy the assemblies to the location of your Orleans host.
+* Add this bootstrap provider to your Orleans configuration:
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <OrleansConfiguration xmlns="urn:orleans">
@@ -24,8 +25,9 @@ Nuget is currently not available (coming soon).
     </BootstrapProviders>
     ...
 ```
-1. Run the Orleans host elevated.
-1. Open this url in your browser: `http://localhost:8080`
+
+* Run the Orleans host elevated.
+* Open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
 
 ## Why run Orleans elevated?
 
@@ -55,4 +57,4 @@ You can change the port number that the dashboard runs on in the configuration:
 1. Allow custom counters to be registered?
 1. Improve the UI.
 1. Consider collecting historical values for more of the counters
-
+1. Consider a simple username/password (basic auth) for authentication

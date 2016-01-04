@@ -44,11 +44,11 @@ module.exports = React.createClass({
                 </div>
                 <div className="row" style={{marginTop: "25px"}}>
                     <div className="col-md-6">
-                        <h4>Silo counters</h4>
+                        <h4>Silo Counters</h4>
                         <PropertiesWidget data={properties}/>
                     </div>
                     <div className="col-md-6">
-                        <h4>Grains</h4>
+                        <h4>Activations by Type</h4>
                         <GrainBreakdown data={grainStats}/>
                     </div>
                 </div>
