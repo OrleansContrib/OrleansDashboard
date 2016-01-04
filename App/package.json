@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "eventthing": "^1.0.7",
     "react": "^0.14.3",
-    "reactify": "^1.1.1"
+    "reactify": "^1.1.1",
+    "react-chartjs": "^0.6.0"
   },
   "devDependencies": {},
   "scripts": {

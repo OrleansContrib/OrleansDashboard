@@ -7,6 +7,7 @@ module.exports = React.createClass({
 	},
 
     getWidth:function(){
+        if (!this.refs.container) return;
 		this.setState({width: this.refs.container.offsetWidth});
 	},
 

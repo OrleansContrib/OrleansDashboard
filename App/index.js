@@ -4,48 +4,62 @@ var Dashboard = require('./components/dashboard.jsx');
 var routie = require('./lib/routie');
 var SiloDrilldown = require('./components/silo-drilldown.jsx');
 var target = document.getElementById('content');
-
+var events = require('eventthing');
 var timer;
 
-/*
-routie('',function(){
-    routie('/');
-});
-*/
+var dashboardCounters = {};
+
+// continually poll the dashboard counters
+function loadDashboardCounters(){
+    http.get('/DashboardCounters', function(err, data){
+        dashboardCounters = data;
+        events.emit('dashboard-counters', data);
+    });
+}
+setInterval(loadDashboardCounters, 5000);
+loadDashboardCounters();
+
+
+function renderLoading(){
+    React.render(<span>Loading...</span>, target);
+}
+
 routie('', function(){
+    events.clearAll();
     clearInterval(timer);
 
-    var loadData = function(cb){
-        http.get('/DashboardCounters', cb);
+    var render = function(){
+        React.render(<Dashboard dashboardCounters={dashboardCounters} />, target);
     }
 
-    var render = function(err, data){
-        React.render(<Dashboard dashboardCounters={data} />, target);
-    }
+    events.on('dashboard-counters', render);
 
-    loadData(render);
+    loadDashboardCounters();
 
-    timer = setInterval(function(){
-        loadData(render);
-    }, 5000);
+
 });
 
 
 routie('/host/:host', function(host){
+    events.clearAll();
     clearInterval(timer);
 
+    var siloData = {};
     var loadData = function(cb){
-        http.get('/RuntimeStats/' + host, cb);
+        http.get('/RuntimeStats/' + host, function(err, data){
+            siloData = data;
+            render();
+        });
     }
 
-    var render = function(err, data){
-        React.render(<SiloDrilldown silo={host} data={data} />, target);
+
+    var render = function(){
+        React.render(<SiloDrilldown silo={host} data={siloData} dashboardCounters={dashboardCounters}  />, target);
     }
 
-    loadData(render);
+    events.on('dashboard-counters', render);
 
-    timer = setInterval(function(){
-        loadData(render);
-    }, 5000);
+    timer = setInterval(loadData, 5000);
 
+    loadData();
 });

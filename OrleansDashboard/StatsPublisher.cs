@@ -11,7 +11,7 @@ using Orleans;
 
 namespace OrleansDashboard
 {
-
+    /*
     public class StatsPublisher : IConfigurableStatisticsPublisher, IConfigurableSiloMetricsDataPublisher, IConfigurableClientMetricsDataPublisher, IProvider
     {
         public string Name
@@ -81,4 +81,5 @@ namespace OrleansDashboard
 
 
     }
+    */
 }

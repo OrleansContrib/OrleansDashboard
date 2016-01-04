@@ -17,9 +17,9 @@ namespace OrleansDashboard
         {
             this.Get["/"] = Index;
             this.Get["/index.min.js"] = IndexJs;
-            this.Get["/SiloPerformanceMetrics"] = GetSiloPerformanceMetrics;
-            this.Get["/ClientPerformanceMetrics"] = GetClientPerformanceMetrics;
-            this.Get["/Counters"] = GetCounters;
+            //this.Get["/SiloPerformanceMetrics"] = GetSiloPerformanceMetrics;
+            //this.Get["/ClientPerformanceMetrics"] = GetClientPerformanceMetrics;
+            //this.Get["/Counters"] = GetCounters;
             this.Get["/DashboardCounters"] = GetDashboardCounters;
             this.Get["/RuntimeStats/{address}"] = GetRuntimeStats;
         }
@@ -44,6 +44,7 @@ namespace OrleansDashboard
             return ReturnFile("index.min.js", "application/javascript");
         }
 
+        /*
         object GetSiloPerformanceMetrics(dynamic parameters)
         {
             return this.Response.AsJson(StatsPublisher.SiloPerformanceMetrics);
@@ -58,18 +59,19 @@ namespace OrleansDashboard
         {
             return this.Response.AsJson(StatsPublisher.Counters);
         }
+        */
 
         object GetDashboardCounters(dynamic parameters)
         {
-            return this.Response.AsJson(Dashboard.Counters);
+            var grain = Dashboard.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+
+            var result = Dispatch(async () => {
+                return await grain.GetCounters();
+            });
+
+            return this.Response.AsJson(result);
         }
 
-
-        object Dispatch(Func<Task<object>> func)
-        {
-            var result = Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: Dashboard.OrleansTS).Result;
-            return result.Result;
-        }
 
         object GetRuntimeStats(dynamic parameters)
         {
@@ -81,6 +83,13 @@ namespace OrleansDashboard
             });
 
             return this.Response.AsJson(result);
+        }
+
+
+        object Dispatch(Func<Task<object>> func)
+        {
+            var result = Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: Dashboard.OrleansTS).Result;
+            return result.Result;
         }
 
     }

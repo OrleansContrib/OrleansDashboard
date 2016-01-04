@@ -10,5 +10,7 @@ namespace OrleansDashboard
     public interface IDashboardGrain : IGrainWithIntegerKey
     {
         Task Init();
+
+        Task<DashboardCounters> GetCounters();
     }
 }

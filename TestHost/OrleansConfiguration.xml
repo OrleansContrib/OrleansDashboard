@@ -5,9 +5,14 @@
     <BootstrapProviders>
       <Provider Type="OrleansDashboard.Dashboard" Name="Dashboard" />
     </BootstrapProviders>
+    
+    
+    <!-- experimental stats provider
+    
     <StatisticsProviders>
       <Provider Type="OrleansDashboard.StatsPublisher" Name="Dashboard"/>
     </StatisticsProviders>
+    -->
     
     <StorageProviders>
       <!--<Provider Type="Orleans.Storage.MemoryStorage" Name="PubSubStore" NumStorageGrains="1"/>

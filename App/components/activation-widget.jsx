@@ -17,7 +17,7 @@ module.exports = React.createClass({
             </div>
             <div>
                 <h4>Activations by Type</h4>
-                <GrainBreakdown dashboardCounters={this.props.dashboardCounters}/>
+                <GrainBreakdown data={this.props.dashboardCounters.simpleGrainStats}/>
             </div>
         </div>
     }

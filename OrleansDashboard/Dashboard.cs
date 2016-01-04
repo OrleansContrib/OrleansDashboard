@@ -16,7 +16,6 @@ namespace OrleansDashboard
         NancyHost host;
         Logger logger;
 
-        public static DashboardCounters Counters { get; set; }
 
         public static int HistoryLength
         {
@@ -43,29 +42,26 @@ namespace OrleansDashboard
             return TaskDone.Done;
         }
 
-        public static IProviderRuntime ProviderRuntime {get;private set;}
+        public static IProviderRuntime ProviderRuntime { get; private set; }
 
-        public async Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
+        public Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
         {
 
-            OrleansTS = TaskScheduler.Current;
+            Dashboard.OrleansTS = TaskScheduler.Current;
+            Dashboard.ProviderRuntime = providerRuntime;
 
-            Counters = new DashboardCounters();
-
-            ProviderRuntime = providerRuntime;
-
-            logger = providerRuntime.GetLogger("Dashboard");
+            this.logger = providerRuntime.GetLogger("Dashboard");
 
             var port = config.Properties.ContainsKey("port") ? int.Parse(config.Properties["port"]) : 8080;
             var url = $"http://localhost:{port}";
 
-            host = new NancyHost(new Uri(url));
-            host.Start();
+            this.host = new NancyHost(new Uri(url));
+            this.host.Start();
 
-            logger.Verbose($"Dashboard listening on {url}");
+            this.logger.Verbose($"Dashboard listening on {url}");
 
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
-            await dashboardGrain.Init();
+            return dashboardGrain.Init();
         }
     }
 }

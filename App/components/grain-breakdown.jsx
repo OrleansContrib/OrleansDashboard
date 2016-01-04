@@ -3,13 +3,15 @@ var React = require('react');
 module.exports = React.createClass({
     renderStat:function(stat){
         return <tr key={stat.grainType}>
-            <td>{stat.grainType}</td>
+            <td style={{textOverflow: "ellipsis"}}>{stat.grainType}</td>
             <td><span className="pull-right"><strong>{stat.activationCount}</strong> <small>activations</small></span></td>
         </tr>
     },
     render:function(){
         var grainTypes = {};
-        this.props.dashboardCounters.simpleGrainStats.forEach(function(stat){
+        if (!this.props.data) return null;
+        
+        this.props.data.forEach(function(stat){
             grainTypes[stat.grainType] = (grainTypes[stat.grainType] || 0) + stat.activationCount;
         });
 

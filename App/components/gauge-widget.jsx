@@ -10,14 +10,22 @@ module.exports = React.createClass({
 		this.setState({width: this.refs.container.offsetWidth});
 	},
 
+    getColour:function(){
+        var percent = 100 * this.props.value / this.props.max;
+        if (percent > 90) return '#c9302c';
+        if (percent > 66) return '#ec971f';
+
+        return '#337ab7';
+    },
+
     renderChart: function() {
         if (this.state.width === 0) return setTimeout(this.getWidth,0)
 
         var data = [
             {
                 value: this.props.value,
-                color:"#F7464A",
-                highlight: "#FF5A5E",
+                color: this.getColour(),
+                highlight: this.getColour(),
                 label: "Utilization"
             },
             {
@@ -27,8 +35,7 @@ module.exports = React.createClass({
                 label: ""
             }
         ]
-        console.log(data);
-		return <Chart data={data}  width={this.state.width} height={200} />
+		return <Chart data={data} options={{showTooltips:false}} width={this.state.width} height={200} />
 	},
 
     render:function(){
