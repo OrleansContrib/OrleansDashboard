@@ -40,10 +40,10 @@ You can change the port number that the dashboard runs on in the configuration:
 
 ## Todo
 
-[x] ~~Find a workaround to the Windows namespace reservations~~
-[ ] Consider additional data sources
-[ ] Consider allowing activation / garbage collection from the UI
-[ ] Allow custom counters to be registered?
-[ ] Improve the UI.
-[ ] Consider collecting historical values for more of the counters
-[ ] Consider a simple username/password (basic auth) for authentication
+* ~~Find a workaround to the Windows namespace reservations~~
+* Consider additional data sources
+* Consider allowing activation / garbage collection from the UI
+* Allow custom counters to be registered?
+* Improve the UI.
+* Consider collecting historical values for more of the counters
+* Consider a simple username/password (basic auth) for authentication
