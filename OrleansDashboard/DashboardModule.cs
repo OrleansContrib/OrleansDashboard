@@ -1,68 +1,86 @@
-﻿using Nancy;
-using Nancy.Responses;
-using Orleans;
-using Orleans.Runtime;
+﻿using Orleans.Runtime;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.Owin;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Orleans.Providers;
+using Newtonsoft.Json.Serialization;
 
 namespace OrleansDashboard
 {
-    public class DashboardModule : NancyModule
+
+    public static class ExtensionMethods
     {
-        public DashboardModule()
+        public static async Task ReturnFile(this IOwinContext context, string name, string contentType)
         {
-            this.Get["/"] = Index;
-            this.Get["/index.min.js"] = IndexJs;
+            context.Response.ContentType = contentType;
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream($"OrleansDashboard.{name}"))
+            using (var reader = new StreamReader(stream))
+            {
+                var content = await reader.ReadToEndAsync();
+                await context.Response.WriteAsync(content);
+            }
+        }
+
+        public static Task ReturnJson(this IOwinContext context, object value)
+        {
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync(
+                JsonConvert.SerializeObject(value, 
+                new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }));
+        }
+
+    }
+
+    public class DashboardModule 
+    {
+        public TaskScheduler TaskScheduler { get; private set; }
+        public IProviderRuntime ProviderRuntime { get; private set; }
+
+
+        public DashboardModule(Router router, TaskScheduler taskScheduler, IProviderRuntime providerRuntime)
+        {
+
+            this.TaskScheduler = taskScheduler;
+            this.ProviderRuntime = providerRuntime;
+
+            Action<string, Func<IOwinContext, IDictionary<string, string>, Task>> add = router.Add;
+
+            add("/", Index);
+            add("/index.min.js", IndexJs);
+            add("/DashboardCounters", GetDashboardCounters);
+            add("/RuntimeStats/:address", GetRuntimeStats);
+
+            
             //this.Get["/SiloPerformanceMetrics"] = GetSiloPerformanceMetrics;
             //this.Get["/ClientPerformanceMetrics"] = GetClientPerformanceMetrics;
             //this.Get["/Counters"] = GetCounters;
-            this.Get["/DashboardCounters"] = GetDashboardCounters;
-            this.Get["/RuntimeStats/{address}"] = GetRuntimeStats;
-            this.Post["/ForceActivationCollection/{timespan:int}/{address?}"] = PostForceActivationCollection;
+            //add("/ForceActivationCollection/{timespan:int}/{address?}", PostForceActivationCollection);
         }
 
-        StreamResponse ReturnFile(string name, string contentType)
+
+
+        Task Index(IOwinContext context, IDictionary<string,string> parameters)
         {
-            var func = new Func<Stream>(() => 
-            {
-                var assembly = Assembly.GetExecutingAssembly();
-                return assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
-            });
-            return new StreamResponse(func, contentType);
+            return context.ReturnFile("Index.html", "text/html");
         }
 
-        StreamResponse Index(dynamic parameters)
+        Task IndexJs(IOwinContext context, IDictionary<string, string> parameters)
         {
-            return ReturnFile("Index.html", "text/html");
+            return context.ReturnFile("index.min.js", "application/javascript");
         }
 
-        StreamResponse IndexJs(dynamic parameters)
-        {
-            return ReturnFile("index.min.js", "application/javascript");
-        }
 
         /*
-        object GetSiloPerformanceMetrics(dynamic parameters)
-        {
-            return this.Response.AsJson(StatsPublisher.SiloPerformanceMetrics);
-        }
-
-        object GetClientPerformanceMetrics(dynamic parameters)
-        {
-            return this.Response.AsJson(StatsPublisher.ClientPerformanceMetrics);
-        }
-
-        object GetCounters(dynamic parameters)
-        {
-            return this.Response.AsJson(StatsPublisher.Counters);
-        }
-        */
-
-
         object PostForceActivationCollection(dynamic parameters)
         {
             var grain = Dashboard.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
@@ -88,36 +106,36 @@ namespace OrleansDashboard
 
             return this.Response.AsJson(new { });
         }
+        */
 
-        object GetDashboardCounters(dynamic parameters)
+        async Task GetDashboardCounters(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var grain = Dashboard.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
-            var result = Dispatch(async () => {
+            var result = await Dispatch(async () => {
                 return await grain.GetCounters();
             });
 
-            return this.Response.AsJson(result);
+            await context.ReturnJson(result);
         }
 
 
-        object GetRuntimeStats(dynamic parameters)
+        async Task GetRuntimeStats(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var address = SiloAddress.FromParsableString((string) parameters.address);
-            var grain = Dashboard.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
+            var address = SiloAddress.FromParsableString(parameters["address"]);
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
 
-            var result = Dispatch(async () => {
+            var result = await Dispatch(async () => {
                 return (await grain.GetRuntimeStatistics(new SiloAddress[] { address })).FirstOrDefault();
             });
 
-            return this.Response.AsJson(result);
+            await context.ReturnJson(result);
         }
 
 
-        object Dispatch(Func<Task<object>> func)
+        Task<object> Dispatch(Func<Task<object>> func)
         {
-            var result = Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: Dashboard.OrleansTS).Result;
-            return result.Result;
+            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: this.TaskScheduler).Result;
         }
 
     }

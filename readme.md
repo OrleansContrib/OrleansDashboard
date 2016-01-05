@@ -26,18 +26,7 @@ Nuget is currently not available (coming soon).
     ...
 ```
 
-* Run the Orleans host elevated.
 * Open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
-
-## Why run Orleans elevated?
-
-...because of [namespace reservations on Windows](https://github.com/NancyFx/Nancy/wiki/Self-Hosting-Nancy#namespace-reservations).
-
-Alternatively you can run an `netsh` command and run without elevation:
-
-```
-netsh http add urlacl url=http://+:8080/ user=Everyone
-```
 
 ## Running on an alternative port
 
@@ -51,10 +40,10 @@ You can change the port number that the dashboard runs on in the configuration:
 
 ## Todo
 
-1. Find a workaround to the Windows namespace reservations
-1. Consider additional data sources
-1. Consider allowing activation / garbage collection from the UI
-1. Allow custom counters to be registered?
-1. Improve the UI.
-1. Consider collecting historical values for more of the counters
-1. Consider a simple username/password (basic auth) for authentication
+[x] ~~Find a workaround to the Windows namespace reservations~~
+[ ] Consider additional data sources
+[ ] Consider allowing activation / garbage collection from the UI
+[ ] Allow custom counters to be registered?
+[ ] Improve the UI.
+[ ] Consider collecting historical values for more of the counters
+[ ] Consider a simple username/password (basic auth) for authentication

@@ -1,4 +1,4 @@
-﻿using Nancy.Hosting.Self;
+﻿using Microsoft.Owin.Hosting;
 using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
@@ -13,9 +13,9 @@ namespace OrleansDashboard
 {
     public class Dashboard : IBootstrapProvider
     {
-        NancyHost host;
+        IDisposable host;
         Logger logger;
-
+        DashboardModule module;
 
         public static int HistoryLength
         {
@@ -33,32 +33,29 @@ namespace OrleansDashboard
             }
         }
 
-        public static TaskScheduler OrleansTS { get; private set; }
 
         public Task Close()
         {
-            host.Stop();
             host.Dispose();
             return TaskDone.Done;
         }
 
-        public static IProviderRuntime ProviderRuntime { get; private set; }
 
         public Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
         {
-
-            Dashboard.OrleansTS = TaskScheduler.Current;
-            Dashboard.ProviderRuntime = providerRuntime;
-
             this.logger = providerRuntime.GetLogger("Dashboard");
 
-            var port = config.Properties.ContainsKey("port") ? int.Parse(config.Properties["port"]) : 8080;
-            var url = $"http://localhost:{port}";
+            module = new DashboardModule(WebServer.Router, TaskScheduler.Current,  providerRuntime);
 
-            this.host = new NancyHost(new Uri(url));
-            this.host.Start();
+            var options = new StartOptions
+            {
+                ServerFactory = "Nowin",
+                Port = config.Properties.ContainsKey("port") ? int.Parse(config.Properties["port"]) : 8080
+            };
 
-            this.logger.Verbose($"Dashboard listening on {url}");
+            host = WebApp.Start<WebServer>(options);
+
+            this.logger.Verbose($"Dashboard listening on {options.Port}");
 
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
             return dashboardGrain.Init();
