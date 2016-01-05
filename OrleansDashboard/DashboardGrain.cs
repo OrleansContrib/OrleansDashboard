@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
+    [Reentrant]
     public class DashboardGrain : Grain, IDashboardGrain
     {
         DashboardCounters Counters { get; set; }

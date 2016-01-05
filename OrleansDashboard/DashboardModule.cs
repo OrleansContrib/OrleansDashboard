@@ -22,6 +22,7 @@ namespace OrleansDashboard
             //this.Get["/Counters"] = GetCounters;
             this.Get["/DashboardCounters"] = GetDashboardCounters;
             this.Get["/RuntimeStats/{address}"] = GetRuntimeStats;
+            this.Post["/ForceActivationCollection/{timespan:int}/{address?}"] = PostForceActivationCollection;
         }
 
         StreamResponse ReturnFile(string name, string contentType)
@@ -60,6 +61,33 @@ namespace OrleansDashboard
             return this.Response.AsJson(StatsPublisher.Counters);
         }
         */
+
+
+        object PostForceActivationCollection(dynamic parameters)
+        {
+            var grain = Dashboard.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
+            var timespan = TimeSpan.FromSeconds(parameters.timespan);
+
+            if (parameters.address.HasValue)
+            {
+                var address = SiloAddress.FromParsableString((string)parameters.address);
+                Dispatch(async () =>
+                {
+                    await grain.ForceActivationCollection(new SiloAddress[] { address }, timespan);
+                    return "";
+                });
+            }
+            else
+            {
+                Dispatch(async () =>
+                {
+                    await grain.ForceActivationCollection(timespan);
+                    return "";
+                });
+            }
+
+            return this.Response.AsJson(new { });
+        }
 
         object GetDashboardCounters(dynamic parameters)
         {
