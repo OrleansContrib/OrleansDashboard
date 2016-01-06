@@ -1,45 +1,14 @@
-﻿using Orleans.Runtime;
+﻿using Microsoft.Owin;
+using Orleans.Providers;
+using Orleans.Runtime;
 using System;
-using System.IO;
-using System.Reflection;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
-using Microsoft.Owin;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using Orleans.Providers;
-using Newtonsoft.Json.Serialization;
 
 namespace OrleansDashboard
 {
-
-    public static class ExtensionMethods
-    {
-        public static async Task ReturnFile(this IOwinContext context, string name, string contentType)
-        {
-            context.Response.ContentType = contentType;
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var stream = assembly.GetManifestResourceStream($"OrleansDashboard.{name}"))
-            using (var reader = new StreamReader(stream))
-            {
-                var content = await reader.ReadToEndAsync();
-                await context.Response.WriteAsync(content);
-            }
-        }
-
-        public static Task ReturnJson(this IOwinContext context, object value)
-        {
-            context.Response.ContentType = "application/json";
-            return context.Response.WriteAsync(
-                JsonConvert.SerializeObject(value, 
-                new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                }));
-        }
-
-    }
 
     public class DashboardModule 
     {

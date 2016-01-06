@@ -45,15 +45,19 @@ namespace OrleansDashboard
         {
             this.logger = providerRuntime.GetLogger("Dashboard");
 
-            module = new DashboardModule(WebServer.Router, TaskScheduler.Current,  providerRuntime);
+            var router = new Router();
+            module = new DashboardModule(router, TaskScheduler.Current,  providerRuntime);
 
             var options = new StartOptions
             {
                 ServerFactory = "Nowin",
-                Port = config.Properties.ContainsKey("port") ? int.Parse(config.Properties["port"]) : 8080
+                Port = config.Properties.ContainsKey("Port") ? int.Parse(config.Properties["Port"]) : 8080,
             };
 
-            host = WebApp.Start<WebServer>(options);
+            var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
+            var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
+
+            host = WebApp.Start(options, app => new WebServer(router, username, password).Configuration(app));
 
             this.logger.Verbose($"Dashboard listening on {options.Port}");
 

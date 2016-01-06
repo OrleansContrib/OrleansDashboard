@@ -28,13 +28,17 @@ Nuget is currently not available (coming soon).
 
 * Open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
 
-## Running on an alternative port
+## Configuring the Dashboard
 
-You can change the port number that the dashboard runs on in the configuration:
+The dashboard supports the following attributes in the configuration:
+
+* `Port` : Set the the number for the dashboard to listen on.
+* `Username` : Set a username for accessing the dashboard (basic auth).
+* `Password` : Set a password for accessing the dashboard (basic auth).
 
 ```xml
 <BootstrapProviders>
-    <Provider Type="OrleansDashboard.Dashboard" Name="Dashboard" port="1234" />
+    <Provider Type="OrleansDashboard.Dashboard" Name="Dashboard" Port="1234" Username="my_username" Password="my_password" />
 </BootstrapProviders>
 ```
 
@@ -46,4 +50,4 @@ You can change the port number that the dashboard runs on in the configuration:
 * Allow custom counters to be registered?
 * Improve the UI.
 * Consider collecting historical values for more of the counters
-* Consider a simple username/password (basic auth) for authentication
+* ~~Consider a simple username/password (basic auth) for authentication~~
