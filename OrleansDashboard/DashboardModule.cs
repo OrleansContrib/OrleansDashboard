@@ -94,9 +94,21 @@ namespace OrleansDashboard
             var address = SiloAddress.FromParsableString(parameters["address"]);
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
 
-            var result = await Dispatch(async () => {
-                return (await grain.GetRuntimeStatistics(new SiloAddress[] { address })).FirstOrDefault();
+            var result = await Dispatch(async () =>
+            {
+                Dictionary<SiloAddress, SiloStatus> silos = await grain.GetHosts(true);
+
+                SiloStatus siloStatus;
+                if (silos.TryGetValue(address, out siloStatus))
+                {
+                    return (await grain.GetRuntimeStatistics(new SiloAddress[] { address })).FirstOrDefault();
+                }
+                else
+                {
+                    return null;
+                }
             });
+
 
             await context.ReturnJson(result);
         }
