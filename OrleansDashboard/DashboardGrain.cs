@@ -19,7 +19,7 @@ namespace OrleansDashboard
 
             var metricsGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             var activationCountTask = metricsGrain.GetTotalActivationCount();
-            var hostsTask = metricsGrain.GetHosts();
+            var hostsTask = metricsGrain.GetHosts(true);
             var simpleGrainStatsTask = metricsGrain.GetSimpleGrainStatistics();
 
             await Task.WhenAll(activationCountTask, hostsTask, simpleGrainStatsTask);
