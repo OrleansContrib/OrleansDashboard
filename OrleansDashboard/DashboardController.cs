@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 namespace OrleansDashboard
 {
 
-    public class DashboardModule 
+    public class DashboardController 
     {
         public TaskScheduler TaskScheduler { get; private set; }
         public IProviderRuntime ProviderRuntime { get; private set; }
 
 
-        public DashboardModule(Router router, TaskScheduler taskScheduler, IProviderRuntime providerRuntime)
+        public DashboardController(Router router, TaskScheduler taskScheduler, IProviderRuntime providerRuntime)
         {
 
             this.TaskScheduler = taskScheduler;
@@ -28,8 +28,9 @@ namespace OrleansDashboard
             add("/index.min.js", IndexJs);
             add("/DashboardCounters", GetDashboardCounters);
             add("/RuntimeStats/:address", GetRuntimeStats);
+            add("/HistoricalStats/:address", GetHistoricalStats);
 
-            
+
             //this.Get["/SiloPerformanceMetrics"] = GetSiloPerformanceMetrics;
             //this.Get["/ClientPerformanceMetrics"] = GetClientPerformanceMetrics;
             //this.Get["/Counters"] = GetCounters;
@@ -93,22 +94,31 @@ namespace OrleansDashboard
         {
             var address = SiloAddress.FromParsableString(parameters["address"]);
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
-
+            
             var result = await Dispatch(async () =>
             {
                 Dictionary<SiloAddress, SiloStatus> silos = await grain.GetHosts(true);
-
+                
                 SiloStatus siloStatus;
                 if (silos.TryGetValue(address, out siloStatus))
                 {
                     return (await grain.GetRuntimeStatistics(new SiloAddress[] { address })).FirstOrDefault();
                 }
-                else
-                {
-                    return null;
-                }
+                return null;
             });
 
+
+            await context.ReturnJson(result);
+        }
+
+        async Task GetHistoricalStats(IOwinContext context, IDictionary<string, string> parameters)
+        {
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(parameters["address"]);
+
+            var result = await Dispatch(async () =>
+            {
+                return await grain.GetRuntimeStatistics();
+            });
 
             await context.ReturnJson(result);
         }

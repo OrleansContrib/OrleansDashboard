@@ -44,9 +44,9 @@ routie('/host/:host', function(host){
     events.clearAll();
     clearInterval(timer);
 
-    var siloData = {};
+    var siloData = [];
     var loadData = function(cb){
-        http.get('/RuntimeStats/' + host, function(err, data){
+        http.get('/HistoricalStats/' + host, function(err, data){
             siloData = data;
             render();
         });

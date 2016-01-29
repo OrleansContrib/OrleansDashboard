@@ -3,22 +3,32 @@ var Gauge = require('./gauge-widget.jsx');
 var PropertiesWidget = require('./properties-widget.jsx');
 var GrainBreakdown = require('./grain-breakdown.jsx');
 var SiloState = require('./silo-state.jsx');
+var ChartWidget = require('./chart-widget.jsx');
+var TwoSeriesChartWidget = require('./twoseries-chart-widget.jsx');
 
 module.exports = React.createClass({
 
     renderOverloaded:function(){
-        if (!this.props.data.isOverloaded) return null;
+        if (!this.props.data[this.props.data.length-1].isOverloaded) return null;
         return <small><span className="label label-danger">OVERLOADED</span> <SiloState status={status}/></small>
     },
 
+    querySeries:function(lambda){
+        return this.props.data.map(function(x){
+            if (!x) return 0;
+            return lambda(x);
+        });
+    },
+
     render:function(){
+        var last = this.props.data[this.props.data.length-1];
         var properties = {
-            "Clients" : this.props.data.clientCount || '0',
-            "Messages recieved" : this.props.data.receivedMessages || '0',
-            "Messages sent" : this.props.data.sentMessages || '0',
-            "Receive queue" : this.props.data.receiveQueueLength || '0',
-            "Request queue" : this.props.data.requestQueueLength || '0',
-            "Send queue" : this.props.data.sendQueueLength || '0'
+            "Clients" : last.clientCount || '0',
+            "Messages recieved" : last.receivedMessages || '0',
+            "Messages sent" : last.sentMessages || '0',
+            "Receive queue" : last.receiveQueueLength || '0',
+            "Request queue" : last.requestQueueLength || '0',
+            "Send queue" : last.sendQueueLength || '0'
         };
 
         var grainStats = (this.props.dashboardCounters.simpleGrainStats || []).filter(function(x){
@@ -33,13 +43,16 @@ module.exports = React.createClass({
             <div className="well">
                 <div className="row">
                     <div className="col-md-4">
-                        <Gauge value={this.props.data.cpuUsage} max={100} title="CPU Usage" description={Math.floor(this.props.data.cpuUsage) + "%"}/>
+                        <Gauge value={last.cpuUsage} max={100} title="CPU Usage" description={Math.floor(last.cpuUsage) + "%"}/>
+                        <ChartWidget series={this.querySeries(function (x){ return x.cpuUsage })} />
                     </div>
                     <div className="col-md-4">
-                        <Gauge value={this.props.data.totalPhysicalMemory - this.props.data.availableMemory} max={this.props.data.totalPhysicalMemory} title="Memory Usage"  description={Math.floor(this.props.data.availableMemory / (1024 * 1024)) + " MB Free"}/>
+                        <Gauge value={last.totalPhysicalMemory - last.availableMemory} max={last.totalPhysicalMemory} title="Memory Usage"  description={Math.floor(last.availableMemory / (1024 * 1024)) + " MB Free"}/>
+                        <ChartWidget series={this.querySeries(function(x){ return (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024)})} />
                     </div>
                     <div className="col-md-4">
-                        <Gauge value={this.props.data.recentlyUsedActivationCount} max={this.props.data.activationCount} title="Grain Usage"  description={Math.floor(this.props.data.recentlyUsedActivationCount * 100 / this.props.data.activationCount) + "% active grains"}/>
+                        <Gauge value={last.recentlyUsedActivationCount} max={last.activationCount} title="Grain Usage"  description={Math.floor(last.recentlyUsedActivationCount * 100 / last.activationCount) + "% active grains"}/>
+                        <TwoSeriesChartWidget series={[this.querySeries(function(x){ return x.activationCount}), this.querySeries(function(x){ return x.recentlyUsedActivationCount})]} />
                     </div>
                 </div>
                 <div className="row" style={{marginTop: "25px"}}>

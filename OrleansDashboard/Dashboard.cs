@@ -45,7 +45,7 @@ namespace OrleansDashboard
             this.logger = providerRuntime.GetLogger("Dashboard");
 
             var router = new Router();
-            new DashboardModule(router, TaskScheduler.Current,  providerRuntime);
+            new DashboardController(router, TaskScheduler.Current,  providerRuntime);
 
             var options = new StartOptions
             {
