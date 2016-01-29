@@ -15,7 +15,6 @@ namespace OrleansDashboard
     {
         IDisposable host;
         Logger logger;
-        DashboardModule module;
 
         public static int HistoryLength
         {
@@ -46,7 +45,7 @@ namespace OrleansDashboard
             this.logger = providerRuntime.GetLogger("Dashboard");
 
             var router = new Router();
-            module = new DashboardModule(router, TaskScheduler.Current,  providerRuntime);
+            new DashboardModule(router, TaskScheduler.Current,  providerRuntime);
 
             var options = new StartOptions
             {
