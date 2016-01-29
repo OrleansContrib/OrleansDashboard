@@ -51,7 +51,7 @@ module.exports = React.createClass({
                         <ChartWidget series={this.querySeries(function(x){ return (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024)})} />
                     </div>
                     <div className="col-md-4">
-                        <Gauge value={last.recentlyUsedActivationCount} max={last.activationCount} title="Grain Usage"  description={Math.floor(last.recentlyUsedActivationCount * 100 / last.activationCount) + "% active grains"}/>
+                        <Gauge value={last.recentlyUsedActivationCount} max={last.activationCount} title="Grain Usage"  description={last.activationCount + " activations, " + Math.floor(last.recentlyUsedActivationCount * 100 / last.activationCount) + "% recently used"}/>
                         <TwoSeriesChartWidget series={[this.querySeries(function(x){ return x.activationCount}), this.querySeries(function(x){ return x.recentlyUsedActivationCount})]} />
                     </div>
                 </div>
