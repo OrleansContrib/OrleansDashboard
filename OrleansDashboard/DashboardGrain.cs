@@ -16,7 +16,6 @@ namespace OrleansDashboard
 
         async Task Callback(object _)
         {
-
             var metricsGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             var activationCountTask = metricsGrain.GetTotalActivationCount();
             var hostsTask = metricsGrain.GetHosts(true);
@@ -24,10 +23,10 @@ namespace OrleansDashboard
 
             await Task.WhenAll(activationCountTask, hostsTask, simpleGrainStatsTask);
 
-           this.Counters.TotalActivationCount = activationCountTask.Result;
-           this.Counters.TotalActiveHostCount = hostsTask.Result.Values.Count(x => x == SiloStatus.Active);
-           this.Counters.TotalActivationCountHistory.Enqueue(activationCountTask.Result);
-           this.Counters.TotalActiveHostCountHistory.Enqueue(this.Counters.TotalActiveHostCount);
+            this.Counters.TotalActivationCount = activationCountTask.Result;
+            this.Counters.TotalActiveHostCount = hostsTask.Result.Values.Count(x => x == SiloStatus.Active);
+            this.Counters.TotalActivationCountHistory.Enqueue(activationCountTask.Result);
+            this.Counters.TotalActiveHostCountHistory.Enqueue(this.Counters.TotalActiveHostCount);
             
             while (this.Counters.TotalActivationCountHistory.Count > Dashboard.HistoryLength)
             {

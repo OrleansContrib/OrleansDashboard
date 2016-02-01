@@ -30,7 +30,6 @@ namespace OrleansDashboard
             add("/RuntimeStats/:address", GetRuntimeStats);
             add("/HistoricalStats/:address", GetHistoricalStats);
 
-
             //this.Get["/SiloPerformanceMetrics"] = GetSiloPerformanceMetrics;
             //this.Get["/ClientPerformanceMetrics"] = GetClientPerformanceMetrics;
             //this.Get["/Counters"] = GetCounters;
