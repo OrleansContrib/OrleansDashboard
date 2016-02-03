@@ -12,11 +12,14 @@ An admin dashboard for Microsoft Orleans.
 
 ## Installation
 
-Nuget is currently not available (coming soon).
+Using the Pacakge Manager Console:
 
-* Build this project.
-* Copy the assemblies to the location of your Orleans host.
-* Add this bootstrap provider to your Orleans configuration:
+```
+PM> Install-Package OrleansDashboard
+```
+
+Then add this bootstrap provider to your Orleans silo configuration:
+
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
