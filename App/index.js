@@ -5,9 +5,12 @@ var routie = require('./lib/routie');
 var SiloDrilldown = require('./components/silo-drilldown.jsx');
 var target = document.getElementById('content');
 var events = require('eventthing');
+var ThemeButtons = require('./components/theme-buttons.jsx');
 var timer;
 
 var dashboardCounters = {};
+
+React.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
 
 // continually poll the dashboard counters
 function loadDashboardCounters(){
@@ -63,3 +66,4 @@ routie('/host/:host', function(host){
 
     loadData();
 });
+

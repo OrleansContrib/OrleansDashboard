@@ -5,10 +5,45 @@
         <title>Orleans Dashboard</title>
         <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
         <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+        <link href='https://fonts.googleapis.com/css?family=Lato:400,300' rel='stylesheet' type='text/css'>
+        <style>
+            body {
+                font-family: 'Lato', sans-serif;
+            }
+            h2, h3, h4 {
+                font-weight:300;
+                text-transform: uppercase;
+            }
+            h1{
+                font-weight:bold;
+            }
+        </style>
+
+        <style id="dark-theme-style" media="">
+            body {
+                background-color: #111;
+                color: #d3d4d4;
+            }
+            .well {
+                background-color:#333;
+                border: 1px solid #444;
+            }
+
+            .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
+                border-top: 1px solid #444;
+            }
+
+        </style>
     </head>
     <body>
-        <div class="container"><h1>Orleans Dashboard</h1></div>
+        <div class="container">
+            <div class="pull-right" id="button-toggles-content"></div>
+            <h1>OrleansDashboard</h1>
+        </div>
         <div class="container" id="content"></div>
         <script src="/index.min.js"></script>
+        <div class="container">
+            <a href="https://github.com/OrleansContrib/OrleansDashboard">Fork on GitHub</a>
+        </div>
     </body>
 </html>

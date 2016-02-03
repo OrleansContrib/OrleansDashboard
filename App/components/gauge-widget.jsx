@@ -30,12 +30,12 @@ module.exports = React.createClass({
             },
             {
                 value: this.props.max - this.props.value,
-                color: "#EEE",
-                highlight: "#EEE",
+                color: "rgba(0,0,0,0.1)",
+                highlight: "rgba(0,0,0,0.1)",
                 label: ""
             }
         ]
-		return <Chart data={data} options={{showTooltips:false}} width={this.state.width} height={200} />
+		return <Chart data={data} options={{showTooltips:false, segmentStrokeColor : "rgba(0,0,0,0.2)", segmentStrokeWidth:1}} width={this.state.width} height={200} />
 	},
 
     render:function(){
