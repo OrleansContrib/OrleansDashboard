@@ -47,6 +47,25 @@ The dashboard supports the following attributes in the configuration:
 </BootstrapProviders>
 ```
 
+## Building the UI
+
+The user interface is react.js, using browserify to compose the javascript delivered to the browser.
+The HTML and JS files are embedded resources within the dashboard DLL.
+
+To build the UI, you must have node.js installed, and browserify:
+
+```
+$ npm install browserify -g
+```
+
+To build the `index.min.js` file, follow these steps.
+
+```
+cd App
+browserify -t reactify index.js > ../OrleansDashboard/index.min.js
+```
+Alternativly, open the `App` directory in VSCode and hit build (`[ctrl] [shft] [B]`)
+
 ## Todo
 
 * ~~Find a workaround to the Windows namespace reservations~~
@@ -54,5 +73,5 @@ The dashboard supports the following attributes in the configuration:
 * Consider allowing activation / garbage collection from the UI
 * Allow custom counters to be registered?
 * Improve the UI.
-* Consider collecting historical values for more of the counters
+* ~~Consider collecting historical values for more of the counters~~
 * ~~Consider a simple username/password (basic auth) for authentication~~
