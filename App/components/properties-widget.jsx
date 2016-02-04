@@ -4,7 +4,7 @@ module.exports = React.createClass({
     renderRow:function(key){
         return <tr key={key}>
             <td style={{textOverflow: "ellipsis"}}>{key}</td>
-            <td>{this.props.data[key]}</td>
+            <td style={{"textAlign":"right"}}>{this.props.data[key]}</td>
         </tr>
 
     },
