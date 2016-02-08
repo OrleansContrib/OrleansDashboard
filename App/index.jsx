@@ -10,6 +10,9 @@ var timer;
 
 var dashboardCounters = {};
 
+var x = () => console.log("test");
+x();
+
 React.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
 
 // continually poll the dashboard counters

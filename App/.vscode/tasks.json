@@ -4,6 +4,6 @@
 	"command": "browserify",
 	"isShellCommand": true,
 	"showOutput": "always",
-	"args": ["-t", "reactify", "index.js", ">", "../OrleansDashboard/index.min.js"],
+	"args": ["-t", "babelify", "index.jsx", "--outfile", "../OrleansDashboard/index.min.js"],
 	"problemMatcher": "$tsc"
 }
