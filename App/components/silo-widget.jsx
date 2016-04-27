@@ -1,7 +1,7 @@
 var React = require('react');
 
 var CounterWidget = require('./counter-widget.jsx');
-var ChartWidget = require('./chart-widget.jsx');
+var ChartWidget = require('./multi-series-chart-widget.jsx');
 var HostsWidget = require('./hosts-widget.jsx');
 
 module.exports = React.createClass({
@@ -12,7 +12,7 @@ module.exports = React.createClass({
                     <CounterWidget counter={this.props.dashboardCounters.totalActiveHostCount} title="Active Silos" />
                 </div>
                 <div className="col-md-9">
-                    <ChartWidget series={this.props.dashboardCounters.totalActiveHostCountHistory}/>
+                    <ChartWidget series={[this.props.dashboardCounters.totalActiveHostCountHistory]}/>
                 </div>
             </div>
             <div>
