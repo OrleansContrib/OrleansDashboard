@@ -4,10 +4,17 @@ var PropertiesWidget = require('./properties-widget.jsx');
 var GrainBreakdown = require('./grain-breakdown.jsx');
 var SiloState = require('./silo-state.jsx');
 var ChartWidget = require('./chart-widget.jsx');
-var TwoSeriesChartWidget = require('./twoseries-chart-widget.jsx');
+var TwoSeriesChartWidget = require('./multi-series-chart-widget.jsx');
+
+
 
 module.exports = React.createClass({
-
+    hasData:function(value){
+        for (var i = 0; i < value.length; i++){
+            if (value[i] !== null) return true;
+        }
+        return false;
+    },
     renderOverloaded:function(){
         if (!this.props.data[this.props.data.length-1].isOverloaded) return null;
         return <small><span className="label label-danger">OVERLOADED</span> <SiloState status={status}/></small>
@@ -21,6 +28,14 @@ module.exports = React.createClass({
     },
 
     render:function(){
+        if (!this.hasData(this.props.data)){
+            return <div>
+                <a href="#">&larr; Back to Dashboard</a>
+                <h2>Silo {this.props.silo}</h2>
+                <p className="lead">No data available for this silo</p>
+            </div>
+        }
+
         var last = this.props.data[this.props.data.length-1];
         var properties = {
             "Clients" : last.clientCount || '0',
@@ -38,7 +53,7 @@ module.exports = React.createClass({
         var status = (this.props.dashboardCounters.hosts || {})[this.props.silo];
 
         return <div>
-            <a href="#">&larr;Back to Dashboard</a>
+            <a href="#">&larr; Back to Dashboard</a>
             <h2>Silo {this.props.silo} <small><SiloState status={status}/></small> {this.renderOverloaded()}</h2>
             <div className="well">
                 <div className="row">

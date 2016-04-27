@@ -55,8 +55,14 @@ namespace OrleansDashboard
 
             var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
             var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
-
-            host = WebApp.Start(options, app => new WebServer(router, username, password).Configuration(app));
+            try
+            {
+                host = WebApp.Start(options, app => new WebServer(router, username, password).Configuration(app));
+            }
+            catch (Exception ex)
+            {
+                this.logger.Error(10001, ex.ToString());
+            }
 
             this.logger.Verbose($"Dashboard listening on {options.Port}");
 

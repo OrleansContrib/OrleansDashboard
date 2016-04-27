@@ -46,6 +46,7 @@ routie('', function(){
 });
 
 
+
 routie('/host/:host', function(host){
     events.clearAll();
     clearInterval(timer);
@@ -69,4 +70,3 @@ routie('/host/:host', function(host){
 
     loadData();
 });
-

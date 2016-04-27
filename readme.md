@@ -62,9 +62,8 @@ To build the `index.min.js` file, follow these steps.
 
 ```
 cd App
-browserify -t reactify index.js > ../OrleansDashboard/index.min.js
+browserify -t babelify index.jsx --outfile ../OrleansDashboard/index.min.js
 ```
-Alternativly, open the `App` directory in VSCode and hit build (`[ctrl] [shft] [B]`)
 
 ## Todo
 
