@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
-    public interface IDashboardGrain : IGrainWithIntegerKey
+    public interface IDashboardGrain : IGrain, IGrainWithIntegerKey
     {
         Task Init();
 
