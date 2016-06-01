@@ -22,14 +22,14 @@ namespace OrleansDashboard
                 stats.Enqueue(null);
             }
 
-            timer = this.RegisterTimer(this.Callback, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+            timer = this.RegisterTimer(this.Callback, true, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
-            await Callback(null);
+            await Callback(false);
 
             await base.OnActivateAsync();
         }
 
-        async Task Callback(object _)
+        async Task Callback(object canDeactivate)
         {
             var address = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
             var grain = this.GrainFactory.GetGrain<IManagementGrain>(0);
@@ -46,6 +46,7 @@ namespace OrleansDashboard
             catch (Exception)
             {
                 // we can't get the silo stats, it's probably dead, so kill the grain
+                if (!(bool) canDeactivate) return;
                 if (null != timer) timer.Dispose();
                 timer = null;
                 this.DeactivateOnIdle();
