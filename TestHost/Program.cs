@@ -22,9 +22,9 @@ namespace TestHost
             });
         }
 
-        static void InitSilo(string[] args)
+        static void InitSilo(string[] args = null)
         {
-            hostWrapper = new OrleansHostWrapper(args);
+            hostWrapper = new OrleansHostWrapper();
 
             if (!hostWrapper.Run())
             {

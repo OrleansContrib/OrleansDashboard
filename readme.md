@@ -20,7 +20,6 @@ PM> Install-Package OrleansDashboard
 
 Then add this bootstrap provider to your Orleans silo configuration:
 
-
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <OrleansConfiguration xmlns="urn:orleans">
@@ -31,7 +30,16 @@ Then add this bootstrap provider to your Orleans silo configuration:
     ...
 ```
 
-* Open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
+...or use programmatic configuration:
+
+```c#
+var siloHost = new SiloHost(...);
+siloHost.InitializeOrleansSilo();
+siloHost.Config.Globals.RegisterBootstrapProvider<Dashboard>("Dashboard");
+siloHost.StartOrleansSilo();
+```
+
+Start the silo, and open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
 
 ## Configuring the Dashboard
 
