@@ -2,8 +2,8 @@ var React = require('react');
 var Chart = require("react-chartjs").Line;
 
 var colours = [
-    [51,122,183],
-    [236,151,31]
+    [120, 57, 136],
+    [236, 151, 31]
 ];
 // this control is a bit of a temporary hack, until I have a multi-series chart widget
 module.exports = React.createClass({
@@ -25,10 +25,10 @@ module.exports = React.createClass({
                 var colourString = colours[index % colours.length].join();
                 return {
                     label: "",
-					fillColor: "rgba(" + colourString + ",0.1)",
-					strokeColor: "rgba(" + colourString + ",1)",
-					highlightFill: "rgba(" + colourString + ",0.1)",
-					highlightStroke: "rgba(" + colourString + ",1)",
+					fillColor: `rgba(${colourString},0.1)`,
+					strokeColor: `rgba(${colourString},1)`,
+					highlightFill: `rgba(${colourString},0.1)`,
+					highlightStroke: `rgba(${colourString},1)`,
 					data: data
                 };
             })

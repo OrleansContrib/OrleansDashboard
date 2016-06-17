@@ -11,10 +11,13 @@ module.exports = React.createClass({
 	},
 
     getColour:function(alpha){
+		return `rgba(120, 57, 136, ${alpha})`;
+		/*
         var percent = 100 * this.props.value / this.props.max;
         if (percent > 90) return 'rgba(201,48,44,' + alpha.toString() + ')';
         if (percent > 66) return 'rgba(236,151,31,' + alpha.toString() + ')';
         return 'rgba(51,122,183,' + alpha.toString() + ')';
+		*/
     },
 
     renderChart: function() {
@@ -29,8 +32,8 @@ module.exports = React.createClass({
             },
             {
                 value: this.props.max - this.props.value,
-                color: this.getColour(0.1),
-                highlight: this.getColour(0.1),
+                color: this.getColour(0.2),
+                highlight: this.getColour(0.2),
                 label: ""
             }
         ]
