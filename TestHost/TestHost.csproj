@@ -53,9 +53,8 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Nowin, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nowin.0.22.2.0\lib\net45\Nowin.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Nowin">
+      <HintPath>..\packages\Nowin.0.23.0\lib\net45\Nowin.dll</HintPath>
     </Reference>
     <Reference Include="Orleans, Version=1.2.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Orleans.Core.1.2.3\lib\net451\Orleans.dll</HintPath>
