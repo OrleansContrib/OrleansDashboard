@@ -10,9 +10,6 @@ var timer;
 
 var dashboardCounters = {};
 
-var x = () => console.log("test");
-x();
-
 React.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
 
 // continually poll the dashboard counters
@@ -69,4 +66,20 @@ routie('/host/:host', function(host){
     timer = setInterval(loadData, 5000);
 
     loadData();
+});
+
+
+routie('/grain/:grainType', function(grainType){
+    events.clearAll();
+    clearInterval(timer);
+
+
+    var render = function(){
+        React.render(<Grain grainType={grainType} />, target);
+    }
+
+    events.on('dashboard-counters', render);
+
+    loadDashboardCounters();
+
 });

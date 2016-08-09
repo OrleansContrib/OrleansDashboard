@@ -1,7 +1,10 @@
 ﻿using Microsoft.Owin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -40,5 +43,30 @@ namespace OrleansDashboard
             return Task.FromResult(0);
         }
 
+        public static double SumZero<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector)
+        {
+            if (!source.Any()) return 0;
+            return source.Sum(selector);
+        }
+
+        public static long SumZero<TSource>(this IEnumerable<TSource> source, Func<TSource, long> selector)
+        {
+            if (!source.Any()) return 0;
+            return source.Sum(selector);
+        }
+
+
+        public static double AverageZero<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector)
+        {
+            if (!source.Any()) return 0;
+            return source.Average(selector);
+        }
+
+
+        public static string ToSiloAddress(this string value)
+        {
+            var parts = value.Split(':');
+            return $"{parts[0].Substring(1)}:{parts[1]}@{parts[2]}";
+        }
     }
 }

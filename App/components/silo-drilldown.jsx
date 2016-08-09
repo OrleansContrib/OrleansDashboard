@@ -76,7 +76,7 @@ module.exports = React.createClass({
                     </div>
                     <div className="col-md-6">
                         <h4>Activations by Type</h4>
-                        <GrainBreakdown data={grainStats}/>
+                        <GrainBreakdown data={grainStats} silo={this.props.silo}/>
                     </div>
                 </div>
             </div>

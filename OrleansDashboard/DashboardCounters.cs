@@ -12,7 +12,19 @@ namespace OrleansDashboard
         public int ActivationCount { get; set; }
         public string GrainType { get; set; }
         public string SiloAddress { get; set; }
-
+        public double TotalAwaitTime { get; set; }
+        public long TotalCalls { get; set; }
+        public double CallsPerSecond { get; set; }
+        public object TotalSeconds { get; internal set; }
+    }
+    [Serializable]
+    public class GrainTraceEntry
+    {
+        public DateTime Period { get; set; }
+        public string Grain { get; set; }
+        public string Method { get; set; }
+        public long Count { get; set; }
+        public double ElapsedTime { get; set; }
     }
 
     public class DashboardCounters
@@ -36,6 +48,8 @@ namespace OrleansDashboard
         public SimpleGrainStatisticCounter[] SimpleGrainStats { get; set; }
         public int TotalActivationCount { get; set; }
         public Queue<int> TotalActivationCountHistory { get; set; }
+
+
 
     }
 }

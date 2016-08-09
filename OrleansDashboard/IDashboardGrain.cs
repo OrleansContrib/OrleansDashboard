@@ -12,5 +12,7 @@ namespace OrleansDashboard
         Task Init();
 
         Task<DashboardCounters> GetCounters();
+
+        Task SubmitTracing(string siloIdentity, IDictionary<string, GrainTraceEntry>[] grainCallTime);
     }
 }

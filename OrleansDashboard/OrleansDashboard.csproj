@@ -105,6 +105,7 @@
     <Compile Include="DashboardGrain.cs" />
     <Compile Include="DashboardController.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="GrainProfiler.cs" />
     <Compile Include="IDashboardGrain.cs" />
     <Compile Include="ISiloGrain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
