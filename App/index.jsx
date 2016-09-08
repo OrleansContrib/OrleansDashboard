@@ -1,16 +1,18 @@
 var http = require('./lib/http');
 var React = require('react');
+var ReactDom = require('react-dom');
 var Dashboard = require('./components/dashboard.jsx');
 var routie = require('./lib/routie');
 var SiloDrilldown = require('./components/silo-drilldown.jsx');
 var target = document.getElementById('content');
 var events = require('eventthing');
 var ThemeButtons = require('./components/theme-buttons.jsx');
+var Grain = require('./components/grain.jsx');
 var timer;
 
 var dashboardCounters = {};
 
-React.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
+ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
 
 // continually poll the dashboard counters
 function loadDashboardCounters(){
@@ -19,34 +21,33 @@ function loadDashboardCounters(){
         events.emit('dashboard-counters', data);
     });
 }
+
+// we always want to refresh the dashboard counters
 setInterval(loadDashboardCounters, 5000);
 loadDashboardCounters();
 
 
 function renderLoading(){
-    React.render(<span>Loading...</span>, target);
+    ReactDom.render(<span>Loading...</span>, target);
 }
 
 routie('', function(){
     events.clearAll();
-    clearInterval(timer);
 
     var render = function(){
-        React.render(<Dashboard dashboardCounters={dashboardCounters} />, target);
+        ReactDom.render(<Dashboard dashboardCounters={dashboardCounters} />, target);
     }
 
     events.on('dashboard-counters', render);
+    events.on('refresh', render);
 
     loadDashboardCounters();
-
-
 });
 
 
 
 routie('/host/:host', function(host){
     events.clearAll();
-    clearInterval(timer);
 
     var siloData = [];
     var loadData = function(cb){
@@ -56,14 +57,12 @@ routie('/host/:host', function(host){
         });
     }
 
-
     var render = function(){
-        React.render(<SiloDrilldown silo={host} data={siloData} dashboardCounters={dashboardCounters}  />, target);
+        ReactDom.render(<SiloDrilldown silo={host} data={siloData} dashboardCounters={dashboardCounters}  />, target);
     }
 
     events.on('dashboard-counters', render);
-
-    timer = setInterval(loadData, 5000);
+    events.on('refresh', loadData);
 
     loadData();
 });
@@ -71,15 +70,24 @@ routie('/host/:host', function(host){
 
 routie('/grain/:grainType', function(grainType){
     events.clearAll();
-    clearInterval(timer);
 
+    var grainStats = {};
+    var loadData = function(cb){
+        http.get('/GrainStats/' + grainType, function(err, data){
+            grainStats = data;
+            render();
+        });
+    }
 
     var render = function(){
-        React.render(<Grain grainType={grainType} />, target);
+        ReactDom.render(<Grain grainType={grainType} dashboardCounters={dashboardCounters} grainStats={grainStats} />, target);
     }
 
     events.on('dashboard-counters', render);
+    events.on('refresh', loadData);
 
-    loadDashboardCounters();
+    loadData();
 
 });
+
+setInterval(() => events.emit('refresh'), 5000);

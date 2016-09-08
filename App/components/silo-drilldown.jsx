@@ -58,15 +58,15 @@ module.exports = React.createClass({
                 <div className="row">
                     <div className="col-md-4">
                         <Gauge value={last.cpuUsage} max={100} title="CPU Usage" description={Math.floor(last.cpuUsage) + "% utilisation"}/>
-                        <ChartWidget series={[this.querySeries(function (x){ return x.cpuUsage })]} />
+                        <ChartWidget series={[this.querySeries(x => x.cpuUsage)]} />
                     </div>
                     <div className="col-md-4">
                         <Gauge value={last.totalPhysicalMemory - last.availableMemory} max={last.totalPhysicalMemory} title="Memory Usage"  description={Math.floor(last.availableMemory / (1024 * 1024)) + " MB free"}/>
-                        <ChartWidget series={[this.querySeries(function(x){ return (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024)})]} />
+                        <ChartWidget series={[this.querySeries(x => (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024))]} />
                     </div>
                     <div className="col-md-4">
                         <Gauge value={last.recentlyUsedActivationCount} max={last.activationCount} title="Grain Usage"  description={last.activationCount + " activations, " + Math.floor(last.recentlyUsedActivationCount * 100 / last.activationCount) + "% recently used"}/>
-                        <ChartWidget series={[this.querySeries(function(x){ return x.activationCount}), this.querySeries(function(x){ return x.recentlyUsedActivationCount})]} />
+                        <ChartWidget series={[this.querySeries(x => x.activationCount), this.querySeries(x => x.recentlyUsedActivationCount)]} />
                     </div>
                 </div>
                 <div className="row" style={{marginTop: "25px"}}>

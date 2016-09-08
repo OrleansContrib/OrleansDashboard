@@ -74,6 +74,42 @@ namespace OrleansDashboard
         {
             return Task.FromResult(this.Counters);
         }
+    
+        public Task<Dictionary<string,Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain)
+        {
+            var results = new Dictionary<string,Dictionary<string,GrainTraceEntry>>();
+
+            // for each silo
+            foreach (var stats in this.GrainTracing.Values.Select(x => x.Trace))
+            {
+                foreach (var stat in stats)
+                {
+                    
+                    foreach (var keyValue in stat.Where(x => x.Value.Grain == grain))
+                    {
+                        var grainMethodKey = $"{grain}.{keyValue.Value.Method}";
+                        if (!results.ContainsKey(grainMethodKey))
+                        {
+                            results.Add(grainMethodKey, new Dictionary<string, GrainTraceEntry>());
+                        }
+                        var grainResults = results[grainMethodKey];
+
+                        var key = keyValue.Value.Period.ToString("o");
+                        if (!grainResults.ContainsKey(key)) grainResults.Add(key, new GrainTraceEntry
+                        {
+                            Grain = keyValue.Value.Grain,
+                            Method = keyValue.Value.Method,
+                            Period = keyValue.Value.Period
+                        });
+                        var value = grainResults[key];
+                        value.Count += keyValue.Value.Count;
+                        value.ElapsedTime += keyValue.Value.ElapsedTime;
+                    }
+                }
+            }
+            return Task.FromResult(results);
+        }
+  
 
         public Task Init()
         {

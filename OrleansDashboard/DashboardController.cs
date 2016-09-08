@@ -29,6 +29,7 @@ namespace OrleansDashboard
             add("/DashboardCounters", GetDashboardCounters);
             add("/RuntimeStats/:address", GetRuntimeStats);
             add("/HistoricalStats/:address", GetHistoricalStats);
+            add("/GrainStats/:grain", GetGrainStats);
 
             //this.Get["/SiloPerformanceMetrics"] = GetSiloPerformanceMetrics;
             //this.Get["/ClientPerformanceMetrics"] = GetClientPerformanceMetrics;
@@ -122,6 +123,18 @@ namespace OrleansDashboard
             await context.ReturnJson(result);
         }
 
+        async Task GetGrainStats(IOwinContext context, IDictionary<string, string> parameters)
+        {
+            var grainName = parameters["grain"];
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+
+            var result = await Dispatch(async () =>
+            {
+                return await grain.GetGrainTracing(grainName);
+            });
+
+            await context.ReturnJson(result);
+        }
 
         Task<object> Dispatch(Func<Task<object>> func)
         {
