@@ -12,7 +12,7 @@ An admin dashboard for Microsoft Orleans.
 
 ## Installation
 
-Using the Pacakge Manager Console:
+Using the Package Manager Console:
 
 ```
 PM> Install-Package OrleansDashboard
