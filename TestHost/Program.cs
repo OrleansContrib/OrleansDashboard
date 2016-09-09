@@ -43,8 +43,6 @@ namespace TestHost
 
     class Program
     {
-
-
         static void Main(string[] args)
         {
             using (var silo = new DevSilo())

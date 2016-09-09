@@ -66,10 +66,6 @@ namespace TestHost
             return ok;
         }
 
-   
-
-
-
         public void Dispose()
         {
             Dispose(true);
