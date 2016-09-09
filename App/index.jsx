@@ -1,5 +1,6 @@
 var http = require('./lib/http');
 var React = require('react');
+var ReactDom = require('react-dom');
 var Dashboard = require('./components/dashboard.jsx');
 var routie = require('./lib/routie');
 var SiloDrilldown = require('./components/silo-drilldown.jsx');
@@ -10,10 +11,7 @@ var timer;
 
 var dashboardCounters = {};
 
-var x = () => console.log("test");
-x();
-
-React.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
+ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
 
 // continually poll the dashboard counters
 function loadDashboardCounters(){
@@ -27,7 +25,7 @@ loadDashboardCounters();
 
 
 function renderLoading(){
-    React.render(<span>Loading...</span>, target);
+    ReactDom.render(<span>Loading...</span>, target);
 }
 
 routie('', function(){
@@ -35,7 +33,7 @@ routie('', function(){
     clearInterval(timer);
 
     var render = function(){
-        React.render(<Dashboard dashboardCounters={dashboardCounters} />, target);
+        ReactDom.render(<Dashboard dashboardCounters={dashboardCounters} />, target);
     }
 
     events.on('dashboard-counters', render);
@@ -61,7 +59,7 @@ routie('/host/:host', function(host){
 
 
     var render = function(){
-        React.render(<SiloDrilldown silo={host} data={siloData} dashboardCounters={dashboardCounters}  />, target);
+        ReactDom.render(<SiloDrilldown silo={host} data={siloData} dashboardCounters={dashboardCounters}  />, target);
     }
 
     events.on('dashboard-counters', render);
