@@ -33,7 +33,7 @@ namespace TestHost
             {
                 siloHost.InitializeOrleansSilo();
 
-                siloHost.Config.Globals.RegisterBootstrapProvider<Dashboard>("Dashboard");
+                siloHost.Config.Globals.RegisterDashboard(9090);
 
                 ok = siloHost.StartOrleansSilo();
                 if (!ok) throw new SystemException(string.Format("Failed to start Orleans silo '{0}' as a {1} node.", siloHost.Name, siloHost.Type));

@@ -35,7 +35,7 @@ Then add this bootstrap provider to your Orleans silo configuration:
 ```c#
 var siloHost = new SiloHost(...);
 siloHost.InitializeOrleansSilo();
-siloHost.Config.Globals.RegisterBootstrapProvider<Dashboard>("Dashboard");
+siloHost.Config.Globals.RegisterDashboard(); // port, username and password can also be supplied
 siloHost.StartOrleansSilo();
 ```
 
