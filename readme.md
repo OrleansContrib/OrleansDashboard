@@ -69,9 +69,9 @@ $ npm install browserify -g
 To build the `index.min.js` file, follow these steps.
 
 ```
-cd App
-npm install
-browserify -t babelify index.jsx --outfile ../OrleansDashboard/index.min.js
+$ cd App
+$ npm install
+$ browserify -t babelify index.jsx --outfile ../OrleansDashboard/index.min.js
 ```
 
 ## Todo
