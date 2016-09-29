@@ -18,15 +18,6 @@ namespace OrleansDashboard
         async Task Callback(object _)
         {
 
-            // purge old silos from the stats
-            var retirementWindow = DateTime.UtcNow.AddSeconds(-1000);
-            foreach (var item in this.GrainTracing.ToArray())
-            {
-                if (item.Value.LastUpdated <= retirementWindow) continue;
-                //this.GrainTracing.Remove(item.Key);
-            }
-
-
             var metricsGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             var activationCountTask = metricsGrain.GetTotalActivationCount();
             var hostsTask = metricsGrain.GetHosts(true);
@@ -56,6 +47,7 @@ namespace OrleansDashboard
                 ActivationCount = x.ActivationCount,
                 GrainType = x.GrainType,
                 SiloAddress = x.SiloAddress.ToParsableString(),
+                TotalAwaitTime = this.history.Where(n => n.GrainType === x.GrainType && n.SiloAddress == x.SiloAddress).SumZero(n => n.),
                 TotalAwaitTime = this.GrainTracing.ContainsKey(x.SiloAddress.ToParsableString()) ? this.GrainTracing[x.SiloAddress.ToParsableString()].Trace.SumZero(y => y.Values.Where(z => z.Grain == x.GrainType).SumZero(b => b.ElapsedTime)) : 0,
                 TotalCalls = this.GrainTracing.ContainsKey(x.SiloAddress.ToParsableString()) ? this.GrainTracing[x.SiloAddress.ToParsableString()].Trace.SumZero(y => y.Values.Where(z => z.Grain == x.GrainType).SumZero(b => b.Count)) : 0,
                 TotalSeconds = elapsedTime
@@ -124,26 +116,20 @@ namespace OrleansDashboard
             public IDictionary<string, GrainTraceEntry>[] Trace { get; set; }
         }
 
-        IDictionary<string, SiloTracingEntry> GrainTracing = new Dictionary<string, SiloTracingEntry>();
 
-        public Task SubmitTracing(string siloIdentity, IDictionary<string, GrainTraceEntry>[] grainCallTime)
+        List<GrainTraceEntry> history = new List<GrainTraceEntry>();
+
+        public Task SubmitTracing(string siloIdentity, GrainTraceEntry[] grainTrace)
         {
-            SiloTracingEntry entry = null;
-            if (this.GrainTracing.ContainsKey(siloIdentity))
+            var now = DateTime.UtcNow;
+            foreach (var entry in grainTrace)
             {
-                entry = this.GrainTracing[siloIdentity];
+                // sync clocks
+                entry.Period = now;
             }
-            else
-            {
-                entry = new SiloTracingEntry
-                {
-                    Silo = siloIdentity
-                };
-                this.GrainTracing.Add(siloIdentity, entry);
-            }
-
-            entry.LastUpdated = DateTime.UtcNow;
-            entry.Trace = grainCallTime;
+            var retirementWindow = DateTime.UtcNow.AddSeconds(-1000);
+            history.AddRange(grainTrace);
+            history.RemoveAll(x => x.Period < retirementWindow);
 
             return TaskDone.Done;
         }

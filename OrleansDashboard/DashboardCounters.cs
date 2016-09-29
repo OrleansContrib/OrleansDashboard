@@ -21,6 +21,7 @@ namespace OrleansDashboard
     public class GrainTraceEntry
     {
         public DateTime Period { get; set; }
+        public string SiloAddress { get; set; }
         public string Grain { get; set; }
         public string Method { get; set; }
         public long Count { get; set; }

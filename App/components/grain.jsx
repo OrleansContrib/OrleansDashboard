@@ -1,6 +1,5 @@
 var React = require('react');
-var Chart = require('./multi-series-chart-widget.jsx');
-var ChartWidget = require('./multi-series-chart-widget.jsx');
+var Chart = require('./time-series-chart.jsx');
 
 var GrainGraph = React.createClass({
     render:function(){
@@ -8,13 +7,14 @@ var GrainGraph = React.createClass({
 
         if (!values.length) return null;
 
+
         while (values.length < 25){
-            values.unshift({count:0, elapsedTime :0})
+            values.unshift({count:0, elapsedTime :0, period:0})
         }
 
         return <div>
-            <h2>{values[0].method}</h2>
-            <ChartWidget series={[values.map(x => x.count), values.map(x => x.count === 0 ? 0 : x.elapsedTime / x.count)]} />
+            <h2>{this.props.grainMethod}</h2>
+            <Chart series={[values.map(z => z.count), values.map(z => z.count === 0 ? 0 : z.elapsedTime / z.count)]} />
         </div>
     }
 });
@@ -25,13 +25,20 @@ var GrainGraph = React.createClass({
 module.exports = React.createClass({
     render:function(){
         console.log(this.props);
+
         return <div>
             <a href="#">&larr; Back to Dashboard</a>
-            <h2>Grain {this.props.grainType}</h2>
+            <h2>{getName(this.props.grainType)} <small>{this.props.grainType}</small></h2>
             <div className="well">
-                {Object.keys(this.props.grainStats).map(key => <GrainGraph stats={this.props.grainStats[key]} />)}
+                {(Object.keys(this.props.grainStats).length === 0) ? <span>No messages recorded</span> : null}
+                {Object.keys(this.props.grainStats).map(key => <GrainGraph stats={this.props.grainStats[key]} grainMethod={getName(key)} />)}
             </div>
         </div>
 
     }
 });
+
+function getName(value){
+    var parts = value.split('.');
+    return parts[parts.length - 1];
+}

@@ -23,21 +23,27 @@ module.exports = React.createClass({
     renderChart: function() {
         if (this.state.width === 0) return setTimeout(this.getWidth,0)
 
-        var data = [
-            {
-                value: this.props.value,
-                color: this.getColour(1),
-                highlight: this.getColour(1),
-                label: "Utilization"
-            },
-            {
-                value: this.props.max - this.props.value,
-                color: this.getColour(0.2),
-                highlight: this.getColour(0.2),
-                label: ""
-            }
-        ]
-		return <Chart data={data} options={{showTooltips:false, segmentStrokeColor : "rgba(0,0,0,0)", segmentStrokeWidth:0, percentageInnerCutout:92}} width={this.state.width} height={200} />
+        var data = {
+			labels:["",""],
+			datasets:[{
+				data:[this.props.value,this.props.max - this.props.value],
+                backgroundColor: [this.getColour(1),this.getColour(0.2)],
+				hoverBackgroundColor: [this.getColour(1),this.getColour(0.2)],
+				borderWidth:[0,0],
+				hoverBorderWidth:[0,0]
+
+            }]
+        };
+
+		var options = {
+			legend:{display:false},
+			animation:false,
+			showTooltips:false,
+			cutoutPercentage:92
+		};
+
+
+		return <Chart data={data} options={options} width={this.state.width} height={200} />
 	},
 
     render:function(){

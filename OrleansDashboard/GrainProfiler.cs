@@ -18,6 +18,8 @@ namespace OrleansDashboard
         public TaskScheduler TaskScheduler { get; private set; }
         public IProviderRuntime ProviderRuntime { get; private set; }
 
+        string siloAddress;
+
         public GrainProfiler(TaskScheduler taskScheduler, IProviderRuntime providerRuntime)
         {
             this.TaskScheduler = taskScheduler;
@@ -25,9 +27,11 @@ namespace OrleansDashboard
 
             // register interceptor
             providerRuntime.SetInvokeInterceptor(this.InvokeInterceptor);
+            siloAddress = providerRuntime.SiloIdentity.ToSiloAddress();
 
-            // register timer
-            timer = new Timer(this.ProcessStats, providerRuntime, 10 * 1000, 10 * 1000);
+            // register timer to report every second
+            timer = new Timer(this.ProcessStats, providerRuntime, 1 * 1000, 1 * 1000);
+
         }
 
         Task<object> Dispatch(Func<Task<object>> func)
@@ -41,9 +45,6 @@ namespace OrleansDashboard
         {
             // round down to nearest 10 seconds to group results
             var grainName = grain.GetType().FullName;
-            // round to the nearest 10 seconds
-            var period = DateTime.UtcNow.ToString(@"yyyy/MM/dd HH:mm:ss").Substring(0, 18) + "0";
-
             var stopwatch = Stopwatch.StartNew();
 
             // invoke grain
@@ -53,17 +54,17 @@ namespace OrleansDashboard
 
             var elapsedMs = (double)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond;
 
-            var grainTrace = this.GrainTraceHistory.GetOrAdd(period, _ => new ConcurrentDictionary<string, GrainTraceEntry>());
-            var key = $"{grainName}.{targetMethod?.Name ?? "?"}";
+            var key = $"{grainName}.{targetMethod?.Name ?? "Unknown"}";
 
             grainTrace.AddOrUpdate(key, _ => {
                 return new GrainTraceEntry
                 {
                     Count = 1,
+                    SiloAddress = siloAddress,
                     ElapsedTime = elapsedMs,
                     Grain = grainName,
-                    Method = targetMethod?.Name ?? "?",
-                    Period = DateTime.Parse(period)
+                    Method = targetMethod?.Name ?? "Unknown",
+                    Period = DateTime.UtcNow
                 };
             },
             (_, last) => {
@@ -76,26 +77,57 @@ namespace OrleansDashboard
         }
 
         Timer timer = null;
-        ConcurrentDictionary<string, ConcurrentDictionary<string, GrainTraceEntry>> GrainTraceHistory = new ConcurrentDictionary<string, ConcurrentDictionary<string, GrainTraceEntry>>();
+        ConcurrentDictionary<string, GrainTraceEntry> grainTrace = new ConcurrentDictionary<string, GrainTraceEntry>();
 
         // publish stats to a grain
         void ProcessStats(object state)
         {
             var providerRuntime = state as IProviderRuntime;
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
-
+            /*
             var retirementWindow = DateTime.UtcNow.AddSeconds(-10 * 100);
 
             ConcurrentDictionary<string, GrainTraceEntry> _;
-            foreach (var key in this.GrainTraceHistory.Keys.ToArray())
-            {
-                if (DateTime.Parse(key) >= retirementWindow) continue;
-                this.GrainTraceHistory.TryRemove(key, out _);
-            }
             
+
+            // capture all the method names
+            var methods = new HashSet<string>();
+            foreach (var period in this.GrainTraceHistory)
+            {
+                foreach (var grainMethod in period.Value.Keys)
+                {
+                    methods.Add(grainMethod);
+                }
+            }
+
+            // fill in missing values
+            foreach (var period in this.GrainTraceHistory)
+            {
+                foreach (var method in methods)
+                {
+                    var grainNameParts = method.Split('.');
+
+                    if (!period.Value.ContainsKey(method))
+                    {
+                        period.Value.TryAdd(method, new GrainTraceEntry
+                        {
+                            Grain = string.Join(".", grainNameParts.Take(grainNameParts.Length -1)),
+                            Method = grainNameParts.Last(),
+                            Period = DateTime.Parse(period.Key)
+                        });
+                    }
+                }
+            }
+            */
+
+            // flush the dictionary
+            var data = this.grainTrace.Values.ToArray();
+            this.grainTrace.Clear();
+
+
             Dispatch(async () =>
             {
-                await dashboardGrain.SubmitTracing(providerRuntime.SiloIdentity.ToSiloAddress() , this.GrainTraceHistory.OrderBy(x => x.Key).Select(x => x.Value as IDictionary<string, GrainTraceEntry>).ToArray());
+                await dashboardGrain.SubmitTracing(data);
                 return null;
             }).Wait();
             
