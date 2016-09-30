@@ -127,7 +127,7 @@ namespace OrleansDashboard
 
             Dispatch(async () =>
             {
-                await dashboardGrain.SubmitTracing(data);
+                await dashboardGrain.SubmitTracing(siloAddress, data);
                 return null;
             }).Wait();
             

@@ -113,6 +113,10 @@
       <Project>{6c5584e7-78a0-417d-b5c0-bf49bcf5b3a7}</Project>
       <Name>OrleansDashboard</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TestGrains\TestGrains.csproj">
+      <Project>{278cce3a-fba0-4828-bcf4-02025ebf8157}</Project>
+      <Name>TestGrains</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />

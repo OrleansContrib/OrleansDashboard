@@ -8,7 +8,7 @@ var GrainGraph = React.createClass({
         if (!values.length) return null;
 
 
-        while (values.length < 25){
+        while (values.length < 100){
             values.unshift({count:0, elapsedTime :0, period:0})
         }
 
@@ -23,15 +23,30 @@ var GrainGraph = React.createClass({
 // https://jsfiddle.net/devonuto/pa7k6xn9/
 
 module.exports = React.createClass({
+    renderEmpty:function(){
+        return <span>No messages recorded</span>;
+    },
+
+    renderGraphs:function(){
+        return <div>
+            <span><strong style={{color:"#783988",fontSize:"25px"}}>/</strong> number of requests per second</span>
+            <span className="pull-right"><strong style={{color:"#EC971F",fontSize:"25px"}}>/</strong> average latency in milliseconds</span>
+            {Object.keys(this.props.grainStats).sort().map(key => <GrainGraph stats={this.props.grainStats[key]} grainMethod={getName(key)} />)}
+        </div>
+    },
+
     render:function(){
-        console.log(this.props);
+        var renderMethod = this.renderGraphs;
+
+        if (Object.keys(this.props.grainStats).length === 0) renderMethod = this.renderEmpty;
 
         return <div>
             <a href="#">&larr; Back to Dashboard</a>
             <h2>{getName(this.props.grainType)} <small>{this.props.grainType}</small></h2>
             <div className="well">
+                {renderMethod()}
                 {(Object.keys(this.props.grainStats).length === 0) ? <span>No messages recorded</span> : null}
-                {Object.keys(this.props.grainStats).map(key => <GrainGraph stats={this.props.grainStats[key]} grainMethod={getName(key)} />)}
+
             </div>
         </div>
 

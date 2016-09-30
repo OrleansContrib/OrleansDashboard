@@ -1,8 +1,11 @@
-﻿using System;
+﻿using Orleans;
+using Orleans.Runtime.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TestGrains;
 
 namespace TestHost
 {
@@ -49,8 +52,16 @@ namespace TestHost
         {
             using (var silo = new DevSilo())
             {
-                Console.WriteLine("Press ENTER to exit...");
-                Console.ReadLine();
+                // generate some calls to a test grain
+                Orleans.GrainClient.Initialize(ClientConfiguration.LocalhostSilo());
+                Console.WriteLine("Calling test grain");
+                var rand = new Random();
+                while (true)
+                {
+                    var client = GrainClient.GrainFactory.GetGrain<ITestGrain>(rand.Next(500));
+                    client.ExampleMethod1().Wait();
+                    client.ExampleMethod2().Wait();
+                }
             }
         }
 

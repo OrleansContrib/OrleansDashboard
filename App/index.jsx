@@ -23,9 +23,9 @@ function loadDashboardCounters(){
 }
 
 // we always want to refresh the dashboard counters
-setInterval(loadDashboardCounters, 5000);
+setInterval(loadDashboardCounters, 1000);
 loadDashboardCounters();
-
+var render = () => {};
 
 function renderLoading(){
     ReactDom.render(<span>Loading...</span>, target);
@@ -34,7 +34,7 @@ function renderLoading(){
 routie('', function(){
     events.clearAll();
 
-    var render = function(){
+    render = function(){
         ReactDom.render(<Dashboard dashboardCounters={dashboardCounters} />, target);
     }
 
@@ -57,7 +57,7 @@ routie('/host/:host', function(host){
         });
     }
 
-    var render = function(){
+    render = function(){
         ReactDom.render(<SiloDrilldown silo={host} data={siloData} dashboardCounters={dashboardCounters}  />, target);
     }
 
@@ -79,7 +79,7 @@ routie('/grain/:grainType', function(grainType){
         });
     }
 
-    var render = function(){
+    render = function(){
         ReactDom.render(<Grain grainType={grainType} dashboardCounters={dashboardCounters} grainStats={grainStats} />, target);
     }
 
@@ -90,4 +90,4 @@ routie('/grain/:grainType', function(grainType){
 
 });
 
-setInterval(() => events.emit('refresh'), 5000);
+setInterval(() => events.emit('refresh'), 1000);

@@ -26,6 +26,7 @@ namespace OrleansDashboard
         public string Method { get; set; }
         public long Count { get; set; }
         public double ElapsedTime { get; set; }
+        public string GrainAndMethod => $"{this.Grain}.{this.Method}";
     }
 
     public class DashboardCounters

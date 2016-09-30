@@ -40,16 +40,15 @@ namespace OrleansDashboard
             }
 
             // TODO - whatever max elapsed time
-            var elapsedTime = Math.Min((DateTime.UtcNow - this.StartTime).TotalSeconds, 30);
+            var elapsedTime = Math.Min((DateTime.UtcNow - this.StartTime).TotalSeconds, 100);
 
             this.Counters.Hosts = hostsTask.Result.ToDictionary(k => k.Key.ToParsableString(), v => v.Value.ToString());
             this.Counters.SimpleGrainStats = simpleGrainStatsTask.Result.Select(x => new SimpleGrainStatisticCounter {
                 ActivationCount = x.ActivationCount,
                 GrainType = x.GrainType,
                 SiloAddress = x.SiloAddress.ToParsableString(),
-                TotalAwaitTime = this.history.Where(n => n.GrainType === x.GrainType && n.SiloAddress == x.SiloAddress).SumZero(n => n.),
-                TotalAwaitTime = this.GrainTracing.ContainsKey(x.SiloAddress.ToParsableString()) ? this.GrainTracing[x.SiloAddress.ToParsableString()].Trace.SumZero(y => y.Values.Where(z => z.Grain == x.GrainType).SumZero(b => b.ElapsedTime)) : 0,
-                TotalCalls = this.GrainTracing.ContainsKey(x.SiloAddress.ToParsableString()) ? this.GrainTracing[x.SiloAddress.ToParsableString()].Trace.SumZero(y => y.Values.Where(z => z.Grain == x.GrainType).SumZero(b => b.Count)) : 0,
+                TotalAwaitTime = this.history.Where(n => n.Grain == x.GrainType && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.ElapsedTime),
+                TotalCalls = this.history.Where(n => n.Grain == x.GrainType && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => 1),
                 TotalSeconds = elapsedTime
             }).ToArray();
         }
@@ -57,7 +56,7 @@ namespace OrleansDashboard
         public override Task OnActivateAsync()
         {
             this.Counters = new DashboardCounters();
-            this.RegisterTimer(this.Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
+            this.RegisterTimer(this.Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
             this.StartTime = DateTime.UtcNow;
             return base.OnActivateAsync();
         }
@@ -70,35 +69,28 @@ namespace OrleansDashboard
         public Task<Dictionary<string,Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain)
         {
             var results = new Dictionary<string,Dictionary<string,GrainTraceEntry>>();
-
-            // for each silo
-            foreach (var stats in this.GrainTracing.Values.Select(x => x.Trace))
+         
+            foreach (var historicValue in this.history.Where(x => x.Grain == grain))
             {
-                foreach (var stat in stats)
+                var grainMethodKey = $"{grain}.{historicValue.Method}";
+                if (!results.ContainsKey(grainMethodKey))
                 {
-                    
-                    foreach (var keyValue in stat.Where(x => x.Value.Grain == grain))
-                    {
-                        var grainMethodKey = $"{grain}.{keyValue.Value.Method}";
-                        if (!results.ContainsKey(grainMethodKey))
-                        {
-                            results.Add(grainMethodKey, new Dictionary<string, GrainTraceEntry>());
-                        }
-                        var grainResults = results[grainMethodKey];
-
-                        var key = keyValue.Value.Period.ToString("o");
-                        if (!grainResults.ContainsKey(key)) grainResults.Add(key, new GrainTraceEntry
-                        {
-                            Grain = keyValue.Value.Grain,
-                            Method = keyValue.Value.Method,
-                            Period = keyValue.Value.Period
-                        });
-                        var value = grainResults[key];
-                        value.Count += keyValue.Value.Count;
-                        value.ElapsedTime += keyValue.Value.ElapsedTime;
-                    }
+                    results.Add(grainMethodKey, new Dictionary<string, GrainTraceEntry>());
                 }
+                var grainResults = results[grainMethodKey];
+
+                var key = historicValue.Period.ToString("o");
+                if (!grainResults.ContainsKey(key)) grainResults.Add(key, new GrainTraceEntry
+                {
+                    Grain = historicValue.Grain,
+                    Method = historicValue.Method,
+                    Period = historicValue.Period
+                });
+                var value = grainResults[key];
+                value.Count += historicValue.Count;
+                value.ElapsedTime += historicValue.ElapsedTime;
             }
+           
             return Task.FromResult(results);
         }
   
@@ -127,8 +119,28 @@ namespace OrleansDashboard
                 // sync clocks
                 entry.Period = now;
             }
-            var retirementWindow = DateTime.UtcNow.AddSeconds(-1000);
-            history.AddRange(grainTrace);
+
+            // fill in any previously captured methods which aren't in this reporting window
+            var allGrainTrace = new List<GrainTraceEntry>(grainTrace);
+            var values = this.history.Where(x => x.SiloAddress == siloIdentity).GroupBy(x => x.GrainAndMethod).Select(x => x.First());
+            foreach (var value in values)
+            {
+                if (!grainTrace.Any(x => x.GrainAndMethod == value.GrainAndMethod))
+                {
+                    allGrainTrace.Add(new GrainTraceEntry
+                    {
+                        Count = 0,
+                        ElapsedTime = 0,
+                        Grain = value.Grain,
+                        Method = value.Method,
+                        Period = now,
+                        SiloAddress = siloIdentity
+                    });
+                }
+            }
+
+            var retirementWindow = DateTime.UtcNow.AddSeconds(-100);
+            history.AddRange(allGrainTrace);
             history.RemoveAll(x => x.Period < retirementWindow);
 
             return TaskDone.Done;
