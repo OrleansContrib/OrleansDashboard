@@ -17,6 +17,7 @@ namespace OrleansDashboard
         public double CallsPerSecond { get; set; }
         public object TotalSeconds { get; internal set; }
     }
+
     [Serializable]
     public class GrainTraceEntry
     {

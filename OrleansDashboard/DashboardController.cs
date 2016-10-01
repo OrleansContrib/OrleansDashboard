@@ -1,4 +1,5 @@
 ﻿using Microsoft.Owin;
+using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
 using System;
@@ -30,11 +31,7 @@ namespace OrleansDashboard
             add("/RuntimeStats/:address", GetRuntimeStats);
             add("/HistoricalStats/:address", GetHistoricalStats);
             add("/GrainStats/:grain", GetGrainStats);
-
-            //this.Get["/SiloPerformanceMetrics"] = GetSiloPerformanceMetrics;
-            //this.Get["/ClientPerformanceMetrics"] = GetClientPerformanceMetrics;
-            //this.Get["/Counters"] = GetCounters;
-            //add("/ForceActivationCollection/{timespan:int}/{address?}", PostForceActivationCollection);
+            add("/SiloTopology", GetSiloTopology);
         }
 
 
@@ -49,34 +46,6 @@ namespace OrleansDashboard
             return context.ReturnFile("index.min.js", "application/javascript");
         }
 
-
-        /*
-        object PostForceActivationCollection(dynamic parameters)
-        {
-            var grain = Dashboard.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
-            var timespan = TimeSpan.FromSeconds(parameters.timespan);
-
-            if (parameters.address.HasValue)
-            {
-                var address = SiloAddress.FromParsableString((string)parameters.address);
-                Dispatch(async () =>
-                {
-                    await grain.ForceActivationCollection(new SiloAddress[] { address }, timespan);
-                    return "";
-                });
-            }
-            else
-            {
-                Dispatch(async () =>
-                {
-                    await grain.ForceActivationCollection(timespan);
-                    return "";
-                });
-            }
-
-            return this.Response.AsJson(new { });
-        }
-        */
 
         async Task GetDashboardCounters(IOwinContext context, IDictionary<string, string> parameters)
         {
@@ -134,6 +103,27 @@ namespace OrleansDashboard
             });
 
             await context.ReturnJson(result);
+        }
+
+        async Task GetSiloTopology(IOwinContext context, IDictionary<string, string> parameters)
+        {
+            
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
+
+            var result = await Dispatch(async () =>
+            {
+                return await grain.GetDetailedHosts(true);
+            }) as MembershipEntry[];
+
+            await context.ReturnJson(result.Select(x => new
+            {
+                HostName = x.HostName,
+                SiloAddress = x.SiloAddress.ToParsableString(),
+                FaultZone = x.FaultZone,
+                UpdateZone = x.UpdateZone,
+                StartTime = x.StartTime.ToString("o"),
+                SiloName = x.SiloName
+            }));
         }
 
         Task<object> Dispatch(Func<Task<object>> func)

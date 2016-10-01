@@ -25,7 +25,8 @@ namespace OrleansDashboard
             this.TaskScheduler = taskScheduler;
             this.ProviderRuntime = providerRuntime;
 
-            // register interceptor
+            // register interceptor, wrapping any previously set interceptor
+            this.innerInterceptor = providerRuntime.GetInvokeInterceptor();
             providerRuntime.SetInvokeInterceptor(this.InvokeInterceptor);
             siloAddress = providerRuntime.SiloIdentity.ToSiloAddress();
 
@@ -48,7 +49,15 @@ namespace OrleansDashboard
             var stopwatch = Stopwatch.StartNew();
 
             // invoke grain
-            var result = await invoker.Invoke(grain, request);
+            object result = null;
+            if (this.innerInterceptor != null)
+            {
+                result = await this.innerInterceptor(targetMethod, request, grain, invoker);
+            }
+            else
+            {
+                result = await invoker.Invoke(grain, request);
+            }
 
             stopwatch.Stop();
 
@@ -84,42 +93,7 @@ namespace OrleansDashboard
         {
             var providerRuntime = state as IProviderRuntime;
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
-            /*
-            var retirementWindow = DateTime.UtcNow.AddSeconds(-10 * 100);
-
-            ConcurrentDictionary<string, GrainTraceEntry> _;
             
-
-            // capture all the method names
-            var methods = new HashSet<string>();
-            foreach (var period in this.GrainTraceHistory)
-            {
-                foreach (var grainMethod in period.Value.Keys)
-                {
-                    methods.Add(grainMethod);
-                }
-            }
-
-            // fill in missing values
-            foreach (var period in this.GrainTraceHistory)
-            {
-                foreach (var method in methods)
-                {
-                    var grainNameParts = method.Split('.');
-
-                    if (!period.Value.ContainsKey(method))
-                    {
-                        period.Value.TryAdd(method, new GrainTraceEntry
-                        {
-                            Grain = string.Join(".", grainNameParts.Take(grainNameParts.Length -1)),
-                            Method = grainNameParts.Last(),
-                            Period = DateTime.Parse(period.Key)
-                        });
-                    }
-                }
-            }
-            */
-
             // flush the dictionary
             var data = this.grainTrace.Values.ToArray();
             this.grainTrace.Clear();
@@ -132,6 +106,8 @@ namespace OrleansDashboard
             }).Wait();
             
         }
+
+        InvokeInterceptor innerInterceptor = null;
 
     }
 }

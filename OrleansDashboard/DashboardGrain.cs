@@ -48,7 +48,7 @@ namespace OrleansDashboard
                 GrainType = x.GrainType,
                 SiloAddress = x.SiloAddress.ToParsableString(),
                 TotalAwaitTime = this.history.Where(n => n.Grain == x.GrainType && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.ElapsedTime),
-                TotalCalls = this.history.Where(n => n.Grain == x.GrainType && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => 1),
+                TotalCalls = this.history.Where(n => n.Grain == x.GrainType && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.Count),
                 TotalSeconds = elapsedTime
             }).ToArray();
         }
@@ -93,7 +93,6 @@ namespace OrleansDashboard
            
             return Task.FromResult(results);
         }
-  
 
         public Task Init()
         {

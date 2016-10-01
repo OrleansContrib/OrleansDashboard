@@ -1,5 +1,6 @@
 var React = require('react');
 var Chart = require('./time-series-chart.jsx');
+var CounterWidget = require('./counter-widget.jsx');
 
 var GrainGraph = React.createClass({
     render:function(){
@@ -28,14 +29,44 @@ module.exports = React.createClass({
     },
 
     renderGraphs:function(){
+        var stats = {
+            activationCount: 0,
+            totalSeconds: 0,
+            totalAwaitTime : 0,
+            totalCalls : 0
+        };
+        this.props.dashboardCounters.simpleGrainStats.forEach(stat => {
+            if (stat.grainType !== this.props.grainType) return;
+            stats.activationCount += stat.activationCount;
+            stats.totalSeconds += stat.totalSeconds;
+            stats.totalAwaitTime += stat.totalAwaitTime;
+            stats.totalCalls += stat.totalCalls;
+        });
+        console.log(stats);
+
         return <div>
-            <span><strong style={{color:"#783988",fontSize:"25px"}}>/</strong> number of requests per second</span>
-            <span className="pull-right"><strong style={{color:"#EC971F",fontSize:"25px"}}>/</strong> average latency in milliseconds</span>
-            {Object.keys(this.props.grainStats).sort().map(key => <GrainGraph stats={this.props.grainStats[key]} grainMethod={getName(key)} />)}
+            <div className="row" style={{paddingBottom:"75px"}}>
+                <div className="col-md-4">
+                    <CounterWidget counter={stats.activationCount} title={"Activation" + (stats.activationCount == 1 ? "" : "s")} />
+                </div>
+                <div className="col-md-4">
+                    <CounterWidget counter={(stats.totalCalls / stats.totalSeconds).toFixed(2)} title="Requests/second" />
+                </div>
+                <div className="col-md-4">
+                    <CounterWidget counter={(stats.totalCalls === 0) ? "0" : (stats.totalAwaitTime / stats.totalCalls).toFixed(2) + "ms"} title="Average response time" />
+                </div>
+            </div>
+            <div className="row">
+                <span><strong style={{color:"#783988",fontSize:"25px"}}>/</strong> number of requests per second</span>
+                <span className="pull-right"><strong style={{color:"#EC971F",fontSize:"25px"}}>/</strong> average latency in milliseconds</span>
+                {Object.keys(this.props.grainStats).sort().map(key => <GrainGraph stats={this.props.grainStats[key]} grainMethod={getName(key)} />)}
+            </div>
         </div>
     },
 
     render:function(){
+
+
         var renderMethod = this.renderGraphs;
 
         if (Object.keys(this.props.grainStats).length === 0) renderMethod = this.renderEmpty;
@@ -45,8 +76,6 @@ module.exports = React.createClass({
             <h2>{getName(this.props.grainType)} <small>{this.props.grainType}</small></h2>
             <div className="well">
                 {renderMethod()}
-                {(Object.keys(this.props.grainStats).length === 0) ? <span>No messages recorded</span> : null}
-
             </div>
         </div>
 

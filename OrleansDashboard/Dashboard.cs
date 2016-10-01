@@ -17,7 +17,7 @@ namespace OrleansDashboard
         {
             get
             {
-                return 25;
+                return 100;
             }
         }
 
