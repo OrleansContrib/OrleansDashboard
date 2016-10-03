@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Orleans.Runtime;
 using System.Collections.Concurrent;
 using System.Linq;
+using Orleans;
 
 namespace OrleansDashboard
 {
@@ -29,12 +30,26 @@ namespace OrleansDashboard
         public double ElapsedTime { get; set; }
         public string GrainAndMethod => $"{this.Grain}.{this.Method}";
     }
+    
+    public class SiloDetails
+    {
+        public int FaultZone { get; set; }
+        public string HostName { get; set; }
+        public string IAmAliveTime { get; set; }
+        public int ProxyPort { get; set; }
+        public string RoleName { get; set; }
+        public string SiloAddress { get; set; }
+        public string SiloName { get; set; }
+        public string StartTime { get; set; }
+        public string Status { get; set; }
+        public int UpdateZone { get; set; }
+    }
 
     public class DashboardCounters
     {
         public DashboardCounters()
         {
-            Hosts = new Dictionary<string, string>();
+            Hosts = new SiloDetails[0];
             SimpleGrainStats = new SimpleGrainStatisticCounter[0];
             TotalActivationCountHistory = new Queue<int>();
             TotalActiveHostCountHistory = new Queue<int>();
@@ -47,7 +62,7 @@ namespace OrleansDashboard
 
         public int TotalActiveHostCount { get; set; }
         public Queue<int> TotalActiveHostCountHistory { get; set; }
-        public Dictionary<string, string> Hosts { get; set; }
+        public SiloDetails[] Hosts { get; set; }
         public SimpleGrainStatisticCounter[] SimpleGrainStats { get; set; }
         public int TotalActivationCount { get; set; }
         public Queue<int> TotalActivationCountHistory { get; set; }

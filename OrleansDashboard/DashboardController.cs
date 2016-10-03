@@ -31,10 +31,7 @@ namespace OrleansDashboard
             add("/RuntimeStats/:address", GetRuntimeStats);
             add("/HistoricalStats/:address", GetHistoricalStats);
             add("/GrainStats/:grain", GetGrainStats);
-            add("/SiloTopology", GetSiloTopology);
         }
-
-
 
         Task Index(IOwinContext context, IDictionary<string,string> parameters)
         {
@@ -46,7 +43,6 @@ namespace OrleansDashboard
             return context.ReturnFile("index.min.js", "application/javascript");
         }
 
-
         async Task GetDashboardCounters(IOwinContext context, IDictionary<string, string> parameters)
         {
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
@@ -57,7 +53,6 @@ namespace OrleansDashboard
 
             await context.ReturnJson(result);
         }
-
 
         async Task GetRuntimeStats(IOwinContext context, IDictionary<string, string> parameters)
         {
@@ -103,27 +98,6 @@ namespace OrleansDashboard
             });
 
             await context.ReturnJson(result);
-        }
-
-        async Task GetSiloTopology(IOwinContext context, IDictionary<string, string> parameters)
-        {
-            
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
-
-            var result = await Dispatch(async () =>
-            {
-                return await grain.GetDetailedHosts(true);
-            }) as MembershipEntry[];
-
-            await context.ReturnJson(result.Select(x => new
-            {
-                HostName = x.HostName,
-                SiloAddress = x.SiloAddress.ToParsableString(),
-                FaultZone = x.FaultZone,
-                UpdateZone = x.UpdateZone,
-                StartTime = x.StartTime.ToString("o"),
-                SiloName = x.SiloName
-            }));
         }
 
         Task<object> Dispatch(Func<Task<object>> func)

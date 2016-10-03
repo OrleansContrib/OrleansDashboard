@@ -14,19 +14,20 @@ namespace OrleansDashboard
     {
         DashboardCounters Counters { get; set; }
         DateTime StartTime { get; set; }
+        List<GrainTraceEntry> history = new List<GrainTraceEntry>();
 
         async Task Callback(object _)
         {
 
             var metricsGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             var activationCountTask = metricsGrain.GetTotalActivationCount();
-            var hostsTask = metricsGrain.GetHosts(true);
+            var hostsTask = metricsGrain.GetDetailedHosts(true);
             var simpleGrainStatsTask = metricsGrain.GetSimpleGrainStatistics();
 
             await Task.WhenAll(activationCountTask, hostsTask, simpleGrainStatsTask);
 
             this.Counters.TotalActivationCount = activationCountTask.Result;
-            this.Counters.TotalActiveHostCount = hostsTask.Result.Values.Count(x => x == SiloStatus.Active);
+            this.Counters.TotalActiveHostCount = hostsTask.Result.Count(x => x.Status == SiloStatus.Active);
             this.Counters.TotalActivationCountHistory.Enqueue(activationCountTask.Result);
             this.Counters.TotalActiveHostCountHistory.Enqueue(this.Counters.TotalActiveHostCount);
             
@@ -42,7 +43,20 @@ namespace OrleansDashboard
             // TODO - whatever max elapsed time
             var elapsedTime = Math.Min((DateTime.UtcNow - this.StartTime).TotalSeconds, 100);
 
-            this.Counters.Hosts = hostsTask.Result.ToDictionary(k => k.Key.ToParsableString(), v => v.Value.ToString());
+            this.Counters.Hosts = hostsTask.Result.Select(x => new SiloDetails
+            {
+                FaultZone = x.FaultZone,
+                HostName = x.HostName,
+                IAmAliveTime = x.IAmAliveTime.ToString("o"),
+                ProxyPort = x.ProxyPort,
+                RoleName = x.RoleName,
+                SiloAddress = x.SiloAddress.ToParsableString(),
+                SiloName = x.SiloName,
+                StartTime = x.StartTime.ToString("o"),
+                Status = x.Status.ToString(),
+                UpdateZone = x.UpdateZone
+            }).ToArray();
+
             this.Counters.SimpleGrainStats = simpleGrainStatsTask.Result.Select(x => new SimpleGrainStatisticCounter {
                 ActivationCount = x.ActivationCount,
                 GrainType = x.GrainType,
@@ -100,15 +114,6 @@ namespace OrleansDashboard
             return TaskDone.Done;
         }
 
-        class SiloTracingEntry
-        {
-            public DateTime LastUpdated { get; set; }
-            public string Silo { get; set; }
-            public IDictionary<string, GrainTraceEntry>[] Trace { get; set; }
-        }
-
-
-        List<GrainTraceEntry> history = new List<GrainTraceEntry>();
 
         public Task SubmitTracing(string siloIdentity, GrainTraceEntry[] grainTrace)
         {

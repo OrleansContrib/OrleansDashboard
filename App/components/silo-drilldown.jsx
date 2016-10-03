@@ -16,7 +16,7 @@ module.exports = React.createClass({
     },
     renderOverloaded:function(){
         if (!this.props.data[this.props.data.length-1].isOverloaded) return null;
-        return <small><span className="label label-danger">OVERLOADED</span> <SiloState status={status}/></small>
+        return <small><span className="label label-danger">OVERLOADED</span></small>
     },
 
     querySeries:function(lambda){
@@ -50,10 +50,11 @@ module.exports = React.createClass({
         }, this);
 
         var status = (this.props.dashboardCounters.hosts || {})[this.props.silo];
+        var silo = this.props.dashboardCounters.hosts.filter(x => x.siloAddress === this.props.silo)[0] || {};
 
         return <div>
             <a href="#">&larr; Back to Dashboard</a>
-            <h2>Silo {this.props.silo} <small><SiloState status={status}/></small> {this.renderOverloaded()}</h2>
+            <h2>Silo {this.props.silo} <small><SiloState status={silo.status}/></small> {this.renderOverloaded()}</h2>
             <div className="well">
                 <div className="row">
                     <div className="col-md-4">
