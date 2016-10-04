@@ -45,12 +45,23 @@ module.exports = React.createClass({
             "Send queue" : last.sendQueueLength || '0'
         };
 
+
+
         var grainStats = (this.props.dashboardCounters.simpleGrainStats || []).filter(function(x){
             return x.siloAddress === this.props.silo;
         }, this);
 
         var status = (this.props.dashboardCounters.hosts || {})[this.props.silo];
         var silo = this.props.dashboardCounters.hosts.filter(x => x.siloAddress === this.props.silo)[0] || {};
+
+        var configuration = {
+            "Host name" : silo.hostName,
+            "Role name" : silo.roleName,
+            "Silo name" : silo.siloName,
+            "Proxy port" : silo.proxyPort,
+            "Update zone" : silo.updateZone,
+            "Fault zone" : silo.faultZone
+        };
 
         return <div>
             <a href="#">&larr; Back to Dashboard</a>
@@ -76,9 +87,14 @@ module.exports = React.createClass({
                         <PropertiesWidget data={properties}/>
                     </div>
                     <div className="col-md-6">
-                        <h4>Activations by Type</h4>
-                        <GrainBreakdown data={grainStats} silo={this.props.silo}/>
+                        <h4>Silo Properties</h4>
+                        <PropertiesWidget data={configuration}/>
                     </div>
+
+                </div>
+                <div>
+                    <h4>Activations by Type</h4>
+                    <GrainBreakdown data={grainStats} silo={this.props.silo}/>
                 </div>
             </div>
         </div>

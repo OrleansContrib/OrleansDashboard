@@ -13,6 +13,7 @@ namespace TestHost
     {
         private static List<OrleansHostWrapper> hostWrappers = new List<OrleansHostWrapper>();
         static bool isPrimary = true;
+        static int portAllocation = 50000;
 
         public DevSilo()
         {
@@ -25,6 +26,10 @@ namespace TestHost
                 isPrimary = false;
                 args = new string[] { "primary" };
             }
+            else
+            {
+                args = new string[] { "secondary", (portAllocation++).ToString(), (portAllocation++).ToString() };
+            }
 
             AppDomain hostDomain = AppDomain.CreateDomain("OrleansHost", null, new AppDomainSetup
             {
@@ -35,7 +40,15 @@ namespace TestHost
 
         static void InitSilo(string[] args = null)
         {
-            var hostWrapper = new OrleansHostWrapper(args.Length > 0 && args[0] == "primary");
+            OrleansHostWrapper hostWrapper = null;
+            if (args[0] == "primary")
+            {
+                hostWrapper = new OrleansHostWrapper();
+            }
+            else
+            {
+                hostWrapper = new OrleansHostWrapper(int.Parse(args[1]), int.Parse(args[2]));
+            }
 
             if (!hostWrapper.Run())
             {

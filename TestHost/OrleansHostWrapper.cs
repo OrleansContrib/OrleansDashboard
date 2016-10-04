@@ -20,27 +20,31 @@ namespace TestHost
 
         private SiloHost siloHost;
 
-
-        public OrleansHostWrapper(bool primary)
+        /// <summary>
+        /// start primary
+        /// </summary>
+        public OrleansHostWrapper()
         {
-            if (primary)
-            {
-                siloHost = new SiloHost("primary", ClusterConfiguration.LocalhostPrimarySilo());
-            }
-            else
-            {
-                var rando = new Random();
-                var config = new ClusterConfiguration();
-                var siloAddress = new IPEndPoint(IPAddress.Loopback, 22222);
-                config.Globals.LivenessType = GlobalConfiguration.LivenessProviderType.MembershipTableGrain;
-                config.Globals.SeedNodes.Add(siloAddress);
-                config.Globals.ReminderServiceType = GlobalConfiguration.ReminderServiceProviderType.ReminderTableGrain;
-                config.Defaults.HostNameOrIPAddress = "localhost";
-                config.Defaults.Port = rando.Next(50000);
-                config.Defaults.ProxyGatewayEndpoint = new IPEndPoint(IPAddress.Loopback, rando.Next(50000));
-                config.PrimaryNode = siloAddress;
-                siloHost = new SiloHost("secondary", config);
-            }
+            siloHost = new SiloHost("primary", ClusterConfiguration.LocalhostPrimarySilo());
+        }
+
+        /// <summary>
+        /// start secondary
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="proxyPort"></param>
+        public OrleansHostWrapper(int port, int proxyPort)
+        {
+            var config = new ClusterConfiguration();
+            var siloAddress = new IPEndPoint(IPAddress.Loopback, 22222);
+            config.Globals.LivenessType = GlobalConfiguration.LivenessProviderType.MembershipTableGrain;
+            config.Globals.SeedNodes.Add(siloAddress);
+            config.Globals.ReminderServiceType = GlobalConfiguration.ReminderServiceProviderType.ReminderTableGrain;
+            config.Defaults.HostNameOrIPAddress = "localhost";
+            config.Defaults.Port = port;
+            config.Defaults.ProxyGatewayEndpoint = new IPEndPoint(IPAddress.Loopback, proxyPort);
+            config.PrimaryNode = siloAddress;
+            siloHost = new SiloHost("secondary", config);
         }
 
         public bool Run()
