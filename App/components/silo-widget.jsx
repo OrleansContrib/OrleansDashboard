@@ -3,6 +3,7 @@ var React = require('react');
 var CounterWidget = require('./counter-widget.jsx');
 var ChartWidget = require('./multi-series-chart-widget.jsx');
 var HostsWidget = require('./hosts-widget.jsx');
+var SiloGrid = require('./silo-grid.jsx');
 
 module.exports = React.createClass({
     render:function(){
@@ -18,6 +19,10 @@ module.exports = React.createClass({
             <div>
                 <h4>Silo Health</h4>
                 <HostsWidget dashboardCounters={this.props.dashboardCounters}/>
+            </div>
+            <div>
+                <h4>Silo Map</h4>
+                <SiloGrid dashboardCounters={this.props.dashboardCounters}/>
             </div>
         </div>
     }

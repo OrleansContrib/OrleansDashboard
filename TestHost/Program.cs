@@ -11,35 +11,47 @@ namespace TestHost
 {
     class DevSilo : IDisposable
     {
-        private static OrleansHostWrapper hostWrapper;
+        private static List<OrleansHostWrapper> hostWrappers = new List<OrleansHostWrapper>();
+        static bool isPrimary = true;
 
         public DevSilo()
         {
             // The Orleans silo environment is initialized in its own app domain in order to more
             // closely emulate the distributed situation, when the client and the server cannot
             // pass data via shared memory.
+            var args = new string[] {  };
+            if (isPrimary)
+            {
+                isPrimary = false;
+                args = new string[] { "primary" };
+            }
+
             AppDomain hostDomain = AppDomain.CreateDomain("OrleansHost", null, new AppDomainSetup
             {
                 AppDomainInitializer = InitSilo,
-                AppDomainInitializerArguments = new string[0],
+                AppDomainInitializerArguments = args,
             });
         }
 
         static void InitSilo(string[] args = null)
         {
-            hostWrapper = new OrleansHostWrapper();
+            var hostWrapper = new OrleansHostWrapper(args.Length > 0 && args[0] == "primary");
 
             if (!hostWrapper.Run())
             {
                 Console.Error.WriteLine("Failed to initialize Orleans silo");
             }
+            hostWrappers.Add(hostWrapper);
         }
 
         public void Dispose()
         {
-            if (hostWrapper == null) return;
-            hostWrapper.Dispose();
-            GC.SuppressFinalize(hostWrapper);
+            foreach (var hostWrapper in hostWrappers)
+            {
+                if (hostWrapper == null) return;
+                hostWrapper.Dispose();
+                GC.SuppressFinalize(hostWrapper);
+            }
         }
     }
 
@@ -50,7 +62,9 @@ namespace TestHost
 
         static void Main(string[] args)
         {
-            using (var silo = new DevSilo())
+            using (new DevSilo())
+            using (new DevSilo())
+            using (new DevSilo())
             {
                 // generate some calls to a test grain
                 Orleans.GrainClient.Initialize(ClientConfiguration.LocalhostSilo());
