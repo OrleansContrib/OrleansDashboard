@@ -16,7 +16,7 @@ module.exports = React.createClass({
     },
     renderOverloaded:function(){
         if (!this.props.data[this.props.data.length-1].isOverloaded) return null;
-        return <small><span className="label label-danger">OVERLOADED</span> <SiloState status={status}/></small>
+        return <small><span className="label label-danger">OVERLOADED</span></small>
     },
 
     querySeries:function(lambda){
@@ -45,28 +45,40 @@ module.exports = React.createClass({
             "Send queue" : last.sendQueueLength || '0'
         };
 
+
+
         var grainStats = (this.props.dashboardCounters.simpleGrainStats || []).filter(function(x){
             return x.siloAddress === this.props.silo;
         }, this);
 
         var status = (this.props.dashboardCounters.hosts || {})[this.props.silo];
+        var silo = this.props.dashboardCounters.hosts.filter(x => x.siloAddress === this.props.silo)[0] || {};
+
+        var configuration = {
+            "Host name" : silo.hostName,
+            "Role name" : silo.roleName,
+            "Silo name" : silo.siloName,
+            "Proxy port" : silo.proxyPort,
+            "Update zone" : silo.updateZone,
+            "Fault zone" : silo.faultZone
+        };
 
         return <div>
             <a href="#">&larr; Back to Dashboard</a>
-            <h2>Silo {this.props.silo} <small><SiloState status={status}/></small> {this.renderOverloaded()}</h2>
+            <h2>Silo {this.props.silo} <small><SiloState status={silo.status}/></small> {this.renderOverloaded()}</h2>
             <div className="well">
                 <div className="row">
                     <div className="col-md-4">
                         <Gauge value={last.cpuUsage} max={100} title="CPU Usage" description={Math.floor(last.cpuUsage) + "% utilisation"}/>
-                        <ChartWidget series={[this.querySeries(function (x){ return x.cpuUsage })]} />
+                        <ChartWidget series={[this.querySeries(x => x.cpuUsage)]} />
                     </div>
                     <div className="col-md-4">
                         <Gauge value={last.totalPhysicalMemory - last.availableMemory} max={last.totalPhysicalMemory} title="Memory Usage"  description={Math.floor(last.availableMemory / (1024 * 1024)) + " MB free"}/>
-                        <ChartWidget series={[this.querySeries(function(x){ return (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024)})]} />
+                        <ChartWidget series={[this.querySeries(x => (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024))]} />
                     </div>
                     <div className="col-md-4">
                         <Gauge value={last.recentlyUsedActivationCount} max={last.activationCount} title="Grain Usage"  description={last.activationCount + " activations, " + Math.floor(last.recentlyUsedActivationCount * 100 / last.activationCount) + "% recently used"}/>
-                        <ChartWidget series={[this.querySeries(function(x){ return x.activationCount}), this.querySeries(function(x){ return x.recentlyUsedActivationCount})]} />
+                        <ChartWidget series={[this.querySeries(x => x.activationCount), this.querySeries(x => x.recentlyUsedActivationCount)]} />
                     </div>
                 </div>
                 <div className="row" style={{marginTop: "25px"}}>
@@ -75,9 +87,14 @@ module.exports = React.createClass({
                         <PropertiesWidget data={properties}/>
                     </div>
                     <div className="col-md-6">
-                        <h4>Activations by Type</h4>
-                        <GrainBreakdown data={grainStats}/>
+                        <h4>Silo Properties</h4>
+                        <PropertiesWidget data={configuration}/>
                     </div>
+
+                </div>
+                <div>
+                    <h4>Activations by Type</h4>
+                    <GrainBreakdown data={grainStats} silo={this.props.silo}/>
                 </div>
             </div>
         </div>

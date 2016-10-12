@@ -1,4 +1,5 @@
 ﻿using Microsoft.Owin;
+using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
 using System;
@@ -29,14 +30,8 @@ namespace OrleansDashboard
             add("/DashboardCounters", GetDashboardCounters);
             add("/RuntimeStats/:address", GetRuntimeStats);
             add("/HistoricalStats/:address", GetHistoricalStats);
-
-            //this.Get["/SiloPerformanceMetrics"] = GetSiloPerformanceMetrics;
-            //this.Get["/ClientPerformanceMetrics"] = GetClientPerformanceMetrics;
-            //this.Get["/Counters"] = GetCounters;
-            //add("/ForceActivationCollection/{timespan:int}/{address?}", PostForceActivationCollection);
+            add("/GrainStats/:grain", GetGrainStats);
         }
-
-
 
         Task Index(IOwinContext context, IDictionary<string,string> parameters)
         {
@@ -48,35 +43,6 @@ namespace OrleansDashboard
             return context.ReturnFile("index.min.js", "application/javascript");
         }
 
-
-        /*
-        object PostForceActivationCollection(dynamic parameters)
-        {
-            var grain = Dashboard.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
-            var timespan = TimeSpan.FromSeconds(parameters.timespan);
-
-            if (parameters.address.HasValue)
-            {
-                var address = SiloAddress.FromParsableString((string)parameters.address);
-                Dispatch(async () =>
-                {
-                    await grain.ForceActivationCollection(new SiloAddress[] { address }, timespan);
-                    return "";
-                });
-            }
-            else
-            {
-                Dispatch(async () =>
-                {
-                    await grain.ForceActivationCollection(timespan);
-                    return "";
-                });
-            }
-
-            return this.Response.AsJson(new { });
-        }
-        */
-
         async Task GetDashboardCounters(IOwinContext context, IDictionary<string, string> parameters)
         {
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
@@ -87,7 +53,6 @@ namespace OrleansDashboard
 
             await context.ReturnJson(result);
         }
-
 
         async Task GetRuntimeStats(IOwinContext context, IDictionary<string, string> parameters)
         {
@@ -122,6 +87,18 @@ namespace OrleansDashboard
             await context.ReturnJson(result);
         }
 
+        async Task GetGrainStats(IOwinContext context, IDictionary<string, string> parameters)
+        {
+            var grainName = parameters["grain"];
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+
+            var result = await Dispatch(async () =>
+            {
+                return await grain.GetGrainTracing(grainName);
+            });
+
+            await context.ReturnJson(result);
+        }
 
         Task<object> Dispatch(Func<Task<object>> func)
         {

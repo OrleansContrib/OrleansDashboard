@@ -7,6 +7,7 @@ var SiloDrilldown = require('./components/silo-drilldown.jsx');
 var target = document.getElementById('content');
 var events = require('eventthing');
 var ThemeButtons = require('./components/theme-buttons.jsx');
+var Grain = require('./components/grain.jsx');
 var timer;
 
 var dashboardCounters = {};
@@ -20,9 +21,11 @@ function loadDashboardCounters(){
         events.emit('dashboard-counters', data);
     });
 }
-setInterval(loadDashboardCounters, 5000);
-loadDashboardCounters();
 
+// we always want to refresh the dashboard counters
+setInterval(loadDashboardCounters, 1000);
+loadDashboardCounters();
+var render = () => {};
 
 function renderLoading(){
     ReactDom.render(<span>Loading...</span>, target);
@@ -30,24 +33,21 @@ function renderLoading(){
 
 routie('', function(){
     events.clearAll();
-    clearInterval(timer);
 
-    var render = function(){
+    render = function(){
         ReactDom.render(<Dashboard dashboardCounters={dashboardCounters} />, target);
     }
 
     events.on('dashboard-counters', render);
+    events.on('refresh', render);
 
     loadDashboardCounters();
-
-
 });
 
 
 
 routie('/host/:host', function(host){
     events.clearAll();
-    clearInterval(timer);
 
     var siloData = [];
     var loadData = function(cb){
@@ -57,14 +57,37 @@ routie('/host/:host', function(host){
         });
     }
 
-
-    var render = function(){
+    render = function(){
         ReactDom.render(<SiloDrilldown silo={host} data={siloData} dashboardCounters={dashboardCounters}  />, target);
     }
 
     events.on('dashboard-counters', render);
-
-    timer = setInterval(loadData, 5000);
+    events.on('refresh', loadData);
 
     loadData();
 });
+
+
+routie('/grain/:grainType', function(grainType){
+    events.clearAll();
+
+    var grainStats = {};
+    var loadData = function(cb){
+        http.get('/GrainStats/' + grainType, function(err, data){
+            grainStats = data;
+            render();
+        });
+    }
+
+    render = function(){
+        ReactDom.render(<Grain grainType={grainType} dashboardCounters={dashboardCounters} grainStats={grainStats} />, target);
+    }
+
+    events.on('dashboard-counters', render);
+    events.on('refresh', loadData);
+
+    loadData();
+
+});
+
+setInterval(() => events.emit('refresh'), 1000);

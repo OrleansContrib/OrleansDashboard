@@ -3,10 +3,6 @@ using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace OrleansDashboard
@@ -15,12 +11,13 @@ namespace OrleansDashboard
     {
         IDisposable host;
         Logger logger;
+        GrainProfiler profiler;
 
         public static int HistoryLength
         {
             get
             {
-                return 25;
+                return 100;
             }
         }
 
@@ -66,8 +63,17 @@ namespace OrleansDashboard
 
             this.logger.Verbose($"Dashboard listening on {options.Port}");
 
+            this.profiler = new GrainProfiler(TaskScheduler.Current, providerRuntime);
+
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
             return dashboardGrain.Init();
+
         }
+
+   
+
+
+    
+
     }
 }

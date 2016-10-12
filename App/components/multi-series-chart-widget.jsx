@@ -25,16 +25,16 @@ module.exports = React.createClass({
                 var colourString = colours[index % colours.length].join();
                 return {
                     label: "",
-					fillColor: `rgba(${colourString},0.1)`,
-					strokeColor: `rgba(${colourString},1)`,
-					highlightFill: `rgba(${colourString},0.1)`,
-					highlightStroke: `rgba(${colourString},1)`,
-					data: data
+
+					backgroundColor: `rgba(${colourString},0.1)`,
+					borderColor: `rgba(${colourString},1)`,
+					data: data,
+                    pointRadius:0
                 };
             })
 		};
 
-		return <Chart data={data} options={{pointDot :false, showTooltips:false}} width={this.state.width} height={120} />
+		return <Chart data={data} options={{animation:false,legend:{display:false},maintainAspectRatio:false,responsive: true,showTooltips:false,scales:{yAxes:[{ticks:{beginAtZero:true}}]}}} width={this.state.width} height={120} />
 	},
 
     render:function(){
