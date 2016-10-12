@@ -1,6 +1,8 @@
 var React = require('react');
 var Chart = require('./time-series-chart.jsx');
 var CounterWidget = require('./counter-widget.jsx');
+var SiloBreakdown = require('./silo-breakdown.jsx');
+
 
 var GrainGraph = React.createClass({
     render:function(){
@@ -14,7 +16,7 @@ var GrainGraph = React.createClass({
         }
 
         return <div>
-            <h2>{this.props.grainMethod}</h2>
+            <h4>{this.props.grainMethod}</h4>
             <Chart series={[values.map(z => z.count), values.map(z => z.count === 0 ? 0 : z.elapsedTime / z.count)]} />
         </div>
     }
@@ -42,7 +44,6 @@ module.exports = React.createClass({
             stats.totalAwaitTime += stat.totalAwaitTime;
             stats.totalCalls += stat.totalCalls;
         });
-        console.log(stats);
 
         return <div>
             <div className="row" style={{paddingBottom:"75px"}}>
@@ -56,17 +57,22 @@ module.exports = React.createClass({
                     <CounterWidget counter={(stats.totalCalls === 0) ? "0" : (stats.totalAwaitTime / stats.totalCalls).toFixed(2) + "ms"} title="Average response time" />
                 </div>
             </div>
-            <div className="row">
+
+            <div>
                 <span><strong style={{color:"#783988",fontSize:"25px"}}>/</strong> number of requests per second</span>
                 <span className="pull-right"><strong style={{color:"#EC971F",fontSize:"25px"}}>/</strong> average latency in milliseconds</span>
                 {Object.keys(this.props.grainStats).sort().map(key => <GrainGraph stats={this.props.grainStats[key]} grainMethod={getName(key)} />)}
             </div>
+
+            <div>
+                <h4>Activations by Silo</h4>
+                <SiloBreakdown  data={this.props.dashboardCounters.simpleGrainStats} grainType={this.props.grainType} />
+            </div>
+
         </div>
     },
 
     render:function(){
-
-
         var renderMethod = this.renderGraphs;
 
         if (Object.keys(this.props.grainStats).length === 0) renderMethod = this.renderEmpty;
@@ -76,6 +82,7 @@ module.exports = React.createClass({
             <h2>{getName(this.props.grainType)} <small>{this.props.grainType}</small></h2>
             <div className="well">
                 {renderMethod()}
+
             </div>
         </div>
 
