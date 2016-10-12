@@ -10,6 +10,8 @@ An admin dashboard for Microsoft Orleans.
 
 ![](screenshots/silo.png)
 
+![](screenshots/grain.png)
+
 ## Installation
 
 Using the Package Manager Console:
