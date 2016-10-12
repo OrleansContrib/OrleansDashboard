@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Orleans.Placement;
 namespace OrleansDashboard
 {
     [Reentrant]
+    [PreferLocalPlacement]
     public class DashboardGrain : Grain, IDashboardGrain
     {
         DashboardCounters Counters { get; set; }
