@@ -12,6 +12,10 @@ var timer;
 
 var dashboardCounters = {};
 
+function scroll(){
+    window.scrollTo(0,0);
+}
+
 ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
 
 // continually poll the dashboard counters
@@ -33,6 +37,7 @@ function renderLoading(){
 
 routie('', function(){
     events.clearAll();
+    scroll();
 
     render = function(){
         ReactDom.render(<Dashboard dashboardCounters={dashboardCounters} />, target);
@@ -48,6 +53,7 @@ routie('', function(){
 
 routie('/host/:host', function(host){
     events.clearAll();
+    scroll();
 
     var siloData = [];
     var loadData = function(cb){
@@ -70,6 +76,7 @@ routie('/host/:host', function(host){
 
 routie('/grain/:grainType', function(grainType){
     events.clearAll();
+    scroll();
 
     var grainStats = {};
     var loadData = function(cb){
