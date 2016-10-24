@@ -78,7 +78,7 @@ namespace TestHost
             using (new DevSilo())
             {
                 // generate some calls to a test grain
-                Orleans.GrainClient.Initialize(ClientConfiguration.LocalhostSilo());
+                GrainClient.Initialize(ClientConfiguration.LocalhostSilo());
                 Console.WriteLine("Calling test grain");
                 var rand = new Random();
                 while (true)

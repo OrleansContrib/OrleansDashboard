@@ -49,12 +49,13 @@ namespace TestHost
 
         public bool Run()
         {
-            bool ok = false;
+            var ok = false;
 
             try
             {
                 siloHost.InitializeOrleansSilo();
 
+                // register the dashboard
                 siloHost.Config.Globals.RegisterDashboard();
 
                 ok = siloHost.StartOrleansSilo();
@@ -72,7 +73,7 @@ namespace TestHost
 
         public bool Stop()
         {
-            bool ok = false;
+            var ok = false;
 
             try
             {

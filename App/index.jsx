@@ -98,3 +98,5 @@ routie('/grain/:grainType', function(grainType){
 });
 
 setInterval(() => events.emit('refresh'), 1000);
+
+routie.reload();

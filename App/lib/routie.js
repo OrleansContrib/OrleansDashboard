@@ -110,12 +110,12 @@
   var routie = function(path, fn) {
     if (typeof fn == 'function') {
       addHandler(path, fn);
-      routie.reload();
+      //routie.reload();
     } else if (typeof path == 'object') {
       for (var p in path) {
         addHandler(p, path[p]);
       }
-      routie.reload();
+      //routie.reload();
     } else if (typeof fn === 'undefined') {
       routie.navigate(path);
     }
