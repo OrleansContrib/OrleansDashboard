@@ -1,13 +1,12 @@
 ﻿using Orleans;
 using Orleans.CodeGeneration;
 using Orleans.Providers;
+using Orleans.Runtime;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,13 +16,15 @@ namespace OrleansDashboard
     {
         public TaskScheduler TaskScheduler { get; private set; }
         public IProviderRuntime ProviderRuntime { get; private set; }
-
+        object sync = new object();
         string siloAddress;
+        public Logger Logger { get; private set; }
 
         public GrainProfiler(TaskScheduler taskScheduler, IProviderRuntime providerRuntime)
         {
             this.TaskScheduler = taskScheduler;
             this.ProviderRuntime = providerRuntime;
+            this.Logger = this.ProviderRuntime.GetLogger("GrainProfiler");
 
             // register interceptor, wrapping any previously set interceptor
             this.innerInterceptor = providerRuntime.GetInvokeInterceptor();
@@ -93,17 +94,27 @@ namespace OrleansDashboard
         {
             var providerRuntime = state as IProviderRuntime;
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
-            
+
             // flush the dictionary
-            var data = this.grainTrace.Values.ToArray();
-            this.grainTrace.Clear();
-
-
-            Dispatch(async () =>
+            GrainTraceEntry[] data;
+            lock (sync)
             {
-                await dashboardGrain.SubmitTracing(siloAddress, data);
-                return null;
-            }).Wait();
+                data = this.grainTrace.Values.ToArray();
+                this.grainTrace.Clear();
+            }
+
+            try
+            {
+                Dispatch(async () =>
+                {
+                    await dashboardGrain.SubmitTracing(siloAddress, data);
+                    return null;
+                }).Wait();
+            }
+            catch (Exception ex)
+            {
+                this.Logger.Log(100001, Severity.Warning, "Exception thrown sending tracing to dashboard grain", new object[0], ex);
+            }
             
         }
 
