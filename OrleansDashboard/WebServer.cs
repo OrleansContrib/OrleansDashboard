@@ -19,16 +19,23 @@ namespace OrleansDashboard
         public string Username { get; private set; }
         public string Password { get; private set; }
 
-        Task HandleRequest(IOwinContext context, Func<Task> func)
+        async Task HandleRequest(IOwinContext context, Func<Task> func)
         {
             var result = this.Router.Match(context.Request.Path.Value);
-            if (null != result)
+            if (null == result)
             {
-                return result(context);
+                context.Response.StatusCode = 404;
+                return;
             }
-
-            context.Response.StatusCode = 404;
-            return Task.FromResult(0);
+            try
+            {
+                await result(context);
+            }
+            catch (Exception ex)
+            {
+                context.Response.StatusCode = 500;
+                await context.ReturnJson(ex);
+            }
         }
 
         Task BasicAuth(IOwinContext context, Func<Task> func)
