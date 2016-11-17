@@ -31,7 +31,7 @@ module.exports = React.createClass({
                     totalAwaitTime : 0,
                     totalCalls : 0
                 };
-            };
+            }
 
             var x = grainTypes[stat.grainType];
             x.activationCount += stat.activationCount;

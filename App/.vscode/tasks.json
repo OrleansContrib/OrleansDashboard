@@ -1,9 +1,0 @@
-
-{
-	"version": "0.1.0",
-	"command": "browserify",
-	"isShellCommand": true,
-	"showOutput": "always",
-	"args": ["-t", "babelify", "index.jsx", "--outfile", "../OrleansDashboard/index.min.js"],
-	"problemMatcher": "$tsc"
-}

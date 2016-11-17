@@ -10,9 +10,8 @@ function makeRequest(method, uri, body, cb){
     xhr.setRequestHeader('Content-Type','application/json');
     xhr.setRequestHeader('Accept','application/json');
     xhr.send(body);
-};
+}
 
 module.exports.get = function(url, cb){
 	makeRequest('GET', url, null, cb);
 }
-

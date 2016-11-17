@@ -24,7 +24,7 @@ module.exports = React.createClass({
                     totalAwaitTime : 0,
                     totalCalls : 0
                 };
-            };
+            }
 
             if (this.props.grainType && stat.grainType !== this.props.grainType) return;
 

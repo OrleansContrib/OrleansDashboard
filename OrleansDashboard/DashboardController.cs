@@ -50,7 +50,6 @@ namespace OrleansDashboard
             var result = await Dispatch(async () => {
                 return await grain.GetCounters();
             });
-            throw new ApplicationException();
             await context.ReturnJson(result);
         }
 
