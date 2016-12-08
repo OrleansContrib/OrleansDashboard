@@ -58,13 +58,18 @@ namespace OrleansDashboard
                 UpdateZone = x.UpdateZone
             }).ToArray();
 
-            this.Counters.SimpleGrainStats = simpleGrainStatsTask.Result.Select(x => new SimpleGrainStatisticCounter {
-                ActivationCount = x.ActivationCount,
-                GrainType = x.GrainType,
-                SiloAddress = x.SiloAddress.ToParsableString(),
-                TotalAwaitTime = this.history.Where(n => n.Grain == x.GrainType && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.ElapsedTime),
-                TotalCalls = this.history.Where(n => n.Grain == x.GrainType && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.Count),
-                TotalSeconds = elapsedTime
+            this.Counters.SimpleGrainStats = simpleGrainStatsTask.Result.Select(x => {
+                var grainName = TypeFormatter.Parse(x.GrainType);
+                return new SimpleGrainStatisticCounter
+                {
+                    ActivationCount = x.ActivationCount,
+                    GrainType = grainName,
+                    SiloAddress = x.SiloAddress.ToParsableString(),
+                    TotalAwaitTime = this.history.Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.ElapsedTime),
+                    TotalCalls = this.history.Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.Count),
+                    TotalExceptions = this.history.Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.ExceptionCount),
+                    TotalSeconds = elapsedTime
+                };
             }).ToArray();
         }
 
@@ -107,6 +112,7 @@ namespace OrleansDashboard
                 var value = grainResults[key];
                 value.Count += historicValue.Count;
                 value.ElapsedTime += historicValue.ElapsedTime;
+                value.ExceptionCount += historicValue.ExceptionCount;
             }
            
             return Task.FromResult(results);
@@ -139,7 +145,7 @@ namespace OrleansDashboard
                     {
                         Count = 0,
                         ElapsedTime = 0,
-                        Grain = value.Grain,
+                        Grain = TypeFormatter.Parse(value.Grain),
                         Method = value.Method,
                         Period = now,
                         SiloAddress = siloIdentity

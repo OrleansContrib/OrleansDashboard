@@ -45,43 +45,66 @@ namespace OrleansDashboard
         // capture stats
         async Task<object> InvokeInterceptor(MethodInfo targetMethod, InvokeMethodRequest request, IGrain grain, IGrainMethodInvoker invoker)
         {
-            // round down to nearest 10 seconds to group results
             var grainName = grain.GetType().FullName;
             var stopwatch = Stopwatch.StartNew();
 
             // invoke grain
             object result = null;
-            if (this.innerInterceptor != null)
+            var isException = false;
+
+            try
             {
-                result = await this.innerInterceptor(targetMethod, request, grain, invoker);
-            }
-            else
-            {
-                result = await invoker.Invoke(grain, request);
-            }
-
-            stopwatch.Stop();
-
-            var elapsedMs = (double)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond;
-
-            var key = $"{grainName}.{targetMethod?.Name ?? "Unknown"}";
-
-            grainTrace.AddOrUpdate(key, _ => {
-                return new GrainTraceEntry
+                if (this.innerInterceptor != null)
                 {
-                    Count = 1,
-                    SiloAddress = siloAddress,
-                    ElapsedTime = elapsedMs,
-                    Grain = grainName,
-                    Method = targetMethod?.Name ?? "Unknown",
-                    Period = DateTime.UtcNow
-                };
-            },
-            (_, last) => {
-                last.Count += 1;
-                last.ElapsedTime += elapsedMs;
-                return last;
-            });
+                    result = await this.innerInterceptor(targetMethod, request, grain, invoker);
+                }
+                else
+                {
+                    result = await invoker.Invoke(grain, request);
+                }
+            }
+            catch (Exception ex)
+            {
+                isException = true;
+                throw;
+            }
+            finally
+            {
+
+                try
+                {
+                    stopwatch.Stop();
+
+                    var elapsedMs = (double)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond;
+
+                    var key = string.Format("{0}.{1}", grainName, targetMethod?.Name ?? "Unknown");
+
+                    grainTrace.AddOrUpdate(key, _ =>
+                    {
+                        return new GrainTraceEntry
+                        {
+                            Count = 1,
+                            ExceptionCount = (isException ? 1 : 0),
+                            SiloAddress = siloAddress,
+                            ElapsedTime = elapsedMs,
+                            Grain = grainName ,
+                            Method = targetMethod?.Name ?? "Unknown",
+                            Period = DateTime.UtcNow
+                        };
+                    },
+                    (_, last) =>
+                    {
+                        last.Count += 1;
+                        last.ElapsedTime += elapsedMs;
+                        if (isException) last.ExceptionCount += 1;
+                        return last;
+                    });
+                }
+                catch (Exception ex)
+                {
+                    this.Logger.Error(100002, "error recording results for grain", ex);
+                }
+            }
 
             return result;
         }
@@ -101,6 +124,11 @@ namespace OrleansDashboard
             {
                 data = this.grainTrace.Values.ToArray();
                 this.grainTrace.Clear();
+            }
+
+            foreach (var item in data)
+            {
+                item.Grain = TypeFormatter.Parse(item.Grain);
             }
 
             try

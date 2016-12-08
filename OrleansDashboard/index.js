@@ -321,13 +321,25 @@ module.exports = React.createClass({
                         'strong',
                         null,
                         stat.activationCount
+                    )
+                )
+            ),
+            React.createElement(
+                'td',
+                null,
+                React.createElement(
+                    'span',
+                    { className: 'pull-right' },
+                    React.createElement(
+                        'strong',
+                        null,
+                        stat.totalCalls === 0 ? "0.00" : (100 * stat.totalExceptions / stat.totalCalls).toFixed(2)
                     ),
                     ' ',
                     React.createElement(
                         'small',
                         null,
-                        'activation',
-                        stat.activationCount == 1 ? "" : "s"
+                        '%'
                     )
                 )
             ),
@@ -386,7 +398,8 @@ module.exports = React.createClass({
                     activationCount: 0,
                     totalSeconds: 0,
                     totalAwaitTime: 0,
-                    totalCalls: 0
+                    totalCalls: 0,
+                    totalExceptions: 0
                 };
             }
 
@@ -395,6 +408,7 @@ module.exports = React.createClass({
             x.totalSeconds += stat.totalSeconds;
             x.totalAwaitTime += stat.totalAwaitTime;
             x.totalCalls += stat.totalCalls;
+            x.totalExceptions += stat.totalExceptions;
         });
 
         var values = Object.keys(grainTypes).map(function (key) {
@@ -411,6 +425,36 @@ module.exports = React.createClass({
             React.createElement(
                 'tbody',
                 null,
+                React.createElement(
+                    'tr',
+                    null,
+                    React.createElement(
+                        'th',
+                        { style: { textAlign: "left" } },
+                        'Grain'
+                    ),
+                    React.createElement('th', null),
+                    React.createElement(
+                        'th',
+                        { style: { textAlign: "right" } },
+                        'Activations'
+                    ),
+                    React.createElement(
+                        'th',
+                        { style: { textAlign: "right" } },
+                        'Exception rate'
+                    ),
+                    React.createElement(
+                        'th',
+                        { style: { textAlign: "right" } },
+                        'Throughput'
+                    ),
+                    React.createElement(
+                        'th',
+                        { style: { textAlign: "right" } },
+                        'Latency'
+                    )
+                ),
                 values.map(this.renderStat)
             )
         );
@@ -438,7 +482,7 @@ var GrainGraph = React.createClass({
         if (!values.length) return null;
 
         while (values.length < 100) {
-            values.unshift({ count: 0, elapsedTime: 0, period: 0 });
+            values.unshift({ count: 0, elapsedTime: 0, period: 0, exceptionCount: 0 });
         }
 
         return React.createElement(
@@ -450,6 +494,8 @@ var GrainGraph = React.createClass({
                 this.props.grainMethod
             ),
             React.createElement(Chart, { series: [values.map(function (z) {
+                    return z.exceptionCount;
+                }), values.map(function (z) {
                     return z.count;
                 }), values.map(function (z) {
                     return z.count === 0 ? 0 : z.elapsedTime / z.count;
@@ -479,7 +525,8 @@ module.exports = React.createClass({
             activationCount: 0,
             totalSeconds: 0,
             totalAwaitTime: 0,
-            totalCalls: 0
+            totalCalls: 0,
+            totalExceptions: 0
         };
         this.props.dashboardCounters.simpleGrainStats.forEach(function (stat) {
             if (stat.grainType !== _this2.props.grainType) return;
@@ -487,6 +534,7 @@ module.exports = React.createClass({
             stats.totalSeconds += stat.totalSeconds;
             stats.totalAwaitTime += stat.totalAwaitTime;
             stats.totalCalls += stat.totalCalls;
+            stats.totalExceptions += stat.totalExceptions;
         });
 
         return React.createElement(
@@ -497,17 +545,22 @@ module.exports = React.createClass({
                 { className: 'row', style: { paddingBottom: "75px" } },
                 React.createElement(
                     'div',
-                    { className: 'col-md-4' },
+                    { className: 'col-md-3' },
                     React.createElement(CounterWidget, { counter: stats.activationCount, title: "Activation" + (stats.activationCount == 1 ? "" : "s") })
                 ),
                 React.createElement(
                     'div',
-                    { className: 'col-md-4' },
+                    { className: 'col-md-3' },
+                    React.createElement(CounterWidget, { counter: stats.totalCalls === 0 ? "0.00" : (100 * stats.totalExceptions / stats.totalCalls).toFixed(2) + "%", title: 'Error Rate' })
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'col-md-3' },
                     React.createElement(CounterWidget, { counter: (stats.totalCalls / stats.totalSeconds).toFixed(2), title: 'Requests/second' })
                 ),
                 React.createElement(
                     'div',
-                    { className: 'col-md-4' },
+                    { className: 'col-md-3' },
                     React.createElement(CounterWidget, { counter: stats.totalCalls === 0 ? "0" : (stats.totalAwaitTime / stats.totalCalls).toFixed(2) + "ms", title: 'Average response time' })
                 )
             ),
@@ -522,7 +575,14 @@ module.exports = React.createClass({
                         { style: { color: "#783988", fontSize: "25px" } },
                         '/'
                     ),
-                    ' number of requests per second'
+                    ' number of requests per second',
+                    React.createElement('br', null),
+                    React.createElement(
+                        'strong',
+                        { style: { color: "#EC1F1F", fontSize: "25px" } },
+                        '/'
+                    ),
+                    ' failed requests'
                 ),
                 React.createElement(
                     'span',
@@ -608,7 +668,6 @@ module.exports = React.createClass({
     displayName: 'exports',
 
     renderHost: function renderHost(host, silo) {
-        console.log(silo);
         var subTotal = 0;
         this.props.dashboardCounters.simpleGrainStats.forEach(function (stat) {
             if (stat.siloAddress.toLowerCase() === host.toLowerCase()) subTotal += stat.activationCount;
@@ -799,13 +858,25 @@ module.exports = React.createClass({
                         "strong",
                         null,
                         stat.activationCount
+                    )
+                )
+            ),
+            React.createElement(
+                "td",
+                null,
+                React.createElement(
+                    "span",
+                    { className: "pull-right" },
+                    React.createElement(
+                        "strong",
+                        null,
+                        stat.totalCalls === 0 ? "0.00" : (100 * stat.totalExceptions / stat.totalCalls).toFixed(2)
                     ),
                     " ",
                     React.createElement(
                         "small",
                         null,
-                        "activation",
-                        stat.activationCount == 1 ? "" : "s"
+                        "%"
                     )
                 )
             ),
@@ -862,7 +933,8 @@ module.exports = React.createClass({
                     activationCount: 0,
                     totalSeconds: 0,
                     totalAwaitTime: 0,
-                    totalCalls: 0
+                    totalCalls: 0,
+                    totalExceptions: 0
                 };
             }
 
@@ -873,6 +945,7 @@ module.exports = React.createClass({
             x.totalSeconds += stat.totalSeconds;
             x.totalAwaitTime += stat.totalAwaitTime;
             x.totalCalls += stat.totalCalls;
+            x.totalExceptions += stat.totalExceptions;
         });
 
         var values = Object.keys(silos).map(function (key) {
@@ -889,6 +962,35 @@ module.exports = React.createClass({
             React.createElement(
                 "tbody",
                 null,
+                React.createElement(
+                    "tr",
+                    null,
+                    React.createElement(
+                        "th",
+                        { style: { textAlign: "left" } },
+                        "Silo"
+                    ),
+                    React.createElement(
+                        "th",
+                        { style: { textAlign: "right" } },
+                        "Activations"
+                    ),
+                    React.createElement(
+                        "th",
+                        { style: { textAlign: "right" } },
+                        "Exception rate"
+                    ),
+                    React.createElement(
+                        "th",
+                        { style: { textAlign: "right" } },
+                        "Throughput"
+                    ),
+                    React.createElement(
+                        "th",
+                        { style: { textAlign: "right" } },
+                        "Latency"
+                    )
+                ),
                 values.map(this.renderStat)
             )
         );
@@ -1355,7 +1457,7 @@ module.exports = React.createClass({
 var React = require('react');
 var Chart = require("react-chartjs").Line;
 
-var colours = [[120, 57, 136], [236, 151, 31]];
+var colours = [[120, 57, 136], [236, 151, 31], [236, 31, 31]];
 // this control is a bit of a temporary hack, until I have a multi-series chart widget
 module.exports = React.createClass({
     displayName: "exports",
@@ -1376,17 +1478,28 @@ module.exports = React.createClass({
             labels: this.props.series[0].map(function (x) {
                 return "";
             }),
-            datasets: this.props.series.map(function (data, index) {
-                var colourString = colours[index % colours.length].join();
-                return {
-                    label: "y" + (index + 1),
-                    backgroundColor: "rgba(" + colourString + ",0.1)",
-                    borderColor: "rgba(" + colourString + ",1)",
-                    data: data,
-                    pointRadius: 0,
-                    yAxisID: "y" + (index + 1)
-                };
-            })
+            datasets: [{
+                label: "y1",
+                backgroundColor: "rgba(246,31,31,0.6)",
+                borderColor: "rgba(246,31,31,1)",
+                data: this.props.series[0],
+                pointRadius: 0,
+                yAxisID: "y1"
+            }, {
+                label: "y1",
+                backgroundColor: "rgba(120,57,136,0.0)",
+                borderColor: "rgba(120,57,136,1)",
+                data: this.props.series[1],
+                pointRadius: 0,
+                yAxisID: "y1"
+            }, {
+                label: "y2",
+                backgroundColor: "rgba(236,151,31,0.6)",
+                borderColor: "rgba(236,151,31,0)",
+                data: this.props.series[2],
+                pointRadius: 0,
+                yAxisID: "y2"
+            }]
         };
 
         var options = {
@@ -1552,7 +1665,7 @@ function makeRequest(method, uri, body, cb) {
     xhr.onreadystatechange = function () {
         if (xhr.readyState !== 4) return;
         if (xhr.status < 400) return cb(null, JSON.parse(xhr.responseText || '{}'));
-        console.log("error", xhr.status, xhr.responseText);
+        console.err("error", xhr.status, xhr.responseText);
         cb(xhr.status);
     };
     xhr.setRequestHeader('Content-Type', 'application/json');

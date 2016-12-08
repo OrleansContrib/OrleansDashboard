@@ -115,6 +115,7 @@
     <Compile Include="Router.cs" />
     <Compile Include="SiloGrain.cs" />
     <Compile Include="StatsPublisher.cs" />
+    <Compile Include="TypeFormatter.cs" />
     <Compile Include="WebServer.cs" />
   </ItemGroup>
   <ItemGroup>

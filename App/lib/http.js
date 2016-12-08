@@ -4,7 +4,7 @@ function makeRequest(method, uri, body, cb){
     xhr.onreadystatechange = function(){
         if(xhr.readyState !== 4) return
         if(xhr.status < 400) return cb(null, JSON.parse(xhr.responseText || '{}'));
-        console.log("error", xhr.status, xhr.responseText);
+        console.err("error", xhr.status, xhr.responseText);
     	cb(xhr.status);
     };
     xhr.setRequestHeader('Content-Type','application/json');

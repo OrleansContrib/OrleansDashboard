@@ -12,7 +12,6 @@ function sortFunction(a, b) {
 
 module.exports = React.createClass({
     renderHost:function(host, silo){
-        console.log(silo);
         var subTotal = 0;
         this.props.dashboardCounters.simpleGrainStats.forEach(function(stat){
             if (stat.siloAddress.toLowerCase() === host.toLowerCase()) subTotal += stat.activationCount;

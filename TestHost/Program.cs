@@ -85,7 +85,17 @@ namespace TestHost
                 {
                     var client = GrainClient.GrainFactory.GetGrain<ITestGrain>(rand.Next(500));
                     client.ExampleMethod1().Wait();
-                    client.ExampleMethod2().Wait();
+                    try
+                    {
+                        client.ExampleMethod2().Wait();
+                    }
+                    catch
+                    { }
+
+                    // interceptors are currently broken for generic grains
+                    // https://github.com/dotnet/orleans/issues/2358
+                    //var genericClient = GrainClient.GrainFactory.GetGrain<IGenericGrain<string>>("foo");
+                    //genericClient.Echo("hello world").Wait();
                 }
             }
         }

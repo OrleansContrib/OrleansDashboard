@@ -10,3 +10,7 @@ build:
 	@wc -c ../OrleansDashboard/index.js
 	@wc -c ../OrleansDashboard/index.min.js
 	@echo Done
+
+debug:
+	@browserify -t babelify index.jsx --outfile ../OrleansDashboard/index.min.js
+	@echo Done

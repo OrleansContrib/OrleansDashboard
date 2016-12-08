@@ -3,7 +3,8 @@ var Chart = require("react-chartjs").Line;
 
 var colours = [
     [120, 57, 136],
-    [236, 151, 31]
+    [236, 151, 31],
+    [236, 31, 31]
 ];
 // this control is a bit of a temporary hack, until I have a multi-series chart widget
 module.exports = React.createClass({
@@ -21,17 +22,31 @@ module.exports = React.createClass({
 
 		var data = {
 			labels: this.props.series[0].map(function(x){ return "" }),
-            datasets : this.props.series.map((data, index) => {
-                var colourString = colours[index % colours.length].join();
-                return {
-                    label: `y${index+1}`,
-                    backgroundColor: `rgba(${colourString},0.1)`,
-					borderColor: `rgba(${colourString},1)`,
-					data: data,
-                    pointRadius:0,
-                    yAxisID:`y${index+1}`
-                };
-            })
+            datasets : [{
+                label: "y1",
+                backgroundColor: `rgba(246,31,31,0.6)`,
+				borderColor: `rgba(246,31,31,1)`,
+				data: this.props.series[0],
+                pointRadius:0,
+                yAxisID:"y1"
+            },
+            {
+                label: "y1",
+                backgroundColor: `rgba(120,57,136,0.0)`,
+                borderColor: `rgba(120,57,136,1)`,
+                data: this.props.series[1],
+                pointRadius:0,
+                yAxisID:"y1"
+            },
+            {
+                label: "y2",
+                backgroundColor: `rgba(236,151,31,0.6)`,
+                borderColor: `rgba(236,151,31,0)`,
+                data: this.props.series[2],
+                pointRadius:0,
+                yAxisID:"y2"
+            }
+        ]
 		};
 
         var options = {

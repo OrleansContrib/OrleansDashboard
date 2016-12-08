@@ -16,7 +16,8 @@ namespace OrleansDashboard
         public double TotalAwaitTime { get; set; }
         public long TotalCalls { get; set; }
         public double CallsPerSecond { get; set; }
-        public object TotalSeconds { get; internal set; }
+        public object TotalSeconds { get; set; }
+        public long TotalExceptions { get; set; }
     }
 
     [Serializable]
@@ -27,6 +28,7 @@ namespace OrleansDashboard
         public string Grain { get; set; }
         public string Method { get; set; }
         public long Count { get; set; }
+        public long ExceptionCount { get; set; }
         public double ElapsedTime { get; set; }
         public string GrainAndMethod => $"{this.Grain}.{this.Method}";
     }

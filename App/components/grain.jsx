@@ -12,12 +12,12 @@ var GrainGraph = React.createClass({
 
 
         while (values.length < 100){
-            values.unshift({count:0, elapsedTime :0, period:0})
+            values.unshift({count:0, elapsedTime :0, period:0, exceptionCount:0})
         }
 
         return <div>
             <h4>{this.props.grainMethod}</h4>
-            <Chart series={[values.map(z => z.count), values.map(z => z.count === 0 ? 0 : z.elapsedTime / z.count)]} />
+            <Chart series={[values.map(z => z.exceptionCount), values.map(z => z.count), values.map(z => z.count === 0 ? 0 : z.elapsedTime / z.count)]} />
         </div>
     }
 });
@@ -35,7 +35,8 @@ module.exports = React.createClass({
             activationCount: 0,
             totalSeconds: 0,
             totalAwaitTime : 0,
-            totalCalls : 0
+            totalCalls : 0,
+            totalExceptions : 0
         };
         this.props.dashboardCounters.simpleGrainStats.forEach(stat => {
             if (stat.grainType !== this.props.grainType) return;
@@ -43,23 +44,27 @@ module.exports = React.createClass({
             stats.totalSeconds += stat.totalSeconds;
             stats.totalAwaitTime += stat.totalAwaitTime;
             stats.totalCalls += stat.totalCalls;
+            stats.totalExceptions += stat.totalExceptions;
         });
 
         return <div>
             <div className="row" style={{paddingBottom:"75px"}}>
-                <div className="col-md-4">
+                <div className="col-md-3">
                     <CounterWidget counter={stats.activationCount} title={"Activation" + (stats.activationCount == 1 ? "" : "s")} />
                 </div>
-                <div className="col-md-4">
+                <div className="col-md-3">
+                    <CounterWidget counter={(stats.totalCalls === 0) ? "0.00" : (100 * stats.totalExceptions / stats.totalCalls).toFixed(2) + "%"} title="Error Rate" />
+                </div>
+                <div className="col-md-3">
                     <CounterWidget counter={(stats.totalCalls / stats.totalSeconds).toFixed(2)} title="Requests/second" />
                 </div>
-                <div className="col-md-4">
+                <div className="col-md-3">
                     <CounterWidget counter={(stats.totalCalls === 0) ? "0" : (stats.totalAwaitTime / stats.totalCalls).toFixed(2) + "ms"} title="Average response time" />
                 </div>
             </div>
 
             <div>
-                <span><strong style={{color:"#783988",fontSize:"25px"}}>/</strong> number of requests per second</span>
+                <span><strong style={{color:"#783988",fontSize:"25px"}}>/</strong> number of requests per second<br/><strong style={{color:"#EC1F1F",fontSize:"25px"}}>/</strong> failed requests</span>
                 <span className="pull-right"><strong style={{color:"#EC971F",fontSize:"25px"}}>/</strong> average latency in milliseconds</span>
                 {Object.keys(this.props.grainStats).sort().map(key => <GrainGraph stats={this.props.grainStats[key]} grainMethod={getName(key)} />)}
             </div>
