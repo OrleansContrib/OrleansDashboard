@@ -37,7 +37,7 @@ namespace OrleansDashboard
         }
 
 
-        public Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
+        public async Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
         {
             this.logger = providerRuntime.GetLogger("Dashboard");
 
@@ -66,10 +66,14 @@ namespace OrleansDashboard
             this.profiler = new GrainProfiler(TaskScheduler.Current, providerRuntime);
 
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
-            return dashboardGrain.Init();
+            await dashboardGrain.Init();
 
+            var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
+            await siloGrain.SetOrleansVersion(typeof(SiloAddress).Assembly.GetName().Version.ToString());
         }
 
+
+        
    
 
 

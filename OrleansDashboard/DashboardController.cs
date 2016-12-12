@@ -86,6 +86,18 @@ namespace OrleansDashboard
             await context.ReturnJson(result);
         }
 
+        async Task GetSiloExtendedProperties(IOwinContext context, IDictionary<string, string> parameters)
+        {
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(parameters["address"]);
+
+            var result = await Dispatch(async () =>
+            {
+                return await grain.GetExtendedProperties();
+            });
+
+            await context.ReturnJson(result);
+        }
+
         async Task GetGrainStats(IOwinContext context, IDictionary<string, string> parameters)
         {
             var grainName = parameters["grain"];

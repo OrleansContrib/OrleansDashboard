@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Orleans.Providers;
 
 namespace OrleansDashboard
 {
@@ -84,6 +85,10 @@ namespace OrleansDashboard
         }
 
 
-
+        public static string ToSiloAddress(this IProviderRuntime providerRuntime)
+        {
+            var parts = providerRuntime.SiloIdentity.Substring(1).Split(':');
+            return string.Format("{0}:{1}@{2}", parts[0], parts[1], parts[2]);
+        }
     }
 }

@@ -13,6 +13,8 @@ namespace OrleansDashboard
         Queue<SiloRuntimeStatistics> stats;
         IDisposable timer;
 
+        public string Version { get; private set; }
+
         public override async Task OnActivateAsync()
         {
             stats = new Queue<SiloRuntimeStatistics>();
@@ -56,6 +58,17 @@ namespace OrleansDashboard
         public Task<SiloRuntimeStatistics[]> GetRuntimeStatistics()
         {
             return Task.FromResult(this.stats.ToArray());
+        }
+
+        public Task SetOrleansVersion(string version)
+        {
+            this.Version = version;
+            return TaskDone.Done;
+        }
+
+        public Task<Dictionary<string, string>> GetExtendedProperties()
+        {
+            return Task.FromResult(new Dictionary<string, string>{ { "OrleansVersion", this.Version ?? "Unknown" } });
         }
     }
 }

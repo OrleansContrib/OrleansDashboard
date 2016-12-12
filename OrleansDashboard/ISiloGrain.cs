@@ -11,5 +11,7 @@ namespace OrleansDashboard
     public interface ISiloGrain : IGrainWithStringKey
     {
         Task<SiloRuntimeStatistics[]> GetRuntimeStatistics();
+        Task SetOrleansVersion(string version);
+        Task<Dictionary<string,string>> GetExtendedProperties();
     }
 }
