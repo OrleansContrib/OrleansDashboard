@@ -31,6 +31,7 @@ namespace OrleansDashboard
             add("/RuntimeStats/:address", GetRuntimeStats);
             add("/HistoricalStats/:address", GetHistoricalStats);
             add("/GrainStats/:grain", GetGrainStats);
+            add("/SiloProperties/:address", GetSiloExtendedProperties);
         }
 
         Task Index(IOwinContext context, IDictionary<string,string> parameters)

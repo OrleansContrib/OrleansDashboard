@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Orleans.Runtime;
+using System.Reflection;
 
 namespace OrleansDashboard
 {
@@ -68,7 +69,25 @@ namespace OrleansDashboard
 
         public Task<Dictionary<string, string>> GetExtendedProperties()
         {
-            return Task.FromResult(new Dictionary<string, string>{ { "OrleansVersion", this.Version ?? "Unknown" } });
+            var results = new Dictionary<string, string>();
+
+            try
+            {
+                var assembly = Assembly.GetEntryAssembly();
+                if (null != assembly)
+                {
+                    results.Add("HostVersion", assembly.GetName().Version.ToString());
+                }
+            }
+            catch
+            { }
+
+            if (null != this.Version)
+            {
+                results.Add("OrleansVersion", this.Version);
+            }
+
+            return Task.FromResult(results);
         }
     }
 }

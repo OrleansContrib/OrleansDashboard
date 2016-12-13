@@ -63,6 +63,14 @@ module.exports = React.createClass({
             "Fault zone" : silo.faultZone
         };
 
+        if (this.props.siloProperties.orleansVersion){
+            configuration["Orleans version"] = this.props.siloProperties.orleansVersion;
+        }
+
+        if (this.props.siloProperties.hostVersion){
+            configuration["Host version"] = this.props.siloProperties.hostVersion;
+        }
+
         return <div>
             <a href="#">&larr; Back to Dashboard</a>
             <h2>Silo {this.props.silo} <small><SiloState status={silo.status}/></small> {this.renderOverloaded()}</h2>
@@ -90,7 +98,6 @@ module.exports = React.createClass({
                         <h4>Silo Properties</h4>
                         <PropertiesWidget data={configuration}/>
                     </div>
-
                 </div>
                 <div>
                     <h4>Activations by Type</h4>

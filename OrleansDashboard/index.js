@@ -1090,6 +1090,14 @@ module.exports = React.createClass({
             "Fault zone": silo.faultZone
         };
 
+        if (this.props.siloProperties.orleansVersion) {
+            configuration["Orleans version"] = this.props.siloProperties.orleansVersion;
+        }
+
+        if (this.props.siloProperties.hostVersion) {
+            configuration["Host version"] = this.props.siloProperties.hostVersion;
+        }
+
         return React.createElement(
             'div',
             null,
@@ -1609,6 +1617,7 @@ routie('', function () {
 routie('/host/:host', function (host) {
     events.clearAll();
     scroll();
+    var siloProperties = {};
 
     var siloData = [];
     var loadData = function loadData(cb) {
@@ -1619,13 +1628,18 @@ routie('/host/:host', function (host) {
     };
 
     render = function render() {
-        ReactDom.render(React.createElement(SiloDrilldown, { silo: host, data: siloData, dashboardCounters: dashboardCounters }), target);
+        ReactDom.render(React.createElement(SiloDrilldown, { silo: host, data: siloData, siloProperties: siloProperties, dashboardCounters: dashboardCounters }), target);
     };
 
     events.on('dashboard-counters', render);
     events.on('refresh', loadData);
 
     loadData();
+
+    http.get('/SiloProperties/' + host, function (err, data) {
+        siloProperties = data;
+        render();
+    });
 });
 
 routie('/grain/:grainType', function (grainType) {

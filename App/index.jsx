@@ -54,6 +54,7 @@ routie('', function(){
 routie('/host/:host', function(host){
     events.clearAll();
     scroll();
+    var siloProperties = {};
 
     var siloData = [];
     var loadData = function(cb){
@@ -64,13 +65,19 @@ routie('/host/:host', function(host){
     }
 
     render = function(){
-        ReactDom.render(<SiloDrilldown silo={host} data={siloData} dashboardCounters={dashboardCounters}  />, target);
+        ReactDom.render(<SiloDrilldown silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters}  />, target);
     }
 
     events.on('dashboard-counters', render);
     events.on('refresh', loadData);
 
     loadData();
+
+    http.get('/SiloProperties/' + host, function(err, data){
+        siloProperties = data;
+        render();
+    });
+
 });
 
 
