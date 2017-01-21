@@ -1,15 +1,17 @@
-﻿using Microsoft.Owin.Hosting;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
     public class Dashboard : IBootstrapProvider
     {
-        IDisposable host;
+        IWebHost host;
         Logger logger;
         GrainProfiler profiler;
 
@@ -41,27 +43,30 @@ namespace OrleansDashboard
         {
             this.logger = providerRuntime.GetLogger("Dashboard");
 
-            var router = new Router();
-            new DashboardController(router, TaskScheduler.Current,  providerRuntime);
-
-            var options = new StartOptions
-            {
-                ServerFactory = "Nowin",
-                Port = config.Properties.ContainsKey("Port") ? int.Parse(config.Properties["Port"]) : 8080,
-            };
-
+            var port = config.Properties.ContainsKey("Port") ? int.Parse(config.Properties["Port"]) : 8080;
             var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
             var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
+
             try
             {
-                host = WebApp.Start(options, app => new WebServer(router, username, password).Configuration(app));
+                host = new WebHostBuilder()
+                    .ConfigureServices(services =>
+                    {
+                        services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(IProviderRuntime), providerRuntime));
+                        services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(TaskScheduler), TaskScheduler.Current));
+                    })
+                    .UseKestrel()
+                    .UseUrls($"http://localhost:{port}/")
+                    .UseStartup<Startup>()
+                    .Build();
+                host.Start();
             }
             catch (Exception ex)
             {
                 this.logger.Error(10001, ex.ToString());
             }
 
-            this.logger.Verbose($"Dashboard listening on {options.Port}");
+            this.logger.Verbose($"Dashboard listening on {port}");
 
             this.profiler = new GrainProfiler(TaskScheduler.Current, providerRuntime);
 
@@ -69,7 +74,7 @@ namespace OrleansDashboard
             await dashboardGrain.Init();
 
             var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
-            await siloGrain.SetOrleansVersion(typeof(SiloAddress).Assembly.GetName().Version.ToString());
+            await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
         }
 
 
