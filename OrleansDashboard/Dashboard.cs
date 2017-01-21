@@ -44,14 +44,14 @@ namespace OrleansDashboard
             this.logger = providerRuntime.GetLogger("Dashboard");
 
             var port = config.Properties.ContainsKey("Port") ? int.Parse(config.Properties["Port"]) : 8080;
-            var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
-            var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
-
+            
             try
             {
                 host = new WebHostBuilder()
+                    
                     .ConfigureServices(services =>
                     {
+                        services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(IProviderConfiguration), config));
                         services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(IProviderRuntime), providerRuntime));
                         services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(TaskScheduler), TaskScheduler.Current));
                     })

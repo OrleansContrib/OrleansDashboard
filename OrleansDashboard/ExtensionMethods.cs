@@ -37,10 +37,10 @@ namespace OrleansDashboard
                 }));
         }
 
-        public static Task ReturnUnauthorised(this HttpContext context)
+        public static Task ReturnUnauthorised(this HttpResponse response)
         {
-            context.Response.StatusCode = 401;
-            context.Response.Headers.Add("WWW-Authenticate", new string[] { "Basic realm=\"OrleansDashboard\"" });
+            response.StatusCode = 401;
+            response.Headers.Add("WWW-Authenticate", new string[] { "Basic realm=\"OrleansDashboard\"" });
             return Task.FromResult(0);
         }
 

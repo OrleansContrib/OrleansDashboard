@@ -14,6 +14,7 @@ namespace OrleansDashboard
 {
     internal class Startup
     {
+        private IProviderConfiguration _providerConfiguration;
         private IProviderRuntime _providerRuntime;
         private TaskScheduler _taskScheduler;
 
@@ -25,6 +26,9 @@ namespace OrleansDashboard
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            var username = _providerConfiguration.Properties.ContainsKey("Username") ? _providerConfiguration.Properties["Username"] : null;
+            var password = _providerConfiguration.Properties.ContainsKey("Password") ? _providerConfiguration.Properties["Password"] : null;
+            
             var dashboardController = new DashboardController(_providerRuntime, _taskScheduler);
 
             var dashboardRouteHandler = new RouteHandler(context =>
@@ -66,12 +70,18 @@ namespace OrleansDashboard
                 name: "default",
                 template: "{action=Index}/{id?}");
 
+            if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
+            {
+                app.UseBasicAuthentication(new BasicAuthenticationOptions() { Username = username, Password = password });
+            }
+
             app.UseRouter(routeBuilder.Build());
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            _providerConfiguration = services.Single(x => x.ServiceType == typeof(IProviderConfiguration)).ImplementationInstance as IProviderConfiguration;
             _providerRuntime = services.Single(x => x.ServiceType == typeof(IProviderRuntime)).ImplementationInstance as IProviderRuntime;
             _taskScheduler = services.Single(x => x.ServiceType == typeof(TaskScheduler)).ImplementationInstance as TaskScheduler;
             services.AddRouting();
