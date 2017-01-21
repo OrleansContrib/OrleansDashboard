@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "TestGrains": "*"
+  },
+  "frameworks": {
+    "net451": {
+      "dependencies": {
+        "Microsoft.Orleans.Server": "1.3.1"
+      }
+    }
+  }
+}
