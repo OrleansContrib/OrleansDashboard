@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "Microsoft.AspNetCore.Routing": "1.1.0",
+    "Microsoft.AspNetCore.Server.Kestrel.Https": "1.1.0"
+  },
+  "buildOptions": {
+    "embed": [
+      "Index.html",
+      "index.min.js"
+    ]
+  },
+  "frameworks": {
+    "netstandard1.5": {
+      "dependencies": {
+        "NETStandard.Library": "1.6.1",
+        "Microsoft.Orleans.Core": "2.0.0-preview1-201612131558"
+      },
+      "imports": "dnxcore50"
+    },
+    "net451": {
+      "dependencies": {
+        "Microsoft.Orleans.Core": "1.3.1"
+      }
+    }
+  }
+}
