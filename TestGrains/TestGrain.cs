@@ -23,7 +23,7 @@ namespace TestGrains
         public Task ExampleMethod2()
         {
 
-            if (rand.Next(100) > 50) throw new Exception();
+            if (rand.Next(100) > 50) throw new ApplicationException();
             return TaskDone.Done;
         }
     }

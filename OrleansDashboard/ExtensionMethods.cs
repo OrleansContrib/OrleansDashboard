@@ -1,35 +1,36 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Owin;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using Orleans.Runtime.Configuration;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Orleans.Providers;
-using Microsoft.AspNetCore.Http;
 
 namespace OrleansDashboard
 {
     public static class ExtensionMethods
     {
-        public static async Task ReturnFileAsync(this HttpResponse response, string name, string contentType)
+        public static async Task ReturnFile(this IOwinContext context, string name, string contentType)
         {
-            response.ContentType = contentType;
-            var assembly = typeof(ExtensionMethods).GetTypeInfo().Assembly;
+            context.Response.ContentType = contentType;
+            var assembly = Assembly.GetExecutingAssembly();
             using (var stream = assembly.GetManifestResourceStream($"OrleansDashboard.{name}"))
             using (var reader = new StreamReader(stream))
             {
                 var content = await reader.ReadToEndAsync();
-                await response.WriteAsync(content);
+                await context.Response.WriteAsync(content);
             }
         }
 
-        public static Task ReturnJson(this HttpResponse response, object value)
+        public static Task ReturnJson(this IOwinContext context, object value)
         {
-            response.ContentType = "application/json";
-            return response.WriteAsync(
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync(
                 JsonConvert.SerializeObject(value,
                 new JsonSerializerSettings
                 {
@@ -37,10 +38,11 @@ namespace OrleansDashboard
                 }));
         }
 
-        public static Task ReturnUnauthorised(this HttpResponse response)
+        public static Task ReturnUnauthorised(this IOwinContext context)
         {
-            response.StatusCode = 401;
-            response.Headers.Add("WWW-Authenticate", new string[] { "Basic realm=\"OrleansDashboard\"" });
+            context.Response.StatusCode = 401;
+            context.Response.ReasonPhrase = "Unauthorized";
+            context.Response.Headers.Add("WWW-Authenticate", new string[] { "Basic realm=\"OrleansDashboard\"" });
             return Task.FromResult(0);
         }
 

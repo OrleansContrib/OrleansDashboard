@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
+﻿using Microsoft.Owin;
 using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
@@ -14,39 +13,51 @@ namespace OrleansDashboard
 
     public class DashboardController 
     {
-        private readonly TaskScheduler _taskScheduler;
-        private readonly IProviderRuntime _providerRuntime;
+        public TaskScheduler TaskScheduler { get; private set; }
+        public IProviderRuntime ProviderRuntime { get; private set; }
 
-        public DashboardController(IProviderRuntime providerRuntime, TaskScheduler taskScheduler)
+
+        public DashboardController(Router router, TaskScheduler taskScheduler, IProviderRuntime providerRuntime)
         {
-            _providerRuntime = providerRuntime;
-            _taskScheduler = taskScheduler;
+
+            this.TaskScheduler = taskScheduler;
+            this.ProviderRuntime = providerRuntime;
+
+            Action<string, Func<IOwinContext, IDictionary<string, string>, Task>> add = router.Add;
+
+            add("/", Index);
+            add("/index.min.js", IndexJs);
+            add("/DashboardCounters", GetDashboardCounters);
+            add("/RuntimeStats/:address", GetRuntimeStats);
+            add("/HistoricalStats/:address", GetHistoricalStats);
+            add("/GrainStats/:grain", GetGrainStats);
+            add("/SiloProperties/:address", GetSiloExtendedProperties);
         }
 
-        public Task Index(HttpContext context, RouteValueDictionary routeValues)
+        Task Index(IOwinContext context, IDictionary<string,string> parameters)
         {
-            return context.Response.ReturnFileAsync("Index.html", "text/html");
+            return context.ReturnFile("Index.html", "text/html");
         }
 
-        public Task IndexJs(HttpContext context, RouteValueDictionary routeValues)
+        Task IndexJs(IOwinContext context, IDictionary<string, string> parameters)
         {
-            return context.Response.ReturnFileAsync("index.min.js", "application/javascript");
+            return context.ReturnFile("index.min.js", "application/javascript");
         }
 
-        public async Task GetDashboardCounters(HttpContext context, RouteValueDictionary routeValues)
+        async Task GetDashboardCounters(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var grain = _providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
             var result = await Dispatch(async () => {
                 return await grain.GetCounters();
             });
-            await context.Response.ReturnJson(result);
+            await context.ReturnJson(result);
         }
 
-        public async Task GetRuntimeStats(HttpContext context, RouteValueDictionary routeValues)
+        async Task GetRuntimeStats(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var address = SiloAddress.FromParsableString(routeValues["id"].ToString());
-            var grain = this._providerRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
+            var address = SiloAddress.FromParsableString(parameters["address"]);
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
             
             var result = await Dispatch(async () =>
             {
@@ -61,49 +72,49 @@ namespace OrleansDashboard
             });
 
 
-            await context.Response.ReturnJson(result);
+            await context.ReturnJson(result);
         }
 
-        public async Task GetHistoricalStats(HttpContext context, RouteValueDictionary routeValues)
+        async Task GetHistoricalStats(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var grain = this._providerRuntime.GrainFactory.GetGrain<ISiloGrain>(routeValues["id"].ToString());
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(parameters["address"]);
 
             var result = await Dispatch(async () =>
             {
                 return await grain.GetRuntimeStatistics();
             });
 
-            await context.Response.ReturnJson(result);
+            await context.ReturnJson(result);
         }
 
-        public async Task GetSiloExtendedProperties(HttpContext context, RouteValueDictionary routeValues)
+        async Task GetSiloExtendedProperties(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var grain = _providerRuntime.GrainFactory.GetGrain<ISiloGrain>(routeValues["id"].ToString());
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(parameters["address"]);
 
             var result = await Dispatch(async () =>
             {
                 return await grain.GetExtendedProperties();
             });
 
-            await context.Response.ReturnJson(result);
+            await context.ReturnJson(result);
         }
 
-        public async Task GetGrainStats(HttpContext context, RouteValueDictionary routeValues)
+        async Task GetGrainStats(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var grainName = routeValues["id"].ToString();
-            var grain = this._providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+            var grainName = parameters["grain"];
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
             var result = await Dispatch(async () =>
             {
                 return await grain.GetGrainTracing(grainName);
             });
 
-            await context.Response.ReturnJson(result);
+            await context.ReturnJson(result);
         }
 
         Task<object> Dispatch(Func<Task<object>> func)
         {
-            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: _taskScheduler).Result;
+            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: this.TaskScheduler).Result;
         }
 
     }
