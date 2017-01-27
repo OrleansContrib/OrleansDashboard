@@ -56,7 +56,7 @@ module.exports = React.createClass({
                     <CounterWidget counter={(stats.totalCalls === 0) ? "0.00" : (100 * stats.totalExceptions / stats.totalCalls).toFixed(2) + "%"} title="Error Rate" />
                 </div>
                 <div className="col-md-3">
-                    <CounterWidget counter={(stats.totalCalls / stats.totalSeconds).toFixed(2)} title="Requests/second" />
+                    <CounterWidget counter={(stats.totalCalls / stats.totalSeconds).toFixed(2)} title="Req/sec/silo" />
                 </div>
                 <div className="col-md-3">
                     <CounterWidget counter={(stats.totalCalls === 0) ? "0" : (stats.totalAwaitTime / stats.totalCalls).toFixed(2) + "ms"} title="Average response time" />

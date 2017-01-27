@@ -7,7 +7,7 @@
     "chart.js": "2.2.2",
     "eventthing": "^1.0.7",
     "humanize-duration": "^3.9.1",
-    "react": "^0.14.3",
+    "react": "^15.4.2",
     "react-chartjs": "git://github.com/reactjs/react-chartjs.git#chartjs-v2",
     "react-dom": "^15.3.0"
   },
