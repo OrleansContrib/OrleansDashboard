@@ -1,73 +1,75 @@
 ﻿<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <title>Orleans Dashboard</title>
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-        <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js"></script>
-        <link href='//fonts.googleapis.com/css?family=Lato:400,300' rel='stylesheet' type='text/css'>
-        <style>
-            body {
-                font-family: 'Lato', sans-serif;
-            }
-            h2, h3, h4 {
-                font-weight:300;
-            }
-            h1{
-                font-weight:bold;
-            }
-            th{
-                text-align: center
-            }
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Orleans Dashboard</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.3.11/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.3.11/css/skins/skin-purple.min.css">
 
-            .well-sm {
-                background-color:#FFF;
-            }
-        </style>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body class="hold-transition skin-purple sidebar-mini fixed" id="body">
+    <div class="wrapper">
 
-        <style id="dark-theme-style" media="">
-            body {
-                background-color: #161719;
-                color: #BBBBBB;
-            }
-            .well {
-                background-color:#1D1F21;
-                border: 1px solid #111314;
-            }
+        <header class="main-header">
 
-            .well-sm {
-                background-color:#161719;
-                border: 1px solid #323639;
-            }
+            <a href="#" class="logo">
+                <span class="logo-mini">Dashboard</span>
+                <span class="logo-lg">Orleans Dashboard</span>
+            </a>
 
-            .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
-                border-top: 1px solid #323639;
-            }
+            <!-- Header Navbar: style can be found in header.less -->
+            <nav class="navbar navbar-static-top">
 
-            .table-bordered>tbody>tr>td, .table-bordered>tbody>tr>th, .table-bordered>tfoot>tr>td, .table-bordered>tfoot>tr>th, .table-bordered>thead>tr>td, .table-bordered>thead>tr>th {
-                border: 1px solid #323639;
-            }
+            </nav>
+        </header>
+        <!-- Left side column. contains the logo and sidebar -->
+        <aside class="main-sidebar">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+           
+                <div id="menu">
+                    <ul class="sidebar-menu">
+                        <li class="header">LOADING...</li>
+                    </ul>
+                </div>
+            </section>
+            <!-- /.sidebar -->
+        </aside>
 
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="pull-right" id="button-toggles-content"></div>
-            <h1>
-                <svg viewBox="0 0 300 350" height="100" style="vertical-align:middle">
-                    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                        <path d="M142.461179,0 L284.922358,82.25 L284.922358,246.75 L142.461179,329 L9.59232693e-14,246.75 L7.10542736e-15,82.25 L142.461179,0 Z M141.973375,71 L222.946751,117.75 L222.946751,211.25 L141.973375,258 L61,211.25 L61,117.75 L141.973375,71 Z" id="Combined-Shape" fill="#68217A"></path>
-                        <polygon id="Path-1" fill="#783988" points="142 0 142 71.1171898 222.45988 117.896883 222.849037 211.348419 284.369995 246.834427 284.369995 82.2636871"></polygon>
-                        <polygon id="Path-1-Copy" fill="#783988" transform="translate(71.184998, 205.417213) rotate(-180.000000) translate(-71.184998, -205.417213) " points="0 82 0 153.11719 80.4598797 199.896883 80.8490372 293.348419 142.369995 328.834427 142.369995 164.263687"></polygon>
-                    </g>
-                </svg>
-                OrleansDashboard
-            </h1>
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper" id="content">
+
+            <section class="content" style="height:100vh">
+                <span style="padding-top: 25px;"><span><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading...</span></span>
+            </section>
+
         </div>
-        <div class="container" id="content"></div>
-        <script src="/index.min.js"></script>
-        <div class="container">
-            <a href="https://github.com/OrleansContrib/OrleansDashboard">Fork on GitHub</a>
-        </div>
-    </body>
+        <!-- /.content-wrapper -->
+
+
+        <!-- Add the sidebar's background. This div must be placed
+             immediately after the control sidebar -->
+        <div class="control-sidebar-bg"></div>
+
+    </div>
+
+
+    <!-- ./wrapper -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js"></script>
+    <script src="//code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.3.11/js/app.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jQuery-slimScroll/1.3.8/jquery.slimscroll.min.js"></script>
+    <script src="/index.min.js"></script>
+</body>
 </html>

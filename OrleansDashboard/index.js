@@ -1577,7 +1577,7 @@ function scroll() {
     window.scrollTo(0, 0);
 }
 
-ReactDom.render(React.createElement(ThemeButtons, null), document.getElementById('button-toggles-content'));
+//ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
 
 // continually poll the dashboard counters
 function loadDashboardCounters() {
