@@ -4,26 +4,27 @@ var CounterWidget = require('./counter-widget.jsx');
 var ChartWidget = require('./multi-series-chart-widget.jsx');
 var HostsWidget = require('./hosts-widget.jsx');
 var SiloGrid = require('./silo-grid.jsx');
+var Panel = require('./panel.jsx');
 
 module.exports = React.createClass({
     render:function(){
-        return <div className="well">
+        return <div>
+
             <div className="row">
-                <div className="col-md-3">
-                    <CounterWidget counter={this.props.dashboardCounters.totalActiveHostCount} title="Active Silos" />
+                <div className="col-md-4">
+                    <div className="info-box"><CounterWidget icon="database" counter={this.props.dashboardCounters.totalActiveHostCount} title="Active Silos" /></div>
                 </div>
-                <div className="col-md-9">
+                <div className="col-md-8">
                     <ChartWidget series={[this.props.dashboardCounters.totalActiveHostCountHistory]}/>
                 </div>
             </div>
-            <div>
-                <h4>Silo Health</h4>
+
+            <Panel title="Silo Health">
                 <HostsWidget dashboardCounters={this.props.dashboardCounters}/>
-            </div>
-            <div>
-                <h4>Silo Map</h4>
+            </Panel>
+            <Panel title="Silo Map">
                 <SiloGrid dashboardCounters={this.props.dashboardCounters}/>
-            </div>
+            </Panel>
         </div>
     }
 });
