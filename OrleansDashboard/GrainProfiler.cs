@@ -56,11 +56,11 @@ namespace OrleansDashboard
             {
                 if (this.innerInterceptor != null)
                 {
-                    result = await this.innerInterceptor(targetMethod, request, grain, invoker);
+                    result = await this.innerInterceptor(targetMethod, request, grain, invoker).ConfigureAwait(false);
                 }
                 else
                 {
-                    result = await invoker.Invoke(grain, request);
+                    result = await invoker.Invoke(grain, request).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -135,7 +135,7 @@ namespace OrleansDashboard
             {
                 Dispatch(async () =>
                 {
-                    await dashboardGrain.SubmitTracing(siloAddress, data);
+                    await dashboardGrain.SubmitTracing(siloAddress, data).ConfigureAwait(false);
                     return null;
                 }).Wait();
             }

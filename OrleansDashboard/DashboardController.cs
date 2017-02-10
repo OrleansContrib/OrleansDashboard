@@ -49,9 +49,9 @@ namespace OrleansDashboard
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
             var result = await Dispatch(async () => {
-                return await grain.GetCounters();
-            });
-            await context.ReturnJson(result);
+                return await grain.GetCounters().ConfigureAwait(false);
+            }).ConfigureAwait(false);
+            await context.ReturnJson(result).ConfigureAwait(false);
         }
 
         async Task GetRuntimeStats(IOwinContext context, IDictionary<string, string> parameters)
@@ -61,18 +61,18 @@ namespace OrleansDashboard
             
             var result = await Dispatch(async () =>
             {
-                Dictionary<SiloAddress, SiloStatus> silos = await grain.GetHosts(true);
+                Dictionary<SiloAddress, SiloStatus> silos = await grain.GetHosts(true).ConfigureAwait(false);
                 
                 SiloStatus siloStatus;
                 if (silos.TryGetValue(address, out siloStatus))
                 {
-                    return (await grain.GetRuntimeStatistics(new SiloAddress[] { address })).FirstOrDefault();
+                    return (await grain.GetRuntimeStatistics(new SiloAddress[] { address }).ConfigureAwait(false)).FirstOrDefault();
                 }
                 return null;
-            });
+            }).ConfigureAwait(false);
 
 
-            await context.ReturnJson(result);
+            await context.ReturnJson(result).ConfigureAwait(false);
         }
 
         async Task GetHistoricalStats(IOwinContext context, IDictionary<string, string> parameters)
@@ -81,10 +81,10 @@ namespace OrleansDashboard
 
             var result = await Dispatch(async () =>
             {
-                return await grain.GetRuntimeStatistics();
-            });
+                return await grain.GetRuntimeStatistics().ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
-            await context.ReturnJson(result);
+            await context.ReturnJson(result).ConfigureAwait(false);
         }
 
         async Task GetSiloExtendedProperties(IOwinContext context, IDictionary<string, string> parameters)
@@ -93,10 +93,10 @@ namespace OrleansDashboard
 
             var result = await Dispatch(async () =>
             {
-                return await grain.GetExtendedProperties();
-            });
+                return await grain.GetExtendedProperties().ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
-            await context.ReturnJson(result);
+            await context.ReturnJson(result).ConfigureAwait(false);
         }
 
         async Task GetGrainStats(IOwinContext context, IDictionary<string, string> parameters)
@@ -106,10 +106,10 @@ namespace OrleansDashboard
 
             var result = await Dispatch(async () =>
             {
-                return await grain.GetGrainTracing(grainName);
-            });
+                return await grain.GetGrainTracing(grainName).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
-            await context.ReturnJson(result);
+            await context.ReturnJson(result).ConfigureAwait(false);
         }
 
         Task<object> Dispatch(Func<Task<object>> func)
