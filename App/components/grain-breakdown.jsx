@@ -6,7 +6,7 @@ module.exports = React.createClass({
     renderStat:function(stat){
         var parts = stat.grainType.split('.');
         var grainClassName = parts[parts.length - 1];
-        var systemGrain = stat.grainType.startsWith("Orleans.Runtime.");
+        var systemGrain = stat.grainType.startsWith("Orleans.");
         var dashboardGrain = stat.grainType.startsWith("OrleansDashboard.");
         return <tr key={stat.grainType}>
             <td style={{textOverflow: "ellipsis"}} title={stat.grainType}><a href={`#/grain/${stat.grainType}`}>{grainClassName}</a></td>
