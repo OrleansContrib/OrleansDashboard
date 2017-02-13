@@ -23,7 +23,7 @@ namespace UnitTests
 
 
         [TestMethod]
-        public void TestFriendlyNameFoStrings()
+        public void TestFriendlyNameForStrings()
         {
             var example = "TestGrains.GenericGrain`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]";
 

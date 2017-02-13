@@ -29,12 +29,12 @@ namespace OrleansDashboard
             }
             try
             {
-                await result(context);
+                await result(context).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 context.Response.StatusCode = 500;
-                await context.ReturnJson(ex);
+                await context.ReturnJson(ex).ConfigureAwait(false);
             }
         }
 

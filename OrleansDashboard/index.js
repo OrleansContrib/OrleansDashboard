@@ -218,7 +218,7 @@ module.exports = React.createClass({
     renderStat: function renderStat(stat) {
         var parts = stat.grainType.split('.');
         var grainClassName = parts[parts.length - 1];
-        var systemGrain = stat.grainType.startsWith("Orleans.Runtime.");
+        var systemGrain = stat.grainType.startsWith("Orleans.");
         var dashboardGrain = stat.grainType.startsWith("OrleansDashboard.");
         return React.createElement(
             'tr',
