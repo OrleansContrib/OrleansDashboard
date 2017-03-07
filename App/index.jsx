@@ -13,6 +13,7 @@ var Menu = require('./components/menu.jsx');
 var Grains = require('./components/grains.jsx');
 var Silos = require('./components/silos.jsx');
 var Overview = require('./components/overview.jsx');
+var SiloState = require('./components/silo-state.jsx');
 var timer;
 
 var dashboardCounters = {};
@@ -110,8 +111,17 @@ routie('/host/:host', function(host){
         });
     }
 
+    var renderOverloaded = function(){
+        if (!siloData.length) return null;
+        if (!siloData[siloData.length-1]) return null;
+        if (!siloData[siloData.length-1].isOverloaded) return null;
+        return <small><span className="label label-danger">OVERLOADED</span></small>
+    },
+
     render = function(){
-        renderPage(<Page title="Silo"><SiloDrilldown silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters}  /></Page>, "#/silos");
+        var silo = (dashboardCounters.hosts || []).filter(x => x.siloAddress === host)[0] || {};
+        var subTitle = <span><SiloState status={silo.status}/> {renderOverloaded()}</span>
+        renderPage(<Page title={"Silo" + host} subTitle={subTitle}><SiloDrilldown silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters}  /></Page>, "#/silos");
     }
 
     events.on('dashboard-counters', render);

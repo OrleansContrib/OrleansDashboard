@@ -13,7 +13,7 @@ module.exports = React.createClass({
 
     getWidth:function(){
         if (!this.refs.container) return;
-		this.setState({width: this.refs.container.offsetWidth});
+		this.setState({width: this.refs.container.offsetWidth - 20});
 	},
 
     renderChart: function() {
@@ -34,7 +34,7 @@ module.exports = React.createClass({
             })
 		};
 
-		return <Chart data={data} options={{animation:false,legend:{display:false},maintainAspectRatio:false,responsive: true,showTooltips:false,scales:{yAxes:[{ticks:{beginAtZero:true}}]}}} width={this.state.width} height={120} />
+		return <Chart data={data} options={{animation:false,legend:{display:false},maintainAspectRatio:false,responsive: true,showTooltips:false,scales:{yAxes:[{ticks:{beginAtZero:true}}]}}} width={this.state.width} height={100} />
 	},
 
     render:function(){

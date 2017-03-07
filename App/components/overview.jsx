@@ -7,10 +7,10 @@ module.exports = React.createClass({
         return <div>
             <div className="row">
                 <div className="col-md-6">
-                    <CounterWidget icon="cubes" counter={this.props.dashboardCounters.totalActivationCount} title="Total Activations" />
+                    <CounterWidget icon="cubes" counter={this.props.dashboardCounters.totalActivationCount} title="Total Activations" link="#/grains" />
                 </div>
                 <div className="col-md-6">
-                    <CounterWidget icon="database" counter={this.props.dashboardCounters.totalActiveHostCount} title="Active Silos" />
+                    <CounterWidget icon="database" counter={this.props.dashboardCounters.totalActiveHostCount} title="Active Silos" link="#/silos" />
                 </div>
             </div>
         </div>

@@ -2,8 +2,8 @@ var React = require('react');
 var Gauge = require('./gauge-widget.jsx');
 var PropertiesWidget = require('./properties-widget.jsx');
 var GrainBreakdown = require('./grain-breakdown.jsx');
-var SiloState = require('./silo-state.jsx');
 var ChartWidget = require('./multi-series-chart-widget.jsx');
+var SiloState = require('./silo-state.jsx');
 var Panel = require('./panel.jsx');
 
 module.exports = React.createClass({
@@ -13,10 +13,7 @@ module.exports = React.createClass({
         }
         return false;
     },
-    renderOverloaded:function(){
-        if (!this.props.data[this.props.data.length-1].isOverloaded) return null;
-        return <small><span className="label label-danger">OVERLOADED</span></small>
-    },
+
 
     querySeries:function(lambda){
         return this.props.data.map(function(x){
@@ -44,8 +41,6 @@ module.exports = React.createClass({
             "Send queue" : last.sendQueueLength || '0'
         };
 
-
-
         var grainStats = (this.props.dashboardCounters.simpleGrainStats || []).filter(function(x){
             return x.siloAddress === this.props.silo;
         }, this);
@@ -70,10 +65,8 @@ module.exports = React.createClass({
             configuration["Host version"] = this.props.siloProperties.hostVersion;
         }
 
-        var subTitle = <span><SiloState status={silo.status}/> {this.renderOverloaded()}</span>
-
         return <div>
-                <Panel title={`Silo ${this.props.silo}`} subTitle={subTitle}>
+                <Panel title="Overview" >
                     <div className="row">
                         <div className="col-md-4">
                             <Gauge value={last.cpuUsage} max={100} title="CPU Usage" description={Math.floor(last.cpuUsage) + "% utilisation"}/>
@@ -98,7 +91,7 @@ module.exports = React.createClass({
                         <Panel title="Silo Properties"><PropertiesWidget data={configuration}/></Panel>
                     </div>
                 </div>
-                
+
                 <Panel title="Activations by Type">
                     <GrainBreakdown data={grainStats} silo={this.props.silo}/>
                 </Panel>

@@ -13,7 +13,7 @@ module.exports = React.createClass({
                     <CounterWidget icon="cubes" counter={this.props.dashboardCounters.totalActivationCount} title="Total Activations" />
                 </div>
                 <div className="col-md-8">
-                    <div className="info-box"><ChartWidget series={[this.props.dashboardCounters.totalActivationCountHistory]}/></div>
+                    <div className="info-box" style={{padding:"8px"}}><ChartWidget series={[this.props.dashboardCounters.totalActivationCountHistory]}/></div>
                 </div>
             </div>
             <Panel title="Activations by Type">

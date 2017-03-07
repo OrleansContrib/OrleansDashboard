@@ -99,6 +99,16 @@ var React = require('react');
 module.exports = React.createClass({
     displayName: "exports",
 
+    renderMore: function renderMore() {
+        if (!this.props.link) return null;
+        return React.createElement(
+            "a",
+            { href: this.props.link, className: "small-box-footer" },
+            "More info ",
+            React.createElement("i", { className: "fa fa-arrow-circle-right" })
+        );
+    },
+
     render: function render() {
 
         return React.createElement(
@@ -121,7 +131,8 @@ module.exports = React.createClass({
                     "span",
                     { className: "info-box-number" },
                     this.props.counter
-                )
+                ),
+                this.renderMore()
             )
         );
     }
@@ -595,7 +606,7 @@ module.exports = React.createClass({
                     { className: 'col-md-8' },
                     React.createElement(
                         'div',
-                        { className: 'info-box' },
+                        { className: 'info-box', style: { padding: "8px" } },
                         React.createElement(ChartWidget, { series: [this.props.dashboardCounters.totalActivationCountHistory] })
                     )
                 )
@@ -769,7 +780,7 @@ module.exports = React.createClass({
 
     getWidth: function getWidth() {
         if (!this.refs.container) return;
-        this.setState({ width: this.refs.container.offsetWidth });
+        this.setState({ width: this.refs.container.offsetWidth - 20 });
     },
 
     renderChart: function renderChart() {
@@ -792,7 +803,7 @@ module.exports = React.createClass({
             })
         };
 
-        return React.createElement(Chart, { data: data, options: { animation: false, legend: { display: false }, maintainAspectRatio: false, responsive: true, showTooltips: false, scales: { yAxes: [{ ticks: { beginAtZero: true } }] } }, width: this.state.width, height: 120 });
+        return React.createElement(Chart, { data: data, options: { animation: false, legend: { display: false }, maintainAspectRatio: false, responsive: true, showTooltips: false, scales: { yAxes: [{ ticks: { beginAtZero: true } }] } }, width: this.state.width, height: 100 });
     },
 
     render: function render() {
@@ -824,12 +835,12 @@ module.exports = React.createClass({
                 React.createElement(
                     'div',
                     { className: 'col-md-6' },
-                    React.createElement(CounterWidget, { icon: 'cubes', counter: this.props.dashboardCounters.totalActivationCount, title: 'Total Activations' })
+                    React.createElement(CounterWidget, { icon: 'cubes', counter: this.props.dashboardCounters.totalActivationCount, title: 'Total Activations', link: '#/grains' })
                 ),
                 React.createElement(
                     'div',
                     { className: 'col-md-6' },
-                    React.createElement(CounterWidget, { icon: 'database', counter: this.props.dashboardCounters.totalActiveHostCount, title: 'Active Silos' })
+                    React.createElement(CounterWidget, { icon: 'database', counter: this.props.dashboardCounters.totalActiveHostCount, title: 'Active Silos', link: '#/silos' })
                 )
             )
         );
@@ -1141,8 +1152,8 @@ var React = require('react');
 var Gauge = require('./gauge-widget.jsx');
 var PropertiesWidget = require('./properties-widget.jsx');
 var GrainBreakdown = require('./grain-breakdown.jsx');
-var SiloState = require('./silo-state.jsx');
 var ChartWidget = require('./multi-series-chart-widget.jsx');
+var SiloState = require('./silo-state.jsx');
 var Panel = require('./panel.jsx');
 
 module.exports = React.createClass({
@@ -1153,18 +1164,6 @@ module.exports = React.createClass({
             if (value[i] !== null) return true;
         }
         return false;
-    },
-    renderOverloaded: function renderOverloaded() {
-        if (!this.props.data[this.props.data.length - 1].isOverloaded) return null;
-        return React.createElement(
-            'small',
-            null,
-            React.createElement(
-                'span',
-                { className: 'label label-danger' },
-                'OVERLOADED'
-            )
-        );
     },
 
     querySeries: function querySeries(lambda) {
@@ -1236,20 +1235,12 @@ module.exports = React.createClass({
             configuration["Host version"] = this.props.siloProperties.hostVersion;
         }
 
-        var subTitle = React.createElement(
-            'span',
-            null,
-            React.createElement(SiloState, { status: silo.status }),
-            ' ',
-            this.renderOverloaded()
-        );
-
         return React.createElement(
             'div',
             null,
             React.createElement(
                 Panel,
-                { title: 'Silo ' + this.props.silo, subTitle: subTitle },
+                { title: 'Overview' },
                 React.createElement(
                     'div',
                     { className: 'row' },
@@ -1503,7 +1494,11 @@ module.exports = React.createClass({
                 React.createElement(
                     'div',
                     { className: 'col-md-8' },
-                    React.createElement(ChartWidget, { series: [this.props.dashboardCounters.totalActiveHostCountHistory] })
+                    React.createElement(
+                        'div',
+                        { className: 'info-box', style: { padding: "8px" } },
+                        React.createElement(ChartWidget, { series: [this.props.dashboardCounters.totalActiveHostCountHistory] })
+                    )
                 )
             ),
             React.createElement(
@@ -1689,6 +1684,7 @@ var Menu = require('./components/menu.jsx');
 var Grains = require('./components/grains.jsx');
 var Silos = require('./components/silos.jsx');
 var Overview = require('./components/overview.jsx');
+var SiloState = require('./components/silo-state.jsx');
 var timer;
 
 var dashboardCounters = {};
@@ -1795,10 +1791,34 @@ routie('/host/:host', function (host) {
         });
     };
 
-    render = function render() {
+    var renderOverloaded = function renderOverloaded() {
+        if (!siloData.length) return null;
+        if (!siloData[siloData.length - 1]) return null;
+        if (!siloData[siloData.length - 1].isOverloaded) return null;
+        return React.createElement(
+            'small',
+            null,
+            React.createElement(
+                'span',
+                { className: 'label label-danger' },
+                'OVERLOADED'
+            )
+        );
+    },
+        render = function render() {
+        var silo = (dashboardCounters.hosts || []).filter(function (x) {
+            return x.siloAddress === host;
+        })[0] || {};
+        var subTitle = React.createElement(
+            'span',
+            null,
+            React.createElement(SiloState, { status: silo.status }),
+            ' ',
+            renderOverloaded()
+        );
         renderPage(React.createElement(
             Page,
-            { title: 'Silo' },
+            { title: "Silo" + host, subTitle: subTitle },
             React.createElement(SiloDrilldown, { silo: host, data: siloData, siloProperties: siloProperties, dashboardCounters: dashboardCounters })
         ), "#/silos");
     };
@@ -1858,7 +1878,7 @@ function getMenu() {
     }];
 }
 
-},{"./components/grain.jsx":5,"./components/grains.jsx":6,"./components/loading.jsx":8,"./components/menu.jsx":9,"./components/overview.jsx":11,"./components/page.jsx":12,"./components/silo-drilldown.jsx":16,"./components/silos.jsx":19,"./components/theme-buttons.jsx":20,"./lib/http":23,"./lib/routie":24,"eventthing":68,"react":261,"react-dom":86}],23:[function(require,module,exports){
+},{"./components/grain.jsx":5,"./components/grains.jsx":6,"./components/loading.jsx":8,"./components/menu.jsx":9,"./components/overview.jsx":11,"./components/page.jsx":12,"./components/silo-drilldown.jsx":16,"./components/silo-state.jsx":18,"./components/silos.jsx":19,"./components/theme-buttons.jsx":20,"./lib/http":23,"./lib/routie":24,"eventthing":68,"react":261,"react-dom":86}],23:[function(require,module,exports){
 'use strict';
 
 function makeRequest(method, uri, body, cb) {

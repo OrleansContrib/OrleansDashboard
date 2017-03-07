@@ -15,7 +15,9 @@ module.exports = React.createClass({
                     <div className="info-box"><CounterWidget icon="database" counter={this.props.dashboardCounters.totalActiveHostCount} title="Active Silos" /></div>
                 </div>
                 <div className="col-md-8">
-                    <ChartWidget series={[this.props.dashboardCounters.totalActiveHostCountHistory]}/>
+                    <div className="info-box" style={{padding:"8px"}}>
+                        <ChartWidget series={[this.props.dashboardCounters.totalActiveHostCountHistory]}/>
+                    </div>
                 </div>
             </div>
 
