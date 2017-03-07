@@ -34,7 +34,7 @@ module.exports = React.createClass({
             })
 		};
 
-		return <Chart data={data} options={{animation:false,legend:{display:false},maintainAspectRatio:false,responsive: true,showTooltips:false,scales:{yAxes:[{ticks:{beginAtZero:true}}]}}} width={this.state.width} height={100} />
+		return <Chart data={data} options={{animation:false,legend:{display:false},maintainAspectRatio:false,responsive: true,showTooltips:false,scales:{yAxes:[{ticks:{beginAtZero:true}}]}}} width={this.state.width} height={80} />
 	},
 
     render:function(){

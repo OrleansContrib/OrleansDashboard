@@ -606,7 +606,7 @@ module.exports = React.createClass({
                     { className: 'col-md-8' },
                     React.createElement(
                         'div',
-                        { className: 'info-box', style: { padding: "8px" } },
+                        { className: 'info-box', style: { padding: "5px" } },
                         React.createElement(ChartWidget, { series: [this.props.dashboardCounters.totalActivationCountHistory] })
                     )
                 )
@@ -803,7 +803,7 @@ module.exports = React.createClass({
             })
         };
 
-        return React.createElement(Chart, { data: data, options: { animation: false, legend: { display: false }, maintainAspectRatio: false, responsive: true, showTooltips: false, scales: { yAxes: [{ ticks: { beginAtZero: true } }] } }, width: this.state.width, height: 100 });
+        return React.createElement(Chart, { data: data, options: { animation: false, legend: { display: false }, maintainAspectRatio: false, responsive: true, showTooltips: false, scales: { yAxes: [{ ticks: { beginAtZero: true } }] } }, width: this.state.width, height: 80 });
     },
 
     render: function render() {
@@ -1498,7 +1498,7 @@ module.exports = React.createClass({
                     { className: 'col-md-8' },
                     React.createElement(
                         'div',
-                        { className: 'info-box', style: { padding: "8px" } },
+                        { className: 'info-box', style: { padding: "5px" } },
                         React.createElement(ChartWidget, { series: [this.props.dashboardCounters.totalActiveHostCountHistory] })
                     )
                 )
