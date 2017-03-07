@@ -24,11 +24,12 @@ module.exports = React.createClass({
 
     render:function(){
         if (!this.hasData(this.props.data)){
-            return <div>
-                <a href="#">&larr; Back to Dashboard</a>
-                <h2>Silo {this.props.silo}</h2>
-                <p className="lead">No data available for this silo</p>
-            </div>
+            return <Panel title="Error">
+                <div>
+                    <p className="lead">No data available for this silo</p>
+                    <p><a href="#/silos">Show all silos</a></p>
+                </div>
+            </Panel>
         }
 
         var last = this.props.data[this.props.data.length-1];

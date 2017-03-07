@@ -1178,23 +1178,25 @@ module.exports = React.createClass({
 
         if (!this.hasData(this.props.data)) {
             return React.createElement(
-                'div',
-                null,
+                Panel,
+                { title: 'Error' },
                 React.createElement(
-                    'a',
-                    { href: '#' },
-                    '\u2190 Back to Dashboard'
-                ),
-                React.createElement(
-                    'h2',
+                    'div',
                     null,
-                    'Silo ',
-                    this.props.silo
-                ),
-                React.createElement(
-                    'p',
-                    { className: 'lead' },
-                    'No data available for this silo'
+                    React.createElement(
+                        'p',
+                        { className: 'lead' },
+                        'No data available for this silo'
+                    ),
+                    React.createElement(
+                        'p',
+                        null,
+                        React.createElement(
+                            'a',
+                            { href: '#/silos' },
+                            'Show all silos'
+                        )
+                    )
                 )
             );
         }
@@ -1888,6 +1890,7 @@ function makeRequest(method, uri, body, cb) {
         if (xhr.readyState !== 4) return;
         if (xhr.status < 400) return cb(null, JSON.parse(xhr.responseText || '{}'));
         console.err("error", xhr.status, xhr.responseText);
+
         cb(xhr.status);
     };
     xhr.setRequestHeader('Content-Type', 'application/json');
