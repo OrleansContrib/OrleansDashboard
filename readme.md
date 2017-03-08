@@ -8,10 +8,6 @@ An admin dashboard for Microsoft Orleans.
 
 ![](screenshots/dashboard.png)
 
-![](screenshots/silo.png)
-
-![](screenshots/grain.png)
-
 ## Installation
 
 Using the Package Manager Console:
@@ -82,6 +78,6 @@ $ browserify -t babelify index.jsx --outfile ../OrleansDashboard/index.min.js
 * Consider additional data sources
 * Consider allowing activation / garbage collection from the UI
 * Allow custom counters to be registered?
-* Improve the UI.
+* ~~Improve the UI.~~
 * ~~Consider collecting historical values for more of the counters~~
 * ~~Consider a simple username/password (basic auth) for authentication~~
