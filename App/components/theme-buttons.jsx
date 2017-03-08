@@ -30,11 +30,9 @@ module.exports = React.createClass({
         this.setState({light:false}, this.saveTheme);
     },
     render:function(){
-        return <div className="btn-group btn-group-sm" role="group" style={{opacity:0.5, marginTop:"27px"}}>
+        return <div className="btn-group btn-group-sm" role="group" style={{marginTop:"10px",marginRight:"10px"}}>
             <a href="javascript:void(0);" className={this.state.light ? "btn btn-primary" : "btn btn-default"} onClick={this.pickLight}>Light</a>
             <a href="javascript:void(0);" className={this.state.light ? "btn btn-default" : "btn btn-primary"} onClick={this.pickDark}>Dark</a>
         </div>
     }
 });
-
-

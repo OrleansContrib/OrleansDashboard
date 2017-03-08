@@ -14,6 +14,7 @@ var Grains = require('./components/grains.jsx');
 var Silos = require('./components/silos.jsx');
 var Overview = require('./components/overview.jsx');
 var SiloState = require('./components/silo-state.jsx');
+var Alert = require('./components/alert.jsx');
 var timer;
 
 var dashboardCounters = {};
@@ -22,7 +23,22 @@ function scroll(){
     window.scrollTo(0,0);
 }
 
-//ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
+ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
+
+var errorTimer;
+function showError(message){
+    ReactDom.render(<Alert onClose={closeError}>{message}</Alert>, document.getElementById('error-message-content'));
+    if (errorTimer) clearTimeout(errorTimer);
+    errorTimer = setTimeout(closeError, 3000);
+}
+
+function closeError(){
+    clearTimeout(errorTimer);
+    errorTimer = null;
+    ReactDom.render(<span></span>, document.getElementById('error-message-content'));
+}
+
+http.onError(showError);
 
 // continually poll the dashboard counters
 function loadDashboardCounters(){
@@ -121,7 +137,7 @@ routie('/host/:host', function(host){
     render = function(){
         var silo = (dashboardCounters.hosts || []).filter(x => x.siloAddress === host)[0] || {};
         var subTitle = <span><SiloState status={silo.status}/> {renderOverloaded()}</span>
-        renderPage(<Page title={"Silo" + host} subTitle={subTitle}><SiloDrilldown silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters}  /></Page>, "#/silos");
+        renderPage(<Page title={"Silo " + host} subTitle={subTitle}><SiloDrilldown silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters}  /></Page>, "#/silos");
     }
 
     events.on('dashboard-counters', render);
