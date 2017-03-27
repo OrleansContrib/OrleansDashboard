@@ -74,7 +74,7 @@ module.exports = React.createClass({
                             <ChartWidget series={[this.querySeries(x => x.cpuUsage)]} />
                         </div>
                         <div className="col-md-4">
-                            <Gauge value={last.totalPhysicalMemory - last.availableMemory} max={last.totalPhysicalMemory} title="Memory Usage"  description={Math.floor(last.availableMemory / (1024 * 1024)) + " MB free"}/>
+                            <Gauge value={(last.totalPhysicalMemory || 0) - (last.availableMemory || 0)} max={(last.totalPhysicalMemory || 1)} title="Memory Usage"  description={Math.floor((last.availableMemory || 0) / (1024 * 1024)) + " MB free"}/>
                             <ChartWidget series={[this.querySeries(x => (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024))]} />
                         </div>
                         <div className="col-md-4">

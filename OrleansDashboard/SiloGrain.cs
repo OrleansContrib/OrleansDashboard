@@ -39,7 +39,6 @@ namespace OrleansDashboard
             try
             {
                 var results = (await grain.GetRuntimeStatistics(new SiloAddress[] { address })).FirstOrDefault();
-
                 stats.Enqueue(results);
                 while (this.stats.Count > Dashboard.HistoryLength)
                 {
