@@ -80,6 +80,12 @@ namespace TestHost
                 // generate some calls to a test grain
                 GrainClient.Initialize(ClientConfiguration.LocalhostSilo());
                 Console.WriteLine("Calling test grain");
+
+                var x = GrainClient.GrainFactory.GetGrain<ITestGenericGrain<string, int>>("test");
+                x.TestT("string").Wait();
+                x.TestU(1).Wait();
+                x.TestTU("string", 1).Wait();
+
                 var rand = new Random();
                 while (true)
                 {

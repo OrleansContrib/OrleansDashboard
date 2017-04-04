@@ -56,7 +56,7 @@ namespace OrleansDashboard
 
         async Task GetRuntimeStats(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var address = SiloAddress.FromParsableString(parameters["address"]);
+            var address = SiloAddress.FromParsableString(EscapeString(parameters["address"]));
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
             
             var result = await Dispatch(async () =>
@@ -77,7 +77,8 @@ namespace OrleansDashboard
 
         async Task GetHistoricalStats(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(parameters["address"]);
+            var address = EscapeString(parameters["address"]);
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
 
             var result = await Dispatch(async () =>
             {
@@ -89,7 +90,8 @@ namespace OrleansDashboard
 
         async Task GetSiloExtendedProperties(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(parameters["address"]);
+            var address = EscapeString(parameters["address"]);
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
 
             var result = await Dispatch(async () =>
             {
@@ -101,7 +103,7 @@ namespace OrleansDashboard
 
         async Task GetGrainStats(IOwinContext context, IDictionary<string, string> parameters)
         {
-            var grainName = parameters["grain"];
+            var grainName = EscapeString(parameters["grain"]);
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
             var result = await Dispatch(async () =>
@@ -117,5 +119,17 @@ namespace OrleansDashboard
             return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: this.TaskScheduler).Result;
         }
 
+        static string EscapeString(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return value;
+            return value
+                .Replace("%3C", "<")
+                .Replace("%20", " ")
+                .Replace("%3E", ">");
+        }
+
     }
+
+
+
 }

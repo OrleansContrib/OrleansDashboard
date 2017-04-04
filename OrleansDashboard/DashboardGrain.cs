@@ -145,7 +145,7 @@ namespace OrleansDashboard
                     {
                         Count = 0,
                         ElapsedTime = 0,
-                        Grain = TypeFormatter.Parse(value.Grain),
+                        Grain = value.Grain,
                         Method = value.Method,
                         Period = now,
                         SiloAddress = siloIdentity

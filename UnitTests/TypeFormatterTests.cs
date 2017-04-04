@@ -45,5 +45,18 @@ namespace UnitTests
             Assert.AreEqual("TestGrains.IGenericGrain<Tuple<String, Int32>>", name);
         }
 
+        [TestMethod]
+        public void TestGenericGrainWithMultipleTs()
+        {
+
+            var example = typeof(ITestGenericGrain<string, int>).FullName;
+
+            Console.WriteLine(example);
+
+            var name = TypeFormatter.Parse(example);
+
+            Assert.AreEqual("TestGrains.ITestGenericGrain<String, Int32>", name);
+        }
+
     }
 }
