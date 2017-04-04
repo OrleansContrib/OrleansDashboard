@@ -3,6 +3,7 @@ using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace OrleansDashboard
@@ -55,6 +56,7 @@ namespace OrleansDashboard
             try
             {
                 host = WebApp.Start(options, app => new WebServer(router, username, password).Configuration(app));
+                Trace.Listeners.Remove("HostingTraceListener");
             }
             catch (Exception ex)
             {

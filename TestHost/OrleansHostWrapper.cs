@@ -25,7 +25,10 @@ namespace TestHost
         /// </summary>
         public OrleansHostWrapper()
         {
-            siloHost = new SiloHost("primary", ClusterConfiguration.LocalhostPrimarySilo());
+            var config = ClusterConfiguration.LocalhostPrimarySilo();
+            config.Defaults.TraceToConsole = false;
+            config.Defaults.DefaultTraceLevel = Orleans.Runtime.Severity.Warning;
+            siloHost = new SiloHost("primary", config);
         }
 
         /// <summary>
@@ -43,6 +46,8 @@ namespace TestHost
             config.Defaults.HostNameOrIPAddress = "localhost";
             config.Defaults.Port = port;
             config.Defaults.ProxyGatewayEndpoint = new IPEndPoint(IPAddress.Loopback, proxyPort);
+            config.Defaults.TraceToConsole = false;
+            config.Defaults.DefaultTraceLevel = Orleans.Runtime.Severity.Warning;
             config.PrimaryNode = siloAddress;
             siloHost = new SiloHost("secondary", config);
         }

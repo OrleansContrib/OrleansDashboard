@@ -73,13 +73,16 @@ namespace TestHost
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Starting silos");
+            Console.WriteLine("Dashboard will listen on http://localhost:8080/");
+
             using (new DevSilo())
             using (new DevSilo())
             using (new DevSilo())
             {
                 // generate some calls to a test grain
                 GrainClient.Initialize(ClientConfiguration.LocalhostSilo());
-                Console.WriteLine("Calling test grain");
+                Console.WriteLine("All silos are up and running");
 
                 var x = GrainClient.GrainFactory.GetGrain<ITestGenericGrain<string, int>>("test");
                 x.TestT("string").Wait();
