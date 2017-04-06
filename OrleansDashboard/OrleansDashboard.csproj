@@ -111,6 +111,8 @@
     <Compile Include="Router.cs" />
     <Compile Include="SiloGrain.cs" />
     <Compile Include="StatsPublisher.cs" />
+    <Compile Include="DashboardTraceListener.cs" />
+    <Compile Include="TraceWriter.cs" />
     <Compile Include="TypeFormatter.cs" />
     <Compile Include="WebServer.cs" />
   </ItemGroup>

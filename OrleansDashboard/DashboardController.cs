@@ -1,5 +1,4 @@
 ﻿using Microsoft.Owin;
-using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
 using System;
@@ -16,10 +15,11 @@ namespace OrleansDashboard
         public TaskScheduler TaskScheduler { get; private set; }
         public IProviderRuntime ProviderRuntime { get; private set; }
 
+        DashboardTraceListener traceListener;
 
-        public DashboardController(Router router, TaskScheduler taskScheduler, IProviderRuntime providerRuntime)
+        public DashboardController(Router router, TaskScheduler taskScheduler, IProviderRuntime providerRuntime, DashboardTraceListener traceListener)
         {
-
+            this.traceListener = traceListener;
             this.TaskScheduler = taskScheduler;
             this.ProviderRuntime = providerRuntime;
 
@@ -32,6 +32,7 @@ namespace OrleansDashboard
             add("/HistoricalStats/:address", GetHistoricalStats);
             add("/GrainStats/:grain", GetGrainStats);
             add("/SiloProperties/:address", GetSiloExtendedProperties);
+            add("/Trace", Trace);
         }
 
         Task Index(IOwinContext context, IDictionary<string,string> parameters)
@@ -114,6 +115,33 @@ namespace OrleansDashboard
             await context.ReturnJson(result).ConfigureAwait(false);
         }
 
+        async Task Trace(IOwinContext context, IDictionary<string, string> parameters)
+        {
+            context.Response.Protocol = "HTTP/1.1";
+            await Dispatch(async () => {
+
+                using (var writer = new TraceWriter(this.traceListener, context))
+                {
+                    writer.Write(@"
+   ____       _                        _____            _     _                         _ 
+  / __ \     | |                      |  __ \          | |   | |                       | |
+ | |  | |_ __| | ___  __ _ _ __  ___  | |  | | __ _ ___| |__ | |__   ___   __ _ _ __ __| |
+ | |  | | '__| |/ _ \/ _` | '_ \/ __| | |  | |/ _` / __| '_ \| '_ \ / _ \ / _` | '__/ _` |
+ | |__| | |  | |  __/ (_| | | | \__ \ | |__| | (_| \__ \ | | | |_) | (_) | (_| | | | (_| |
+  \____/|_|  |_|\___|\__,_|_| |_|___/ |_____/ \__,_|___/_| |_|_.__/ \___/ \__,_|_|  \__,_|
+                                                                                          
+You are connected to the Orleans Dashboard log streaming service
+");
+                    writer.Write($"Silo {this.ProviderRuntime.ToSiloAddress()}\r\nTime: {DateTime.UtcNow.ToString()}\r\n\r\n");
+                    await Task.Delay(TimeSpan.FromMinutes(60));
+                    writer.Write("Disonnecting after 60 minutes\r\n");
+                    return null;
+                }
+
+            });
+        }
+
+
         Task<object> Dispatch(Func<Task<object>> func)
         {
             return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: this.TaskScheduler).Result;
@@ -129,7 +157,6 @@ namespace OrleansDashboard
         }
 
     }
-
 
 
 }

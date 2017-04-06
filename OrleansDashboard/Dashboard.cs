@@ -42,8 +42,10 @@ namespace OrleansDashboard
         {
             this.logger = providerRuntime.GetLogger("Dashboard");
 
+            var dashboardTraceListener = new DashboardTraceListener();
+
             var router = new Router();
-            new DashboardController(router, TaskScheduler.Current,  providerRuntime);
+            new DashboardController(router, TaskScheduler.Current,  providerRuntime, dashboardTraceListener);
 
             var options = new StartOptions
             {
@@ -70,16 +72,18 @@ namespace OrleansDashboard
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
             await dashboardGrain.Init();
 
+            
             var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
             await siloGrain.SetOrleansVersion(typeof(SiloAddress).Assembly.GetName().Version.ToString());
+            Trace.Listeners.Add(dashboardTraceListener);
         }
 
 
-        
-   
 
 
-    
+
+
+
 
     }
 }
