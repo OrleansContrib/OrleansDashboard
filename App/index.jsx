@@ -15,9 +15,11 @@ var Silos = require('./components/silos.jsx');
 var Overview = require('./components/overview.jsx');
 var SiloState = require('./components/silo-state.jsx');
 var Alert = require('./components/alert.jsx');
+var LogStream = require('./components/log-stream.jsx');
 var timer;
 
 var dashboardCounters = {};
+var routeIndex = 0;
 
 function scroll(){
     window.scrollTo(0,0);
@@ -75,6 +77,7 @@ routie('', function(){
     scroll();
 
     render = function(){
+
         renderPage(<Page title="Dashboard"><Overview dashboardCounters={dashboardCounters} /></Page>, "#/");
     }
 
@@ -176,6 +179,14 @@ routie('/grain/:grainType', function(grainType){
 
 });
 
+routie('/trace', function(){
+    events.clearAll();
+    scroll();
+    var xhr = http.stream("/Trace");
+    renderPage(<LogStream xhr={xhr} />, "#/trace");
+});
+
+
 setInterval(() => events.emit('refresh'), 1000);
 
 routie.reload();
@@ -198,6 +209,11 @@ function getMenu(){
             name:"Silos",
             path:"#/silos",
             icon:"fa-circle"
+        },
+        {
+            name:"Log Stream",
+            path:"#/trace",
+            icon:"fa-file-text"
         }
     ];
 }

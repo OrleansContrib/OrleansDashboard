@@ -20,7 +20,8 @@
         "define": true,
         "Buffer": true,
         "describe": true,
-        "it":true
+        "it":true,
+        "body":true
     },
     "rules": {
         "indent": "off",

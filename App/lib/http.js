@@ -18,6 +18,13 @@ module.exports.get = function(url, cb){
 	makeRequest('GET', url, null, cb);
 }
 
+module.exports.stream = function(url){
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET",url,true);
+  xhr.send();
+  return xhr;
+}
+
 var errorHandlers = [];
 
 module.exports.onError = function(handler){
