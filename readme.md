@@ -53,6 +53,14 @@ The dashboard supports the following attributes in the configuration:
 </BootstrapProviders>
 ```
 
+## Using the Dashboard
+
+Once your silos are running, you can connect to any of them using your web browser: `http://silo-address:8080/`
+
+If you've started the dashboard on an alternative port, you'll need to specify that instead.
+
+The dashboard will also relay trace information over http. You can view this in the dashboard, or from the terminal: `curl http://silo-address:8080/Trace`
+
 ## Building the UI
 
 The user interface is react.js, using browserify to compose the javascript delivered to the browser.
