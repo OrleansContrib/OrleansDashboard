@@ -59,7 +59,7 @@ module.exports = React.createClass({
                         <CounterWidget icon="bug" counter={(stats.totalCalls === 0) ? "0.00" : (100 * stats.totalExceptions / stats.totalCalls).toFixed(2) + "%"} title="Error Rate" />
                     </div>
                     <div className="col-md-3">
-                        <CounterWidget icon="tachometer" counter={(stats.totalCalls / stats.totalSeconds).toFixed(2)} title="Req/sec/silo" />
+                        <CounterWidget icon="tachometer" counter={(stats.totalCalls / 100).toFixed(2)} title="Req/sec" />
                     </div>
                     <div className="col-md-3">
                         <CounterWidget icon="clock-o" counter={(stats.totalCalls === 0) ? "0" : (stats.totalAwaitTime / stats.totalCalls).toFixed(2) + "ms"} title="Average response time" />

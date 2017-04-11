@@ -16,5 +16,7 @@ namespace OrleansDashboard
         Task SubmitTracing(string siloIdentity, GrainTraceEntry[] grainCallTime);
 
         Task<Dictionary<string, Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain);
+
+        Task<Dictionary<string, GrainTraceEntry>> GetClusterTracing();
     }
 }

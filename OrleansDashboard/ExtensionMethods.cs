@@ -90,5 +90,12 @@ namespace OrleansDashboard
             var parts = providerRuntime.SiloIdentity.Substring(1).Split(':');
             return string.Format("{0}:{1}@{2}", parts[0], parts[1], parts[2]);
         }
+
+        public static string ToPeriodString(this DateTime value)
+        {
+            return value.ToString("o").Split('.').First();
+        }
+
+
     }
 }

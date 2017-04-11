@@ -1,12 +1,11 @@
 ﻿using Orleans;
 using Orleans.Concurrency;
+using Orleans.Placement;
 using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Orleans.Placement;
 namespace OrleansDashboard
 {
     [Reentrant]
@@ -102,7 +101,7 @@ namespace OrleansDashboard
                 }
                 var grainResults = results[grainMethodKey];
 
-                var key = historicValue.Period.ToString("o");
+                var key = historicValue.Period.ToPeriodString();
                 if (!grainResults.ContainsKey(key)) grainResults.Add(key, new GrainTraceEntry
                 {
                     Grain = historicValue.Grain,
@@ -115,6 +114,26 @@ namespace OrleansDashboard
                 value.ExceptionCount += historicValue.ExceptionCount;
             }
            
+            return Task.FromResult(results);
+        }
+
+        public Task<Dictionary<string, GrainTraceEntry>> GetClusterTracing()
+        {
+            var results = new Dictionary<string, GrainTraceEntry>();
+
+            foreach (var historicValue in this.history)
+            {
+                var key = historicValue.Period.ToPeriodString();
+                if (!results.ContainsKey(key)) results.Add(key, new GrainTraceEntry
+                {
+                    Period = historicValue.Period,
+                });
+                var value = results[key];
+                value.Count += historicValue.Count;
+                value.ElapsedTime += historicValue.ElapsedTime;
+                value.ExceptionCount += historicValue.ExceptionCount;
+            }
+
             return Task.FromResult(results);
         }
 

@@ -76,13 +76,20 @@ routie('', function(){
     events.clearAll();
     scroll();
 
-    render = function(){
+    var clusterStats = {};
+    var loadData = function(cb){
+        http.get('/ClusterStats', function(err, data){
+            clusterStats = data;
+            render();
+        });
+    }
 
-        renderPage(<Page title="Dashboard"><Overview dashboardCounters={dashboardCounters} /></Page>, "#/");
+    render = function(){
+        renderPage(<Page title="Dashboard"><Overview dashboardCounters={dashboardCounters} clusterStats={clusterStats} /></Page>, "#/");
     }
 
     events.on('dashboard-counters', render);
-    events.on('refresh', render);
+    events.on('refresh', loadData);
 
     loadDashboardCounters();
 });

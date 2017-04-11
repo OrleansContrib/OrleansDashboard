@@ -33,6 +33,7 @@ namespace OrleansDashboard
             add("/GrainStats/:grain", GetGrainStats);
             add("/SiloProperties/:address", GetSiloExtendedProperties);
             add("/Trace", Trace);
+            add("/ClusterStats", GetClusterStats);
         }
 
         Task Index(IOwinContext context, IDictionary<string,string> parameters)
@@ -110,6 +111,18 @@ namespace OrleansDashboard
             var result = await Dispatch(async () =>
             {
                 return await grain.GetGrainTracing(grainName).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+
+            await context.ReturnJson(result).ConfigureAwait(false);
+        }
+
+        async Task GetClusterStats(IOwinContext context, IDictionary<string, string> parameters)
+        {
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+
+            var result = await Dispatch(async () =>
+            {
+                return await grain.GetClusterTracing().ConfigureAwait(false);
             }).ConfigureAwait(false);
 
             await context.ReturnJson(result).ConfigureAwait(false);
