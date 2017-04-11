@@ -78,7 +78,7 @@ namespace OrleansDashboard
         public override Task OnActivateAsync()
         {
             this.Counters = new DashboardCounters();
-            this.RegisterTimer(this.Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
+            this.RegisterTimer(this.Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
             this.StartTime = DateTime.UtcNow;
             return base.OnActivateAsync();
         }
