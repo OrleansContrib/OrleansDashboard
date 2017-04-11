@@ -2061,6 +2061,7 @@ function renderPage(jsx, path) {
 }
 
 routie('', function () {
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
 
@@ -2073,6 +2074,7 @@ routie('', function () {
     };
 
     render = function render() {
+        if (routeIndex != thisRouteIndex) return;
         renderPage(React.createElement(
             Page,
             { title: 'Dashboard' },
@@ -2087,10 +2089,12 @@ routie('', function () {
 });
 
 routie('/grains', function () {
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
 
     render = function render() {
+        if (routeIndex != thisRouteIndex) return;
         renderPage(React.createElement(
             Page,
             { title: 'Grains' },
@@ -2105,10 +2109,12 @@ routie('/grains', function () {
 });
 
 routie('/silos', function () {
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
 
     render = function render() {
+        if (routeIndex != thisRouteIndex) return;
         renderPage(React.createElement(
             Page,
             { title: 'Silos' },
@@ -2123,6 +2129,7 @@ routie('/silos', function () {
 });
 
 routie('/host/:host', function (host) {
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
     var siloProperties = {};
@@ -2150,6 +2157,7 @@ routie('/host/:host', function (host) {
         );
     },
         render = function render() {
+        if (routeIndex != thisRouteIndex) return;
         var silo = (dashboardCounters.hosts || []).filter(function (x) {
             return x.siloAddress === host;
         })[0] || {};
@@ -2179,6 +2187,7 @@ routie('/host/:host', function (host) {
 });
 
 routie('/grain/:grainType', function (grainType) {
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
 
@@ -2191,6 +2200,7 @@ routie('/grain/:grainType', function (grainType) {
     };
 
     render = function render() {
+        if (routeIndex != thisRouteIndex) return;
         renderPage(React.createElement(Grain, { grainType: grainType, dashboardCounters: dashboardCounters, grainStats: grainStats }), "#/grains");
     };
 
@@ -2201,6 +2211,7 @@ routie('/grain/:grainType', function (grainType) {
 });
 
 routie('/trace', function () {
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
     var xhr = http.stream("/Trace");

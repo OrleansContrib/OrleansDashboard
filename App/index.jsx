@@ -73,6 +73,7 @@ function renderPage(jsx, path){
 
 
 routie('', function(){
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
 
@@ -85,6 +86,7 @@ routie('', function(){
     }
 
     render = function(){
+        if (routeIndex != thisRouteIndex) return;
         renderPage(<Page title="Dashboard"><Overview dashboardCounters={dashboardCounters} clusterStats={clusterStats} /></Page>, "#/");
     }
 
@@ -95,10 +97,12 @@ routie('', function(){
 });
 
 routie('/grains', function(){
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
 
     render = function(){
+        if (routeIndex != thisRouteIndex) return;
         renderPage(<Page title="Grains"><Grains dashboardCounters={dashboardCounters} /></Page>, "#/grains");
     }
 
@@ -109,10 +113,12 @@ routie('/grains', function(){
 });
 
 routie('/silos', function(){
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
 
     render = function(){
+        if (routeIndex != thisRouteIndex) return;
         renderPage(<Page title="Silos"><Silos dashboardCounters={dashboardCounters} /></Page>, "#/silos");
     }
 
@@ -125,6 +131,7 @@ routie('/silos', function(){
 
 
 routie('/host/:host', function(host){
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
     var siloProperties = {};
@@ -145,6 +152,7 @@ routie('/host/:host', function(host){
     },
 
     render = function(){
+        if (routeIndex != thisRouteIndex) return;
         var silo = (dashboardCounters.hosts || []).filter(x => x.siloAddress === host)[0] || {};
         var subTitle = <span><SiloState status={silo.status}/> {renderOverloaded()}</span>
         renderPage(<Page title={"Silo " + host} subTitle={subTitle}><SiloDrilldown silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters}  /></Page>, "#/silos");
@@ -164,6 +172,7 @@ routie('/host/:host', function(host){
 
 
 routie('/grain/:grainType', function(grainType){
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
 
@@ -176,6 +185,7 @@ routie('/grain/:grainType', function(grainType){
     }
 
     render = function(){
+        if (routeIndex != thisRouteIndex) return;
         renderPage(<Grain grainType={grainType} dashboardCounters={dashboardCounters} grainStats={grainStats} />, "#/grains");
     }
 
@@ -187,6 +197,7 @@ routie('/grain/:grainType', function(grainType){
 });
 
 routie('/trace', function(){
+    var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
     var xhr = http.stream("/Trace");
