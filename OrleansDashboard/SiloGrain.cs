@@ -1,11 +1,10 @@
 ﻿using Orleans;
+using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Orleans.Runtime;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
@@ -25,7 +24,7 @@ namespace OrleansDashboard
                 stats.Enqueue(null);
             }
 
-            timer = this.RegisterTimer(this.Callback, true, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+            timer = this.RegisterTimer(this.Callback, true, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
             await Callback(false);
 

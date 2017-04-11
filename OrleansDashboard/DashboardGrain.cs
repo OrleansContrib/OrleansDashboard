@@ -137,6 +137,26 @@ namespace OrleansDashboard
             return Task.FromResult(results);
         }
 
+        public Task<Dictionary<string, GrainTraceEntry>> GetSiloTracing(string address)
+        {
+            var results = new Dictionary<string, GrainTraceEntry>();
+
+            foreach (var historicValue in this.history.Where(x => x.SiloAddress == address))
+            {
+                var key = historicValue.Period.ToPeriodString();
+                if (!results.ContainsKey(key)) results.Add(key, new GrainTraceEntry
+                {
+                    Period = historicValue.Period,
+                });
+                var value = results[key];
+                value.Count += historicValue.Count;
+                value.ElapsedTime += historicValue.ElapsedTime;
+                value.ExceptionCount += historicValue.ExceptionCount;
+            }
+
+            return Task.FromResult(results);
+        }
+
         public Task Init()
         {
             // just used to activate the grain

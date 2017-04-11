@@ -137,9 +137,14 @@ routie('/host/:host', function(host){
     var siloProperties = {};
 
     var siloData = [];
+    var siloStats = [];
     var loadData = function(cb){
-        http.get('/HistoricalStats/' + host, function(err, data){
+        http.get(`/HistoricalStats/${host}`, (err, data) => {
             siloData = data;
+            render();
+        });
+        http.get(`/SiloStats/${host}`, (err, data) => {
+            siloStats = data;
             render();
         });
     }
@@ -155,7 +160,7 @@ routie('/host/:host', function(host){
         if (routeIndex != thisRouteIndex) return;
         var silo = (dashboardCounters.hosts || []).filter(x => x.siloAddress === host)[0] || {};
         var subTitle = <span><SiloState status={silo.status}/> {renderOverloaded()}</span>
-        renderPage(<Page title={"Silo " + host} subTitle={subTitle}><SiloDrilldown silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters}  /></Page>, "#/silos");
+        renderPage(<Page title={"Silo " + host} subTitle={subTitle}><SiloDrilldown silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters} siloStats={siloStats} /></Page>, "#/silos");
     }
 
     events.on('dashboard-counters', render);

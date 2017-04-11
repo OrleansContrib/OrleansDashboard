@@ -5,6 +5,23 @@ var GrainBreakdown = require('./grain-breakdown.jsx');
 var ChartWidget = require('./multi-series-chart-widget.jsx');
 var SiloState = require('./silo-state.jsx');
 var Panel = require('./panel.jsx');
+var Chart = require('./time-series-chart.jsx');
+
+var SiloGraph = React.createClass({
+    render:function(){
+        var values = Object.keys(this.props.stats).map(key => this.props.stats[key]);
+
+        if (!values.length) return null;
+
+        while (values.length < 100){
+            values.unshift({count:0, elapsedTime :0, period:0, exceptionCount:0})
+        }
+
+        return <div>
+            <Chart series={[values.map(z => z.exceptionCount), values.map(z => z.count), values.map(z => z.count === 0 ? 0 : z.elapsedTime / z.count)]} />
+        </div>
+    }
+});
 
 module.exports = React.createClass({
     hasData:function(value){
@@ -82,6 +99,14 @@ module.exports = React.createClass({
                             <ChartWidget series={[this.querySeries(x => x.activationCount), this.querySeries(x => x.recentlyUsedActivationCount)]} />
                         </div>
                     </div>
+                </Panel>
+
+                <Panel title="Silo Profiling">
+                  <div>
+                    <span><strong style={{color:"#783988",fontSize:"25px"}}>/</strong> number of requests per second<br/><strong style={{color:"#EC1F1F",fontSize:"25px"}}>/</strong> failed requests</span>
+                    <span className="pull-right"><strong style={{color:"#EC971F",fontSize:"25px"}}>/</strong> average latency in milliseconds</span>
+                    <SiloGraph stats={this.props.siloStats} />
+                  </div>
                 </Panel>
 
                 <div className="row">

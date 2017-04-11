@@ -1467,6 +1467,37 @@ var GrainBreakdown = require('./grain-breakdown.jsx');
 var ChartWidget = require('./multi-series-chart-widget.jsx');
 var SiloState = require('./silo-state.jsx');
 var Panel = require('./panel.jsx');
+var Chart = require('./time-series-chart.jsx');
+
+var SiloGraph = React.createClass({
+    displayName: 'SiloGraph',
+
+    render: function render() {
+        var _this = this;
+
+        var values = Object.keys(this.props.stats).map(function (key) {
+            return _this.props.stats[key];
+        });
+
+        if (!values.length) return null;
+
+        while (values.length < 100) {
+            values.unshift({ count: 0, elapsedTime: 0, period: 0, exceptionCount: 0 });
+        }
+
+        return React.createElement(
+            'div',
+            null,
+            React.createElement(Chart, { series: [values.map(function (z) {
+                    return z.exceptionCount;
+                }), values.map(function (z) {
+                    return z.count;
+                }), values.map(function (z) {
+                    return z.count === 0 ? 0 : z.elapsedTime / z.count;
+                })] })
+        );
+    }
+});
 
 module.exports = React.createClass({
     displayName: 'exports',
@@ -1486,7 +1517,7 @@ module.exports = React.createClass({
     },
 
     render: function render() {
-        var _this = this;
+        var _this2 = this;
 
         if (!this.hasData(this.props.data)) {
             return React.createElement(
@@ -1529,7 +1560,7 @@ module.exports = React.createClass({
 
         var status = (this.props.dashboardCounters.hosts || {})[this.props.silo];
         var silo = this.props.dashboardCounters.hosts.filter(function (x) {
-            return x.siloAddress === _this.props.silo;
+            return x.siloAddress === _this2.props.silo;
         })[0] || {};
 
         var configuration = {
@@ -1587,6 +1618,42 @@ module.exports = React.createClass({
                 )
             ),
             React.createElement(
+                Panel,
+                { title: 'Silo Profiling' },
+                React.createElement(
+                    'div',
+                    null,
+                    React.createElement(
+                        'span',
+                        null,
+                        React.createElement(
+                            'strong',
+                            { style: { color: "#783988", fontSize: "25px" } },
+                            '/'
+                        ),
+                        ' number of requests per second',
+                        React.createElement('br', null),
+                        React.createElement(
+                            'strong',
+                            { style: { color: "#EC1F1F", fontSize: "25px" } },
+                            '/'
+                        ),
+                        ' failed requests'
+                    ),
+                    React.createElement(
+                        'span',
+                        { className: 'pull-right' },
+                        React.createElement(
+                            'strong',
+                            { style: { color: "#EC971F", fontSize: "25px" } },
+                            '/'
+                        ),
+                        ' average latency in milliseconds'
+                    ),
+                    React.createElement(SiloGraph, { stats: this.props.siloStats })
+                )
+            ),
+            React.createElement(
                 'div',
                 { className: 'row' },
                 React.createElement(
@@ -1640,7 +1707,7 @@ sentMessages: 0
 
 */
 
-},{"./gauge-widget.jsx":4,"./grain-breakdown.jsx":5,"./multi-series-chart-widget.jsx":12,"./panel.jsx":15,"./properties-widget.jsx":16,"./silo-state.jsx":20,"react":258}],19:[function(require,module,exports){
+},{"./gauge-widget.jsx":4,"./grain-breakdown.jsx":5,"./multi-series-chart-widget.jsx":12,"./panel.jsx":15,"./properties-widget.jsx":16,"./silo-state.jsx":20,"./time-series-chart.jsx":23,"react":258}],19:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -2135,9 +2202,14 @@ routie('/host/:host', function (host) {
     var siloProperties = {};
 
     var siloData = [];
+    var siloStats = [];
     var loadData = function loadData(cb) {
         http.get('/HistoricalStats/' + host, function (err, data) {
             siloData = data;
+            render();
+        });
+        http.get('/SiloStats/' + host, function (err, data) {
+            siloStats = data;
             render();
         });
     };
@@ -2171,7 +2243,7 @@ routie('/host/:host', function (host) {
         renderPage(React.createElement(
             Page,
             { title: "Silo " + host, subTitle: subTitle },
-            React.createElement(SiloDrilldown, { silo: host, data: siloData, siloProperties: siloProperties, dashboardCounters: dashboardCounters })
+            React.createElement(SiloDrilldown, { silo: host, data: siloData, siloProperties: siloProperties, dashboardCounters: dashboardCounters, siloStats: siloStats })
         ), "#/silos");
     };
 

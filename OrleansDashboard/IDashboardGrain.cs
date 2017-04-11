@@ -18,5 +18,7 @@ namespace OrleansDashboard
         Task<Dictionary<string, Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain);
 
         Task<Dictionary<string, GrainTraceEntry>> GetClusterTracing();
+
+        Task<Dictionary<string, GrainTraceEntry>> GetSiloTracing(string address);
     }
 }
