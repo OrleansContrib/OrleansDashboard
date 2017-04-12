@@ -63,7 +63,7 @@ namespace OrleansDashboard
                     result = await invoker.Invoke(grain, request).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isException = true;
                 throw;

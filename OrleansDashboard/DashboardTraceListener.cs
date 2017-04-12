@@ -23,7 +23,7 @@ namespace OrleansDashboard
                 {
                     action(message);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     this.Remove(action);
                 }

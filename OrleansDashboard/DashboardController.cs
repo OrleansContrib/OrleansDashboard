@@ -65,9 +65,8 @@ namespace OrleansDashboard
             var result = await Dispatch(async () =>
             {
                 Dictionary<SiloAddress, SiloStatus> silos = await grain.GetHosts(true).ConfigureAwait(false);
-                
-                SiloStatus siloStatus;
-                if (silos.TryGetValue(address, out siloStatus))
+
+                if (silos.TryGetValue(address, out var siloStatus))
                 {
                     return (await grain.GetRuntimeStatistics(new SiloAddress[] { address }).ConfigureAwait(false)).FirstOrDefault();
                 }

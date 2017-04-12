@@ -1,15 +1,14 @@
 ﻿using Microsoft.Owin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
+using Orleans.Providers;
 using Orleans.Runtime.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Orleans.Providers;
 
 namespace OrleansDashboard
 {
@@ -74,8 +73,10 @@ namespace OrleansDashboard
 
         public static void RegisterDashboard(this GlobalConfiguration config, int port = 8080, string username = null, string password = null)
         {
-            var settings = new Dictionary<string, string>();
-            settings.Add("Port", port.ToString());
+            var settings = new Dictionary<string, string>
+            {
+                { "Port", port.ToString() }
+            };
             if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
             {
                 settings.Add("Username", username);
