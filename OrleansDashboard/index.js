@@ -868,7 +868,8 @@ module.exports = React.createClass({
   },
 
   scroll: function scroll() {
-    body.scrollTop = body.scrollHeight;
+    body.scrollIntoView(false);
+    //body.scrollTop = body.scrollHeight;
   },
 
   onProgress: function onProgress() {
