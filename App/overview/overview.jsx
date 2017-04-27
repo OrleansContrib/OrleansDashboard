@@ -1,7 +1,7 @@
 var React = require('react');
-var CounterWidget = require('./counter-widget.jsx');
-var Panel = require('./panel.jsx');
-var Chart = require('./time-series-chart.jsx');
+var CounterWidget = require('../components/counter-widget.jsx');
+var Panel = require('../components/panel.jsx');
+var Chart = require('../components/time-series-chart.jsx');
 
 var ClusterGraph = React.createClass({
     render:function(){

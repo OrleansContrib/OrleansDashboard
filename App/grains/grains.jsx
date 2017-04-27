@@ -1,9 +1,9 @@
 var React = require('react');
 
-var CounterWidget = require('./counter-widget.jsx');
-var ChartWidget = require('./multi-series-chart-widget.jsx');
-var GrainBreakdown = require('./grain-breakdown.jsx');
-var Panel = require('./panel.jsx');
+var CounterWidget = require('../components/counter-widget.jsx');
+var ChartWidget = require('../components/multi-series-chart-widget.jsx');
+var GrainBreakdown = require('../components/grain-table.jsx');
+var Panel = require('../components/panel.jsx');
 
 module.exports = React.createClass({
     render:function(){

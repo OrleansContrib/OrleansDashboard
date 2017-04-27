@@ -1,6 +1,6 @@
 var React = require('react');
-var Panel = require('./panel.jsx');
-var Page = require('./page.jsx');
+var Panel = require('../components/panel.jsx');
+var Page = require('../components/page.jsx');
 
 module.exports = React.createClass({
   getInitialState:function(){

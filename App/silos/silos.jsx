@@ -1,10 +1,10 @@
 var React = require('react');
 
-var CounterWidget = require('./counter-widget.jsx');
-var ChartWidget = require('./multi-series-chart-widget.jsx');
-var HostsWidget = require('./hosts-widget.jsx');
+var CounterWidget = require('../components/counter-widget.jsx');
+var ChartWidget = require('../components/multi-series-chart-widget.jsx');
+var HostsWidget = require('./host-table.jsx');
 var SiloGrid = require('./silo-grid.jsx');
-var Panel = require('./panel.jsx');
+var Panel = require('../components/panel.jsx');
 
 module.exports = React.createClass({
     render:function(){

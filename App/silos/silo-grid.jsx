@@ -1,5 +1,5 @@
 var React = require('react');
-var SiloState = require('./silo-state.jsx');
+var SiloState = require('./silo-state-label.jsx');
 
 module.exports = React.createClass({
 

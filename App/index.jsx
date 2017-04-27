@@ -2,20 +2,20 @@ var http = require('./lib/http');
 var React = require('react');
 var ReactDom = require('react-dom');
 var routie = require('./lib/routie');
-var SiloDrilldown = require('./components/silo-drilldown.jsx');
+var Silo = require('./silos/silo.jsx');
 var target = document.getElementById('content');
 var events = require('eventthing');
 var ThemeButtons = require('./components/theme-buttons.jsx');
-var Grain = require('./components/grain.jsx');
+var Grain = require('./grains/grain.jsx');
 var Page = require('./components/page.jsx');
 var Loading = require('./components/loading.jsx');
 var Menu = require('./components/menu.jsx');
-var Grains = require('./components/grains.jsx');
-var Silos = require('./components/silos.jsx');
-var Overview = require('./components/overview.jsx');
-var SiloState = require('./components/silo-state.jsx');
+var Grains = require('./grains/grains.jsx');
+var Silos = require('./silos/silos.jsx');
+var Overview = require('./overview/overview.jsx');
+var SiloState = require('./silos/silo-state-label.jsx');
 var Alert = require('./components/alert.jsx');
-var LogStream = require('./components/log-stream.jsx');
+var LogStream = require('./logstream/log-stream.jsx');
 var timer;
 
 var dashboardCounters = {};
@@ -160,7 +160,7 @@ routie('/host/:host', function(host){
         if (routeIndex != thisRouteIndex) return;
         var silo = (dashboardCounters.hosts || []).filter(x => x.siloAddress === host)[0] || {};
         var subTitle = <span><SiloState status={silo.status}/> {renderOverloaded()}</span>
-        renderPage(<Page title={"Silo " + host} subTitle={subTitle}><SiloDrilldown silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters} siloStats={siloStats} /></Page>, "#/silos");
+        renderPage(<Page title={"Silo " + host} subTitle={subTitle}><Silo silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters} siloStats={siloStats} /></Page>, "#/silos");
     }
 
     events.on('dashboard-counters', render);

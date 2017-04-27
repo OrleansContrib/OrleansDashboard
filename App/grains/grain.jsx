@@ -1,9 +1,9 @@
 var React = require('react');
-var Chart = require('./time-series-chart.jsx');
-var CounterWidget = require('./counter-widget.jsx');
-var SiloBreakdown = require('./silo-breakdown.jsx');
-var Panel = require('./panel.jsx');
-var Page = require('./page.jsx');
+var Chart = require('../components/time-series-chart.jsx');
+var CounterWidget = require('../components/counter-widget.jsx');
+var SiloBreakdown = require('./silo-table.jsx');
+var Panel = require('../components/panel.jsx');
+var Page = require('../components/page.jsx');
 
 var GrainGraph = React.createClass({
     render:function(){

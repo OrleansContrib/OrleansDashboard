@@ -1,11 +1,11 @@
 var React = require('react');
-var Gauge = require('./gauge-widget.jsx');
-var PropertiesWidget = require('./properties-widget.jsx');
-var GrainBreakdown = require('./grain-breakdown.jsx');
-var ChartWidget = require('./multi-series-chart-widget.jsx');
-var SiloState = require('./silo-state.jsx');
-var Panel = require('./panel.jsx');
-var Chart = require('./time-series-chart.jsx');
+var Gauge = require('../components/gauge-widget.jsx');
+var PropertiesWidget = require('../components/properties-widget.jsx');
+var GrainBreakdown = require('../components/grain-table.jsx');
+var ChartWidget = require('../components/multi-series-chart-widget.jsx');
+var SiloState = require('./silo-state-label.jsx');
+var Panel = require('../components/panel.jsx');
+var Chart = require('../components/time-series-chart.jsx');
 
 var SiloGraph = React.createClass({
     render:function(){
