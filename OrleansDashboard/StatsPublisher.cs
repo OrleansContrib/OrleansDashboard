@@ -21,7 +21,6 @@ namespace OrleansDashboard
     {
         public string Name { get; private set; }
         public IProviderRuntime ProviderRuntime { get; private set; }
-        public TaskScheduler Scheduler { get; private set; }
 
         public Task Close()
         {
@@ -31,7 +30,7 @@ namespace OrleansDashboard
         public async Task ReportStats(List<ICounter> statsCounters)
         {
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(this.ProviderRuntime.ToSiloAddress());
-            var values = statsCounters.Select(x => new StatCounter { Name = x.Name, Value = x.GetDisplayString() }).ToArray();
+            var values = statsCounters.Select(x => new StatCounter { Name = x.Name, Value = string.Format("{0}{1}", x.GetValueString(), x.IsValueDelta ? " delta=" + x.GetDeltaString() : "")}).ToArray();
             await Dispatch(async () => {
                 await grain.ReportCounters(values);
             });
@@ -49,7 +48,6 @@ namespace OrleansDashboard
         {
             this.Name = name;
             this.ProviderRuntime = providerRuntime;
-            this.Scheduler = TaskScheduler.Current;
             return TaskDone.Done;
         }
 
@@ -65,7 +63,7 @@ namespace OrleansDashboard
 
         Task Dispatch(Func<Task> func)
         {
-            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: this.Scheduler);
+            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: Dashboard.OrleansScheduler);
         }
     }
    

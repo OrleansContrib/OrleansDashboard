@@ -38,6 +38,8 @@ namespace OrleansDashboard
         }
 
 
+        public static TaskScheduler OrleansScheduler { get; private set; }
+
         public async Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
         {
             this.logger = providerRuntime.GetLogger("Dashboard");
@@ -76,14 +78,12 @@ namespace OrleansDashboard
             var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
             await siloGrain.SetOrleansVersion(typeof(SiloAddress).Assembly.GetName().Version.ToString());
             Trace.Listeners.Add(dashboardTraceListener);
+
+            // horrible hack to grab the scheduler 
+            // to allow the stats publisher to push 
+            // counters to grains
+            OrleansScheduler = TaskScheduler.Current;
+            
         }
-
-
-
-
-
-
-
-
     }
 }

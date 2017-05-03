@@ -84,8 +84,7 @@ namespace OrleansDashboard
             }
             config.RegisterBootstrapProvider<Dashboard>("Dashboard", settings);
 
-            // disabled for now
-            //config.RegisterStatisticsProvider<StatsPublisher>("DashboardStats");
+            config.RegisterStatisticsProvider<StatsPublisher>("DashboardStats");
         }
 
 
