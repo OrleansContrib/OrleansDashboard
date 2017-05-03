@@ -13,5 +13,7 @@ namespace OrleansDashboard
         Task<SiloRuntimeStatistics[]> GetRuntimeStatistics();
         Task SetOrleansVersion(string version);
         Task<Dictionary<string,string>> GetExtendedProperties();
+        Task ReportCounters(StatCounter[] stats);
+        Task<StatCounter[]> GetCounters();
     }
 }

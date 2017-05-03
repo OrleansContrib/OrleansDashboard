@@ -83,6 +83,9 @@ namespace OrleansDashboard
                 settings.Add("Password", password);
             }
             config.RegisterBootstrapProvider<Dashboard>("Dashboard", settings);
+
+            // disabled for now
+            //config.RegisterStatisticsProvider<StatsPublisher>("DashboardStats");
         }
 
 

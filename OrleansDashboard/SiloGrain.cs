@@ -14,10 +14,12 @@ namespace OrleansDashboard
         IDisposable timer;
 
         public string Version { get; private set; }
+        public StatCounter[] Counters { get; private set; }
 
         public override async Task OnActivateAsync()
         {
             stats = new Queue<SiloRuntimeStatistics>();
+            this.Counters = new StatCounter[0];
 
             foreach (var x in Enumerable.Range(1, Dashboard.HistoryLength))
             {
@@ -47,7 +49,7 @@ namespace OrleansDashboard
             catch (Exception)
             {
                 // we can't get the silo stats, it's probably dead, so kill the grain
-                if (!(bool) canDeactivate) return;
+                if (!(bool)canDeactivate) return;
                 if (null != timer) timer.Dispose();
                 timer = null;
                 this.DeactivateOnIdle();
@@ -86,6 +88,17 @@ namespace OrleansDashboard
             }
 
             return Task.FromResult(results);
+        }
+
+        public Task ReportCounters(StatCounter[] counters)
+        {
+            this.Counters = counters;
+            return TaskDone.Done;
+        }
+
+        public Task<StatCounter[]> GetCounters()
+        {
+            return Task.FromResult(this.Counters);
         }
     }
 }
