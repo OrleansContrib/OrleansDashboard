@@ -111,7 +111,7 @@ module.exports = React.createClass({
 
                 <div className="row">
                     <div className="col-md-6">
-                        <Panel title="Silo Counters"><PropertiesWidget data={properties}/></Panel>
+                        <Panel title="Silo Counters"><div><PropertiesWidget data={properties}/><a href={`#/host/${this.props.silo}/counters`}>View all counters</a></div></Panel>
                     </div>
                     <div className="col-md-6">
                         <Panel title="Silo Properties"><PropertiesWidget data={configuration}/></Panel>

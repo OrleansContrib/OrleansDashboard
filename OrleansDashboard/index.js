@@ -1325,6 +1325,7 @@ var Overview = require('./overview/overview.jsx');
 var SiloState = require('./silos/silo-state-label.jsx');
 var Alert = require('./components/alert.jsx');
 var LogStream = require('./logstream/log-stream.jsx');
+var SiloCounters = require('./silos/silo-counters.jsx');
 var timer;
 
 var dashboardCounters = {};
@@ -1499,7 +1500,7 @@ routie('/host/:host', function (host) {
         );
         renderPage(React.createElement(
             Page,
-            { title: "Silo " + host, subTitle: subTitle },
+            { title: 'Silo ' + host, subTitle: subTitle },
             React.createElement(Silo, { silo: host, data: siloData, siloProperties: siloProperties, dashboardCounters: dashboardCounters, siloStats: siloStats })
         ), "#/silos");
     };
@@ -1512,6 +1513,26 @@ routie('/host/:host', function (host) {
     http.get('/SiloProperties/' + host, function (err, data) {
         siloProperties = data;
         render();
+    });
+});
+
+routie('/host/:host/counters', function (host) {
+    var thisRouteIndex = ++routeIndex;
+    events.clearAll();
+    scroll();
+
+    http.get('/SiloCounters/' + host, function (err, data) {
+
+        var subTitle = React.createElement(
+            'a',
+            { href: '#/host/' + host },
+            'Silo Details'
+        );
+        renderPage(React.createElement(
+            Page,
+            { title: 'Silo ' + host, subTitle: subTitle },
+            React.createElement(SiloCounters, { silo: host, dashboardCounters: dashboardCounters, counters: data })
+        ), "#/silos");
     });
 });
 
@@ -1573,7 +1594,7 @@ function getMenu() {
     }];
 }
 
-},{"./components/alert.jsx":2,"./components/loading.jsx":6,"./components/menu.jsx":7,"./components/page.jsx":9,"./components/theme-buttons.jsx":12,"./grains/grain.jsx":14,"./grains/grains.jsx":15,"./lib/http":18,"./lib/routie":19,"./logstream/log-stream.jsx":20,"./overview/overview.jsx":253,"./silos/silo-state-label.jsx":256,"./silos/silo.jsx":257,"./silos/silos.jsx":258,"eventthing":64,"react":252,"react-dom":101}],18:[function(require,module,exports){
+},{"./components/alert.jsx":2,"./components/loading.jsx":6,"./components/menu.jsx":7,"./components/page.jsx":9,"./components/theme-buttons.jsx":12,"./grains/grain.jsx":14,"./grains/grains.jsx":15,"./lib/http":18,"./lib/routie":19,"./logstream/log-stream.jsx":20,"./overview/overview.jsx":253,"./silos/silo-counters.jsx":255,"./silos/silo-state-label.jsx":257,"./silos/silo.jsx":258,"./silos/silos.jsx":259,"eventthing":64,"react":252,"react-dom":101}],18:[function(require,module,exports){
 'use strict';
 
 var events = require('eventthing');
@@ -38220,7 +38241,71 @@ module.exports = React.createClass({
     }
 });
 
-},{"./silo-state-label.jsx":256,"humanize-duration":88,"react":252}],255:[function(require,module,exports){
+},{"./silo-state-label.jsx":257,"humanize-duration":88,"react":252}],255:[function(require,module,exports){
+'use strict';
+
+var React = require('react');
+var Panel = require('../components/panel.jsx');
+
+module.exports = React.createClass({
+    displayName: 'exports',
+
+    renderItem: function renderItem(item) {
+        return React.createElement(
+            'tr',
+            { key: item.name },
+            React.createElement(
+                'td',
+                { style: { textOverflow: "ellipsis" } },
+                item.name
+            ),
+            React.createElement(
+                'td',
+                null,
+                React.createElement(
+                    'strong',
+                    null,
+                    item.value
+                )
+            )
+        );
+    },
+    render: function render() {
+        return React.createElement(
+            'div',
+            null,
+            React.createElement(
+                Panel,
+                { title: 'Silo Counters' },
+                React.createElement(
+                    'div',
+                    null,
+                    React.createElement(
+                        'table',
+                        { className: 'table' },
+                        React.createElement(
+                            'tbody',
+                            null,
+                            this.props.counters.map(this.renderItem)
+                        )
+                    ),
+                    this.props.counters.length === 0 ? React.createElement(
+                        'span',
+                        null,
+                        React.createElement(
+                            'p',
+                            { className: 'lead' },
+                            'No counters available.'
+                        ),
+                        ' It may take a few minutes for data to be published.'
+                    ) : null
+                )
+            )
+        );
+    }
+});
+
+},{"../components/panel.jsx":10,"react":252}],256:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -38328,7 +38413,7 @@ module.exports = React.createClass({
     }
 });
 
-},{"./silo-state-label.jsx":256,"react":252}],256:[function(require,module,exports){
+},{"./silo-state-label.jsx":257,"react":252}],257:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -38355,7 +38440,7 @@ module.exports = React.createClass({
 
 });
 
-},{"react":252}],257:[function(require,module,exports){
+},{"react":252}],258:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -38560,7 +38645,16 @@ module.exports = React.createClass({
                     React.createElement(
                         Panel,
                         { title: 'Silo Counters' },
-                        React.createElement(PropertiesWidget, { data: properties })
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(PropertiesWidget, { data: properties }),
+                            React.createElement(
+                                'a',
+                                { href: '#/host/' + this.props.silo + '/counters' },
+                                'View all counters'
+                            )
+                        )
                     )
                 ),
                 React.createElement(
@@ -38605,7 +38699,7 @@ sentMessages: 0
 
 */
 
-},{"../components/gauge-widget.jsx":4,"../components/grain-table.jsx":5,"../components/multi-series-chart-widget.jsx":8,"../components/panel.jsx":10,"../components/properties-widget.jsx":11,"../components/time-series-chart.jsx":13,"./silo-state-label.jsx":256,"react":252}],258:[function(require,module,exports){
+},{"../components/gauge-widget.jsx":4,"../components/grain-table.jsx":5,"../components/multi-series-chart-widget.jsx":8,"../components/panel.jsx":10,"../components/properties-widget.jsx":11,"../components/time-series-chart.jsx":13,"./silo-state-label.jsx":257,"react":252}],259:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -38659,4 +38753,4 @@ module.exports = React.createClass({
     }
 });
 
-},{"../components/counter-widget.jsx":3,"../components/multi-series-chart-widget.jsx":8,"../components/panel.jsx":10,"./host-table.jsx":254,"./silo-grid.jsx":255,"react":252}]},{},[17]);
+},{"../components/counter-widget.jsx":3,"../components/multi-series-chart-widget.jsx":8,"../components/panel.jsx":10,"./host-table.jsx":254,"./silo-grid.jsx":256,"react":252}]},{},[17]);

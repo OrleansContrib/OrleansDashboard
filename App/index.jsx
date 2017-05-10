@@ -16,6 +16,7 @@ var Overview = require('./overview/overview.jsx');
 var SiloState = require('./silos/silo-state-label.jsx');
 var Alert = require('./components/alert.jsx');
 var LogStream = require('./logstream/log-stream.jsx');
+var SiloCounters = require('./silos/silo-counters.jsx');
 var timer;
 
 var dashboardCounters = {};
@@ -160,7 +161,7 @@ routie('/host/:host', function(host){
         if (routeIndex != thisRouteIndex) return;
         var silo = (dashboardCounters.hosts || []).filter(x => x.siloAddress === host)[0] || {};
         var subTitle = <span><SiloState status={silo.status}/> {renderOverloaded()}</span>
-        renderPage(<Page title={"Silo " + host} subTitle={subTitle}><Silo silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters} siloStats={siloStats} /></Page>, "#/silos");
+        renderPage(<Page title={`Silo ${host}`} subTitle={subTitle}><Silo silo={host} data={siloData} siloProperties={siloProperties} dashboardCounters={dashboardCounters} siloStats={siloStats} /></Page>, "#/silos");
     }
 
     events.on('dashboard-counters', render);
@@ -173,6 +174,18 @@ routie('/host/:host', function(host){
         render();
     });
 
+});
+
+routie('/host/:host/counters', function(host){
+    var thisRouteIndex = ++routeIndex;
+    events.clearAll();
+    scroll();
+
+    http.get(`/SiloCounters/${host}`, (err, data) => {
+
+        var subTitle = <a href={`#/host/${host}`}>Silo Details</a>
+        renderPage(<Page title={`Silo ${host}`} subTitle={subTitle}><SiloCounters silo={host} dashboardCounters={dashboardCounters} counters={data}/></Page>, "#/silos")
+    });
 });
 
 
