@@ -6,6 +6,7 @@ module.exports = React.createClass({
       return <tr key={item.name}>
           <td style={{textOverflow: "ellipsis"}}>{item.name}</td>
           <td><strong>{item.value}</strong></td>
+          <td style={{whiteSpace: "nowrap"}}>{item.delta === null ? "" : <span>&Delta; {item.delta}</span>}</td>
       </tr>
     },
     render:function(){

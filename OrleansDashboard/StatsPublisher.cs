@@ -15,6 +15,7 @@ namespace OrleansDashboard
     {
         public string Name { get; set; }
         public string Value { get; set; }
+        public string Delta { get; set; }
     }
 
     public class StatsPublisher : IConfigurableStatisticsPublisher, IStatisticsPublisher, IProvider, ISiloMetricsDataPublisher
@@ -30,7 +31,7 @@ namespace OrleansDashboard
         public async Task ReportStats(List<ICounter> statsCounters)
         {
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(this.ProviderRuntime.ToSiloAddress());
-            var values = statsCounters.Select(x => new StatCounter { Name = x.Name, Value = string.Format("{0}{1}", x.GetValueString(), x.IsValueDelta ? " delta=" + x.GetDeltaString() : "")}).ToArray();
+            var values = statsCounters.Select(x => new StatCounter { Name = x.Name, Value = x.GetValueString(), Delta = x.IsValueDelta ? x.GetDeltaString() : null}).OrderBy(x => x.Name).ToArray();
             await Dispatch(async () => {
                 await grain.ReportCounters(values);
             });

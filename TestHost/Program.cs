@@ -36,7 +36,7 @@ namespace TestHost
             tokenSource.Cancel();
             try
             {
-                t.Join(TimeSpan.FromSeconds(30));
+                t.Join(TimeSpan.FromSeconds(3));
             }
             catch
             {  }

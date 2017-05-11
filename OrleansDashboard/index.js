@@ -1389,6 +1389,7 @@ routie('', function () {
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     var clusterStats = {};
     var loadData = function loadData(cb) {
@@ -1417,6 +1418,7 @@ routie('/grains', function () {
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     render = function render() {
         if (routeIndex != thisRouteIndex) return;
@@ -1437,6 +1439,7 @@ routie('/silos', function () {
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     render = function render() {
         if (routeIndex != thisRouteIndex) return;
@@ -1457,6 +1460,8 @@ routie('/host/:host', function (host) {
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
+
     var siloProperties = {};
 
     var siloData = [];
@@ -1508,11 +1513,9 @@ routie('/host/:host', function (host) {
     events.on('dashboard-counters', render);
     events.on('refresh', loadData);
 
-    loadData();
-
     http.get('/SiloProperties/' + host, function (err, data) {
         siloProperties = data;
-        render();
+        loadData();
     });
 });
 
@@ -1520,6 +1523,7 @@ routie('/host/:host/counters', function (host) {
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     http.get('/SiloCounters/' + host, function (err, data) {
 
@@ -1540,6 +1544,7 @@ routie('/grain/:grainType', function (grainType) {
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     var grainStats = {};
     var loadData = function loadData(cb) {
@@ -38266,6 +38271,16 @@ module.exports = React.createClass({
                     'strong',
                     null,
                     item.value
+                )
+            ),
+            React.createElement(
+                'td',
+                { style: { whiteSpace: "nowrap" } },
+                item.delta === null ? "" : React.createElement(
+                    'span',
+                    null,
+                    '\u0394 ',
+                    item.delta
                 )
             )
         );

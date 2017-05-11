@@ -77,6 +77,7 @@ routie('', function(){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     var clusterStats = {};
     var loadData = function(cb){
@@ -101,6 +102,7 @@ routie('/grains', function(){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     render = function(){
         if (routeIndex != thisRouteIndex) return;
@@ -117,6 +119,7 @@ routie('/silos', function(){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     render = function(){
         if (routeIndex != thisRouteIndex) return;
@@ -135,6 +138,8 @@ routie('/host/:host', function(host){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
+
     var siloProperties = {};
 
     var siloData = [];
@@ -167,11 +172,9 @@ routie('/host/:host', function(host){
     events.on('dashboard-counters', render);
     events.on('refresh', loadData);
 
-    loadData();
-
     http.get('/SiloProperties/' + host, function(err, data){
         siloProperties = data;
-        render();
+        loadData();
     });
 
 });
@@ -180,6 +183,7 @@ routie('/host/:host/counters', function(host){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     http.get(`/SiloCounters/${host}`, (err, data) => {
 
@@ -193,6 +197,7 @@ routie('/grain/:grainType', function(grainType){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
+    renderLoading();
 
     var grainStats = {};
     var loadData = function(cb){
