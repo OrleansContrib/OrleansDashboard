@@ -13,6 +13,8 @@ namespace OrleansDashboard
         IDisposable host;
         Logger logger;
         GrainProfiler profiler;
+        private DashboardController controller;
+        private DashboardTraceListener dashboardTraceListener;
 
         public static int HistoryLength
         {
@@ -33,7 +35,30 @@ namespace OrleansDashboard
 
         public Task Close()
         {
-            host.Dispose();
+            try
+            {
+                Trace.Listeners.Remove(dashboardTraceListener);
+            }
+            catch { }
+
+            try
+            {
+                if (null != controller) controller.Dispose();
+            }
+            catch { }
+
+            try
+            {
+                if (null != host) host.Dispose();
+            }
+            catch { }
+
+            try
+            {
+                if (null != profiler) profiler.Dispose();
+            }
+            catch { }
+
             return TaskDone.Done;
         }
 
@@ -44,10 +69,10 @@ namespace OrleansDashboard
         {
             this.logger = providerRuntime.GetLogger("Dashboard");
 
-            var dashboardTraceListener = new DashboardTraceListener();
+            this.dashboardTraceListener = new DashboardTraceListener();
 
             var router = new Router();
-            new DashboardController(router, TaskScheduler.Current,  providerRuntime, dashboardTraceListener);
+            this.controller = new DashboardController(router, TaskScheduler.Current,  providerRuntime, dashboardTraceListener);
 
             var options = new StartOptions
             {

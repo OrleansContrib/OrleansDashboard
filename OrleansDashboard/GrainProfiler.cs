@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
-    public class GrainProfiler
+    public class GrainProfiler : IDisposable
     {
         public TaskScheduler TaskScheduler { get; private set; }
         public IProviderRuntime ProviderRuntime { get; private set; }
@@ -144,6 +144,12 @@ namespace OrleansDashboard
                 this.Logger.Log(100001, Severity.Warning, "Exception thrown sending tracing to dashboard grain", new object[0], ex);
             }
             
+        }
+
+        public void Dispose()
+        {
+            if (null == timer) return;
+            timer.Dispose();
         }
 
         InvokeInterceptor innerInterceptor = null;

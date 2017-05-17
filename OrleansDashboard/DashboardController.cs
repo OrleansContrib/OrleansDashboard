@@ -10,11 +10,12 @@ using System.Threading.Tasks;
 namespace OrleansDashboard
 {
 
-    public class DashboardController 
+    public class DashboardController : IDisposable
     {
         public TaskScheduler TaskScheduler { get; private set; }
         public IProviderRuntime ProviderRuntime { get; private set; }
 
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         DashboardTraceListener traceListener;
 
         public DashboardController(Router router, TaskScheduler taskScheduler, IProviderRuntime providerRuntime, DashboardTraceListener traceListener)
@@ -173,7 +174,7 @@ namespace OrleansDashboard
 You are connected to the Orleans Dashboard log streaming service
 ");
                     writer.Write($"Silo {this.ProviderRuntime.ToSiloAddress()}\r\nTime: {DateTime.UtcNow.ToString()}\r\n\r\n");
-                    await Task.Delay(TimeSpan.FromMinutes(60));
+                    await Task.Delay(TimeSpan.FromMinutes(60), cancellationTokenSource.Token);
                     writer.Write("Disonnecting after 60 minutes\r\n");
                     return null;
                 }
@@ -196,6 +197,10 @@ You are connected to the Orleans Dashboard log streaming service
                 .Replace("%3E", ">");
         }
 
+        public void Dispose()
+        {
+            cancellationTokenSource.Cancel();
+        }
     }
 
 
