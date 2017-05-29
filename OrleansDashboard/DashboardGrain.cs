@@ -6,19 +6,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 namespace OrleansDashboard
 {
     [Reentrant]
     [PreferLocalPlacement]
     public class DashboardGrain : Grain, IDashboardGrain
     {
-        DashboardCounters Counters { get; set; }
-        DateTime StartTime { get; set; }
-        List<GrainTraceEntry> history = new List<GrainTraceEntry>();
+        private DashboardCounters Counters { get; set; }
+        private DateTime StartTime { get; set; }
+        private List<GrainTraceEntry> history = new List<GrainTraceEntry>();
 
-        async Task Callback(object _)
+        private async Task Callback(object _)
         {
-
             var metricsGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             var activationCountTask = metricsGrain.GetTotalActivationCount();
             var hostsTask = metricsGrain.GetDetailedHosts(true);
@@ -26,11 +26,18 @@ namespace OrleansDashboard
 
             await Task.WhenAll(activationCountTask, hostsTask, simpleGrainStatsTask);
 
-            this.Counters.TotalActivationCount = activationCountTask.Result;
-            this.Counters.TotalActiveHostCount = hostsTask.Result.Count(x => x.Status == SiloStatus.Active);
-            this.Counters.TotalActivationCountHistory.Enqueue(activationCountTask.Result);
+            RecalculateCounters(activationCountTask.Result, hostsTask.Result, simpleGrainStatsTask.Result);
+        }
+
+        internal void RecalculateCounters(int activationCount, IList<MembershipEntry> hosts,
+            IList<SimpleGrainStatistic> simpleGrainStatistics)
+        {
+            this.Counters.TotalActivationCount = activationCount;
+
+            this.Counters.TotalActiveHostCount = hosts.Count(x => x.Status == SiloStatus.Active);
+            this.Counters.TotalActivationCountHistory.Enqueue(activationCount);
             this.Counters.TotalActiveHostCountHistory.Enqueue(this.Counters.TotalActiveHostCount);
-            
+
             while (this.Counters.TotalActivationCountHistory.Count > Dashboard.HistoryLength)
             {
                 this.Counters.TotalActivationCountHistory.Dequeue();
@@ -43,7 +50,7 @@ namespace OrleansDashboard
             // TODO - whatever max elapsed time
             var elapsedTime = Math.Min((DateTime.UtcNow - this.StartTime).TotalSeconds, 100);
 
-            this.Counters.Hosts = hostsTask.Result.Select(x => new SiloDetails
+            this.Counters.Hosts = hosts.Select(x => new SiloDetails
             {
                 FaultZone = x.FaultZone,
                 HostName = x.HostName,
@@ -57,23 +64,27 @@ namespace OrleansDashboard
                 UpdateZone = x.UpdateZone
             }).ToArray();
 
-            this.Counters.SimpleGrainStats = simpleGrainStatsTask.Result.Select(x => {
+            this.Counters.SimpleGrainStats = simpleGrainStatistics.Select(x =>
+            {
                 var grainName = TypeFormatter.Parse(x.GrainType);
                 return new SimpleGrainStatisticCounter
                 {
                     ActivationCount = x.ActivationCount,
                     GrainType = grainName,
                     SiloAddress = x.SiloAddress.ToParsableString(),
-                    TotalAwaitTime = this.history.Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.ElapsedTime),
-                    TotalCalls = this.history.Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.Count),
-                    TotalExceptions = this.history.Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString()).SumZero(n => n.ExceptionCount),
+                    TotalAwaitTime = this.history
+                        .Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString())
+                        .SumZero(n => n.ElapsedTime),
+                    TotalCalls = this.history
+                        .Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString())
+                        .SumZero(n => n.Count),
+                    TotalExceptions = this.history
+                        .Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString())
+                        .SumZero(n => n.ExceptionCount),
                     TotalSeconds = elapsedTime
                 };
             }).ToArray();
         }
-
-
-
 
         public override Task OnActivateAsync()
         {
@@ -87,11 +98,11 @@ namespace OrleansDashboard
         {
             return Task.FromResult(this.Counters);
         }
-    
-        public Task<Dictionary<string,Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain)
+
+        public Task<Dictionary<string, Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain)
         {
-            var results = new Dictionary<string,Dictionary<string,GrainTraceEntry>>();
-         
+            var results = new Dictionary<string, Dictionary<string, GrainTraceEntry>>();
+
             foreach (var historicValue in this.history.Where(x => x.Grain == grain))
             {
                 var grainMethodKey = $"{grain}.{historicValue.Method}";
@@ -113,7 +124,7 @@ namespace OrleansDashboard
                 value.ElapsedTime += historicValue.ElapsedTime;
                 value.ExceptionCount += historicValue.ExceptionCount;
             }
-           
+
             return Task.FromResult(results);
         }
 
@@ -162,7 +173,6 @@ namespace OrleansDashboard
             // just used to activate the grain
             return TaskDone.Done;
         }
-
 
         public Task SubmitTracing(string siloIdentity, GrainTraceEntry[] grainTrace)
         {

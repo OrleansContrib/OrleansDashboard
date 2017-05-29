@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrleansDashboard", "OrleansDashboard\OrleansDashboard.csproj", "{6C5584E7-78A0-417D-B5C0-BF49BCF5B3A7}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGrains", "TestGrains\TestGrains.csproj", "{278CCE3A-FBA0-4828-BCF4-02025EBF8157}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{BD880A64-61C2-4102-8B93-5D1392AE1EB3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceTests", "PerformanceTests\PerformanceTests.csproj", "{4DB2F674-F6EA-4A01-B42B-82514D5A52B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{BD880A64-61C2-4102-8B93-5D1392AE1EB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD880A64-61C2-4102-8B93-5D1392AE1EB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD880A64-61C2-4102-8B93-5D1392AE1EB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DB2F674-F6EA-4A01-B42B-82514D5A52B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DB2F674-F6EA-4A01-B42B-82514D5A52B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DB2F674-F6EA-4A01-B42B-82514D5A52B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DB2F674-F6EA-4A01-B42B-82514D5A52B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
