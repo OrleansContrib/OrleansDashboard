@@ -64,23 +64,32 @@ namespace OrleansDashboard
                 UpdateZone = x.UpdateZone
             }).ToArray();
 
+            var aggregatedTotals = this.history
+                .GroupBy(x => new GrainSiloKey(x.Grain, x.SiloAddress))
+                .ToDictionary(g => g.Key, g => new AggregatedGrainTotals
+                {
+                    TotalAwaitTime = g.Sum(x => x.ElapsedTime),
+                    TotalCalls = g.Sum(x => x.Count),
+                    TotalExceptions = g.Sum(x => x.ExceptionCount)
+                });
+
             this.Counters.SimpleGrainStats = simpleGrainStatistics.Select(x =>
             {
                 var grainName = TypeFormatter.Parse(x.GrainType);
+                var siloAddress = x.SiloAddress.ToParsableString();
+                AggregatedGrainTotals totals;
+                if (!aggregatedTotals.TryGetValue(new GrainSiloKey(grainName, siloAddress), out totals))
+                {
+                    totals = new AggregatedGrainTotals();
+                }
                 return new SimpleGrainStatisticCounter
                 {
                     ActivationCount = x.ActivationCount,
                     GrainType = grainName,
                     SiloAddress = x.SiloAddress.ToParsableString(),
-                    TotalAwaitTime = this.history
-                        .Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString())
-                        .SumZero(n => n.ElapsedTime),
-                    TotalCalls = this.history
-                        .Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString())
-                        .SumZero(n => n.Count),
-                    TotalExceptions = this.history
-                        .Where(n => n.Grain == grainName && n.SiloAddress == x.SiloAddress.ToParsableString())
-                        .SumZero(n => n.ExceptionCount),
+                    TotalAwaitTime = totals.TotalAwaitTime,
+                    TotalCalls = totals.TotalCalls,
+                    TotalExceptions = totals.TotalExceptions,
                     TotalSeconds = elapsedTime
                 };
             }).ToArray();
