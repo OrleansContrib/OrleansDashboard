@@ -1,20 +1,17 @@
-﻿using Orleans;
-using Orleans.Runtime.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Orleans;
+using Orleans.Runtime.Configuration;
 using Orleans.TestingHost;
 using OrleansDashboard;
 using TestGrains;
 
 namespace TestHost
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Console.WriteLine("Starting silos");
             Console.WriteLine("Dashboard will listen on http://localhost:8080/");
@@ -31,6 +28,7 @@ namespace TestHost
 
             var tokenSource = new CancellationTokenSource();
             var t = new Thread(() => CallGenerator(tokenSource).Wait());
+            t.Start();
 
             Console.ReadLine();
             tokenSource.Cancel();
@@ -39,11 +37,11 @@ namespace TestHost
                 t.Join(TimeSpan.FromSeconds(3));
             }
             catch
-            {  }
+            { }
             cluster.StopAllSilos();
         }
 
-        static async Task CallGenerator(CancellationTokenSource tokenSource)
+        private static async Task CallGenerator(CancellationTokenSource tokenSource)
         {
             var x = GrainClient.GrainFactory.GetGrain<ITestGenericGrain<string, int>>("test");
             x.TestT("string").Wait();
