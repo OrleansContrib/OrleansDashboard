@@ -5,7 +5,8 @@ var Page = require('../components/page.jsx');
 module.exports = React.createClass({
   getInitialState:function(){
     return {
-      log:"Connecting..."
+      log:"Connecting...",
+      scrollEnabled:true
     }
   },
 
@@ -15,6 +16,7 @@ module.exports = React.createClass({
   },
 
   onProgress : function(){
+    if (!this.state.scrollEnabled) return;
     this.setState({
       log:this.props.xhr.responseText
     }, this.scroll);
@@ -28,7 +30,18 @@ module.exports = React.createClass({
     this.props.xhr.abort();
   },
 
+  toggle:function(){
+    this.setState({
+      scrollEnabled:!this.state.scrollEnabled
+    });
+  },
+
   render:function(){
-    return <pre ref="log" className="log">{this.state.log}</pre>
+    return <div>
+      <pre ref="log" className="log">{this.state.log}</pre>
+        <a href="javascript:void"  onClick={this.toggle} className="btn btn-default" style={{float:"right", marginTop:"-64px"}}>
+          {this.state.scrollEnabled ? "Pause" : "Resume"}
+        </a>
+    </div>
   }
 });

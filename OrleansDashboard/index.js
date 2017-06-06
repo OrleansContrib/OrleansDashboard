@@ -1854,7 +1854,8 @@ module.exports = React.createClass({
 
   getInitialState: function getInitialState() {
     return {
-      log: "Connecting..."
+      log: "Connecting...",
+      scrollEnabled: true
     };
   },
 
@@ -1864,6 +1865,7 @@ module.exports = React.createClass({
   },
 
   onProgress: function onProgress() {
+    if (!this.state.scrollEnabled) return;
     this.setState({
       log: this.props.xhr.responseText
     }, this.scroll);
@@ -1877,11 +1879,26 @@ module.exports = React.createClass({
     this.props.xhr.abort();
   },
 
+  toggle: function toggle() {
+    this.setState({
+      scrollEnabled: !this.state.scrollEnabled
+    });
+  },
+
   render: function render() {
     return React.createElement(
-      'pre',
-      { ref: 'log', className: 'log' },
-      this.state.log
+      'div',
+      null,
+      React.createElement(
+        'pre',
+        { ref: 'log', className: 'log' },
+        this.state.log
+      ),
+      React.createElement(
+        'a',
+        { href: 'javascript:void', onClick: this.toggle, className: 'btn btn-default', style: { float: "right", marginTop: "-64px" } },
+        this.state.scrollEnabled ? "Pause" : "Resume"
+      )
     );
   }
 });
