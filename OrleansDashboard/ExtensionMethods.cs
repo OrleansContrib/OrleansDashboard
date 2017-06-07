@@ -1,14 +1,14 @@
-﻿using Microsoft.Owin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Orleans.Providers;
-using Orleans.Runtime.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Owin;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Orleans.Providers;
+using Orleans.Runtime.Configuration;
 
 namespace OrleansDashboard
 {
@@ -22,6 +22,18 @@ namespace OrleansDashboard
             using (var reader = new StreamReader(stream))
             {
                 var content = await reader.ReadToEndAsync();
+                await context.Response.WriteAsync(content);
+            }
+        }
+
+        public static async Task ReturnBinaryFile(this IOwinContext context, string name, string contentType)
+        {
+            context.Response.ContentType = contentType;
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream($"OrleansDashboard.{name}"))
+            using (var reader = new BinaryReader(stream))
+            {
+                var content = reader.ReadBytes((int)stream.Length);
                 await context.Response.WriteAsync(content);
             }
         }

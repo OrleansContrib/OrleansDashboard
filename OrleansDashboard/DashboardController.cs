@@ -1,11 +1,11 @@
-﻿using Microsoft.Owin;
-using Orleans.Providers;
-using Orleans.Runtime;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Owin;
+using Orleans.Providers;
+using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
@@ -28,6 +28,7 @@ namespace OrleansDashboard
 
             add("/", Index);
             add("/index.min.js", IndexJs);
+            add("/favicon.ico", Favicon);
             add("/DashboardCounters", GetDashboardCounters);
             add("/RuntimeStats/:address", GetRuntimeStats);
             add("/HistoricalStats/:address", GetHistoricalStats);
@@ -47,6 +48,11 @@ namespace OrleansDashboard
         Task IndexJs(IOwinContext context, IDictionary<string, string> parameters)
         {
             return context.ReturnFile("index.min.js", "application/javascript");
+        }
+
+        Task Favicon(IOwinContext context, IDictionary<string, string> parameters)
+        {
+            return context.ReturnBinaryFile("favicon.ico", "image/x-icon");
         }
 
         async Task GetDashboardCounters(IOwinContext context, IDictionary<string, string> parameters)
