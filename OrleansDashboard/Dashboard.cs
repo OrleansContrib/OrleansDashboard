@@ -1,10 +1,10 @@
-﻿using Microsoft.Owin.Hosting;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Microsoft.Owin.Hosting;
 using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
@@ -24,13 +24,8 @@ namespace OrleansDashboard
             }
         }
 
-        public string Name
-        {
-            get
-            {
-                return "Dashboard";
-            }
-        }
+        public string Name { get; private set; }
+       
 
 
         public Task Close()
@@ -59,6 +54,8 @@ namespace OrleansDashboard
             }
             catch { }
 
+            OrleansScheduler = null;
+
             return TaskDone.Done;
         }
 
@@ -67,6 +64,8 @@ namespace OrleansDashboard
 
         public async Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
         {
+            this.Name = name;
+            
             this.logger = providerRuntime.GetLogger("Dashboard");
 
             this.dashboardTraceListener = new DashboardTraceListener();
@@ -94,7 +93,9 @@ namespace OrleansDashboard
 
             this.logger.Verbose($"Dashboard listening on {options.Port}");
 
+
             this.profiler = new GrainProfiler(TaskScheduler.Current, providerRuntime);
+
 
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
             await dashboardGrain.Init();
@@ -104,11 +105,13 @@ namespace OrleansDashboard
             await siloGrain.SetOrleansVersion(typeof(SiloAddress).Assembly.GetName().Version.ToString());
             Trace.Listeners.Add(dashboardTraceListener);
 
+
+
             // horrible hack to grab the scheduler 
             // to allow the stats publisher to push 
             // counters to grains
             OrleansScheduler = TaskScheduler.Current;
-            
+
         }
     }
 }

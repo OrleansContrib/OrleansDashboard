@@ -1,14 +1,14 @@
-﻿using Orleans;
-using Orleans.CodeGeneration;
-using Orleans.Providers;
-using Orleans.Runtime;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Orleans;
+using Orleans.CodeGeneration;
+using Orleans.Providers;
+using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
@@ -137,7 +137,7 @@ namespace OrleansDashboard
                 {
                     await dashboardGrain.SubmitTracing(siloAddress, data).ConfigureAwait(false);
                     return null;
-                }).Wait();
+                }).Wait(30_000);
             }
             catch (Exception ex)
             {
