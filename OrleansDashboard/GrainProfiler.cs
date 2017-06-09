@@ -137,7 +137,7 @@ namespace OrleansDashboard
                 {
                     await dashboardGrain.SubmitTracing(siloAddress, data).ConfigureAwait(false);
                     return null;
-                }).Wait(30_000);
+                }).Wait(30000);
             }
             catch (Exception ex)
             {
