@@ -38,6 +38,7 @@ namespace OrleansDashboard
             add("/ClusterStats", GetClusterStats);
             add("/SiloStats/:address", GetSiloStats);
             add("/SiloCounters/:address", GetSiloCounters);
+            add("/Reminders", GetReminders);
         }
 
         Task Index(IOwinContext context, IDictionary<string,string> parameters)
@@ -162,6 +163,15 @@ namespace OrleansDashboard
             await context.ReturnJson(result).ConfigureAwait(false);
         }
 
+        async Task GetReminders(IOwinContext context, IDictionary<string, string> parameters)
+        {            
+            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardRemindersGrain>(0);
+
+            var result = await Dispatch(grain.GetReminders).ConfigureAwait(false);
+
+            await context.ReturnJson(result).ConfigureAwait(false);
+        }
+
         async Task Trace(IOwinContext context, IDictionary<string, string> parameters)
         {
             context.Response.Protocol = "HTTP/1.1";
@@ -182,16 +192,20 @@ You are connected to the Orleans Dashboard log streaming service
                     writer.Write($"Silo {this.ProviderRuntime.ToSiloAddress()}\r\nTime: {DateTime.UtcNow.ToString()}\r\n\r\n");
                     await Task.Delay(TimeSpan.FromMinutes(60), cancellationTokenSource.Token);
                     writer.Write("Disonnecting after 60 minutes\r\n");
-                    return null;
                 }
 
             });
         }
 
-
-        Task<object> Dispatch(Func<Task<object>> func)
+        Task Dispatch(Func<Task> func)
         {
-            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: this.TaskScheduler).Result;
+            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, 
+                TaskScheduler).Result;
+        }
+
+        Task<T> Dispatch<T>(Func<Task<T>> func)
+        {
+            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, TaskScheduler).Result;
         }
 
         static string EscapeString(string value)

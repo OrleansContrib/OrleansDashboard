@@ -117,4 +117,15 @@ namespace OrleansDashboard
         public long TotalCalls { get; set; }
         public long TotalExceptions { get; set; }
     }
+
+    public class ReminderInfo
+    {
+        public string GrainReference { get; set; }
+
+        public string Name { get; set; }
+
+        public DateTime StartAt { get; set; }
+
+        public TimeSpan Period { get; set; }
+    }
 }
