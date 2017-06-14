@@ -64,7 +64,10 @@ namespace OrleansDashboard
 
         Task Dispatch(Func<Task> func)
         {
-            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler: Dashboard.OrleansScheduler);
+            var scheduler = Dashboard.OrleansScheduler;
+            return scheduler == null 
+                ? TaskDone.Done 
+                : Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler);
         }
     }
    
