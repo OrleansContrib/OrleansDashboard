@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
     <PackageProjectUrl>https://github.com/OrleansContrib/OrleansDashboard</PackageProjectUrl>
@@ -26,10 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Core" Version="1.4.2" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="1.4.2" />
+    <PackageReference Include="Microsoft.Orleans.Core" Version="1.5.0-beta1" />
+    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="1.5.0-beta1" />
     <PackageReference Include="Microsoft.Owin.Hosting" Version="3.0.1" />
     <PackageReference Include="Nowin" Version="0.26.0" />
   </ItemGroup>
-
 </Project>
