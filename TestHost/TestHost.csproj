@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.TestingHost" Version="1.4.2" />
+    <PackageReference Include="Microsoft.Orleans.TestingHost" Version="1.5.0-beta1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,5 +17,4 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
-
 </Project>
