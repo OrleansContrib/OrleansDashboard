@@ -9,7 +9,7 @@ module.exports = React.createClass({
         return <div>
             <div className="row">
                 <div className="col-md-12">
-                    <CounterWidget icon="cubes" counter={this.props.remindersData.length} title="Reminders Count" />
+                    <CounterWidget icon="calendar" counter={this.props.remindersData.length} title="Reminders Count" />
                 </div>
             </div>
             <Panel title="Reminders">
