@@ -1,11 +1,17 @@
-﻿using Orleans;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Orleans;
 
 namespace OrleansDashboard
 {
+
+    public class ReminderResponse
+    {
+        public int Count { get; set; }
+        public ReminderInfo[] Reminders { get; set; }
+    }
+
     public interface IDashboardRemindersGrain : IGrainWithIntegerKey
     {
-        Task<IList<ReminderInfo>> GetReminders();
+        Task<ReminderResponse> GetReminders(int pageNumber, int pageSize);
     }
 }

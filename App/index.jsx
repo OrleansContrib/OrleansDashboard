@@ -220,27 +220,32 @@ routie('/grain/:grainType', function(grainType){
 
 });
 
-routie('/reminders', function(){
+routie('/reminders/:page?', function(page){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
     renderLoading();
 
     var remindersData = [];
+    if (page){
+      page = parseInt(page);
+    } else {
+      page = 1;
+    }
 
     var renderReminders = function(){
         if (routeIndex != thisRouteIndex) return;
-        renderPage(<Page title="Reminders"><Reminders remindersData={remindersData} /></Page>, "#/reminders");
+        renderPage(<Page title="Reminders"><Reminders remindersData={remindersData} page={page} /></Page>, "#/reminders");
     }
 
     var loadData = function(cb){
-        http.get('/Reminders', function(err, data){
+        http.get(`/Reminders/${page}`, function(err, data){
             remindersData = data;
             renderReminders();
         });
     }
 
-    events.on('refresh', loadData);
+    events.on('long-refresh', loadData);
 
     loadData();
 });
@@ -255,6 +260,7 @@ routie('/trace', function(){
 
 
 setInterval(() => events.emit('refresh'), 1000);
+setInterval(() => events.emit('long-refresh'), 10000);
 
 routie.reload();
 

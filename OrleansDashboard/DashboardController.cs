@@ -39,6 +39,7 @@ namespace OrleansDashboard
             add("/SiloStats/:address", GetSiloStats);
             add("/SiloCounters/:address", GetSiloCounters);
             add("/Reminders", GetReminders);
+            add("/Reminders/:page", GetReminders);
         }
 
         Task Index(IOwinContext context, IDictionary<string,string> parameters)
@@ -60,9 +61,7 @@ namespace OrleansDashboard
         {
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
-            var result = await Dispatch(async () => {
-                return await grain.GetCounters().ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var result = await Dispatch(grain.GetCounters).ConfigureAwait(false);
             await context.ReturnJson(result).ConfigureAwait(false);
         }
 
@@ -91,10 +90,7 @@ namespace OrleansDashboard
             var address = EscapeString(parameters["address"]);
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
 
-            var result = await Dispatch(async () =>
-            {
-                return await grain.GetRuntimeStatistics().ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var result = await Dispatch(grain.GetRuntimeStatistics).ConfigureAwait(false);
 
             await context.ReturnJson(result).ConfigureAwait(false);
         }
@@ -104,10 +100,7 @@ namespace OrleansDashboard
             var address = EscapeString(parameters["address"]);
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
 
-            var result = await Dispatch(async () =>
-            {
-                return await grain.GetExtendedProperties().ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var result = await Dispatch(grain.GetExtendedProperties).ConfigureAwait(false);
 
             await context.ReturnJson(result).ConfigureAwait(false);
         }
@@ -129,10 +122,7 @@ namespace OrleansDashboard
         {
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
-            var result = await Dispatch(async () =>
-            {
-                return await grain.GetClusterTracing().ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var result = await Dispatch(grain.GetClusterTracing).ConfigureAwait(false);
 
             await context.ReturnJson(result).ConfigureAwait(false);
         }
@@ -155,19 +145,28 @@ namespace OrleansDashboard
             var address = EscapeString(parameters["address"]);
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
 
-            var result = await Dispatch(async () =>
-            {
-                return await grain.GetCounters().ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var result = await Dispatch(grain.GetCounters).ConfigureAwait(false);
 
             await context.ReturnJson(result).ConfigureAwait(false);
         }
 
         async Task GetReminders(IOwinContext context, IDictionary<string, string> parameters)
-        {            
+        {
+            const int pageSize = 25;
+            int page = 1;
+            if (parameters.ContainsKey("page"))
+            {
+                int.TryParse(parameters["page"], out page);
+            }
+
             var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardRemindersGrain>(0);
 
-            var result = await Dispatch(grain.GetReminders).ConfigureAwait(false);
+            var result = await Dispatch(async () =>
+            {
+                return await grain.GetReminders(page, pageSize).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+
+          
 
             await context.ReturnJson(result).ConfigureAwait(false);
         }

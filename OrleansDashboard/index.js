@@ -1662,31 +1662,36 @@ routie('/grain/:grainType', function (grainType) {
     loadData();
 });
 
-routie('/reminders', function () {
+routie('/reminders/:page?', function (page) {
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
     renderLoading();
 
     var remindersData = [];
+    if (page) {
+        page = parseInt(page);
+    } else {
+        page = 1;
+    }
 
     var renderReminders = function renderReminders() {
         if (routeIndex != thisRouteIndex) return;
         renderPage(React.createElement(
             Page,
             { title: 'Reminders' },
-            React.createElement(Reminders, { remindersData: remindersData })
+            React.createElement(Reminders, { remindersData: remindersData, page: page })
         ), "#/reminders");
     };
 
     var loadData = function loadData(cb) {
-        http.get('/Reminders', function (err, data) {
+        http.get('/Reminders/' + page, function (err, data) {
             remindersData = data;
             renderReminders();
         });
     };
 
-    events.on('refresh', loadData);
+    events.on('long-refresh', loadData);
 
     loadData();
 });
@@ -1702,6 +1707,9 @@ routie('/trace', function () {
 setInterval(function () {
     return events.emit('refresh');
 }, 1000);
+setInterval(function () {
+    return events.emit('long-refresh');
+}, 10000);
 
 routie.reload();
 
@@ -38322,6 +38330,9 @@ module.exports = React.createClass({
     displayName: 'exports',
 
     render: function render() {
+        var showPrevious = this.props.page > 1;
+        var showNext = this.props.remindersData.reminders.length == 25;
+
         return React.createElement(
             'div',
             null,
@@ -38331,13 +38342,38 @@ module.exports = React.createClass({
                 React.createElement(
                     'div',
                     { className: 'col-md-12' },
-                    React.createElement(CounterWidget, { icon: 'calendar', counter: this.props.remindersData.length, title: 'Reminders Count' })
+                    React.createElement(CounterWidget, { icon: 'calendar', counter: this.props.remindersData.count, title: 'Reminders Count' })
                 )
             ),
             React.createElement(
                 Panel,
-                { title: 'Reminders' },
-                React.createElement(ReminderTable, { data: this.props.remindersData })
+                { title: 'Reminders', subTitle: 'Page ' + this.props.page },
+                React.createElement(
+                    'div',
+                    null,
+                    React.createElement(ReminderTable, { data: this.props.remindersData.reminders }),
+                    React.createElement(
+                        'div',
+                        { style: { textAlign: "center" } },
+                        showPrevious ? React.createElement(
+                            'a',
+                            { className: 'btn btn-default bg-purple', href: '#/reminders/' + (this.props.page - 1) },
+                            React.createElement('i', { className: 'fa fa-arrow-circle-left' }),
+                            ' Previous'
+                        ) : null,
+                        React.createElement(
+                            'span',
+                            null,
+                            ' '
+                        ),
+                        showNext ? React.createElement(
+                            'a',
+                            { className: 'btn btn-default bg-purple', href: '#/reminders/' + (this.props.page + 1) },
+                            'Next ',
+                            React.createElement('i', { className: 'fa fa-arrow-circle-right' })
+                        ) : null
+                    )
+                )
             )
         );
     }

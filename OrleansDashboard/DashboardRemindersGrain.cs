@@ -1,7 +1,6 @@
-﻿using Orleans;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using Orleans;
 
 namespace OrleansDashboard
 {
@@ -14,11 +13,24 @@ namespace OrleansDashboard
             _reminderTable = reminderTable;
         }
 
-        public async Task<IList<ReminderInfo>> GetReminders()
+        public async Task<ReminderResponse> GetReminders(int pageNumber, int pageSize)
         {
+            var pageStart = (pageNumber * pageSize) - pageSize;
+
             var reminderData = await _reminderTable.ReadRows(0, 0xffffffff);
 
-            return reminderData.Reminders.Select(ToReminderInfo).ToList();
+            return new ReminderResponse {
+
+                Reminders = reminderData
+                    .Reminders
+                    .OrderBy(x => x.StartAt)
+                    .Skip((pageNumber -1) * pageSize)
+                    .Take(pageSize)
+                    .Select(ToReminderInfo)
+                    .ToArray(),
+
+                Count = reminderData.Reminders.Count
+            }; 
         }
 
         private static ReminderInfo ToReminderInfo(ReminderEntry entry)
@@ -28,7 +40,7 @@ namespace OrleansDashboard
                 GrainReference = entry.GrainRef.ToString(),
                 Name = entry.ReminderName,
                 StartAt = entry.StartAt,
-                Period = entry.Period
+                Period = entry.Period,
             };
         }
     }
