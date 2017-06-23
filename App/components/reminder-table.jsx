@@ -6,19 +6,21 @@ module.exports = React.createClass({
     renderReminder:function(reminderData){
         return <tr>
             <td>{reminderData.grainReference}</td>
+            <td>{reminderData.primaryKey}</td>
             <td><span className="pull-right">{reminderData.activationCount}</span></td>
             <td><span className="pull-right">{reminderData.name}</span></td>
             <td><span className="pull-right">{reminderData.startAt}</span></td>
             <td><span className="pull-right">{reminderData.period}</span></td>
         </tr>
     },
-    render:function(){        
-        if (!this.props.data) return null;        
+    render:function(){
+        if (!this.props.data) return null;
 
         return <table className="table">
             <tbody>
                 <tr>
                     <th style={{textAlign:"left"}}>Grain Reference</th>
+                    <th>Primary Key</th>
                     <th></th>
                     <th style={{textAlign:"right"}}>Name</th>
                     <th style={{textAlign:"right"}}>StartAt</th>

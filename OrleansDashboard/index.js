@@ -790,6 +790,11 @@ module.exports = React.createClass({
             React.createElement(
                 "td",
                 null,
+                reminderData.primaryKey
+            ),
+            React.createElement(
+                "td",
+                null,
                 React.createElement(
                     "span",
                     { className: "pull-right" },
@@ -841,6 +846,11 @@ module.exports = React.createClass({
                         "th",
                         { style: { textAlign: "left" } },
                         "Grain Reference"
+                    ),
+                    React.createElement(
+                        "th",
+                        null,
+                        "Primary Key"
                     ),
                     React.createElement("th", null),
                     React.createElement(

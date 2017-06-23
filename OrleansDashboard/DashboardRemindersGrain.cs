@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Orleans;
+using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
@@ -33,10 +34,35 @@ namespace OrleansDashboard
             }; 
         }
 
+        private static string PrimaryKeyAsString(GrainReference grainRef)
+        {
+            if (grainRef.IsPrimaryKeyBasedOnLong())
+            {
+                // long
+                var pk = grainRef.GetPrimaryKeyLong(out var ext).ToString();
+                if (null == ext) return pk;
+                return $"{pk} + {ext}";
+            }
+
+            if (null != grainRef.GetPrimaryKeyString())
+            {
+                // string
+                return grainRef.GetPrimaryKeyString();
+            }
+    
+            // guid
+            var guidPk = grainRef.GetPrimaryKey(out var guidExt).ToString();
+            if (null == guidExt) return guidPk;
+            return $"{guidPk} + {guidExt}";
+        }
+
         private static ReminderInfo ToReminderInfo(ReminderEntry entry)
         {
+          
+
             return new ReminderInfo
             {
+                PrimaryKey = PrimaryKeyAsString(entry.GrainRef),
                 GrainReference = entry.GrainRef.ToString(),
                 Name = entry.ReminderName,
                 StartAt = entry.StartAt,
