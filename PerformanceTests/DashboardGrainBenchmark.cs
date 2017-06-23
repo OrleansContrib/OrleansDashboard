@@ -16,6 +16,7 @@ namespace PerformanceTests
         private DashboardGrain _dashboardGrain;
         private List<SimpleGrainStatistic> _simpleGrainStatistics;
         private int _totalActivationCount;
+        private SiloDetails[] _siloDetails;
 
         [Params(3)]
         public int SiloCount { get; set; }
@@ -48,6 +49,11 @@ namespace PerformanceTests
                     SiloAddress = SiloAddress.NewLocalAddress(i)
                 });
             }
+            _siloDetails = _silos.Select(x => new SiloDetails()
+            {
+                SiloAddress = x.SiloAddress.ToParsableString()
+            }).ToArray();
+
             _grainTypes = new List<string>();
             for (int i = 0; i < GrainTypeCount; i++)
             {
@@ -106,7 +112,7 @@ namespace PerformanceTests
         [Benchmark]
         public void Recalculate()
         {
-            _dashboardGrain.RecalculateCounters(_totalActivationCount, _silos, _simpleGrainStatistics);
+            _dashboardGrain.RecalculateCounters(_totalActivationCount, _siloDetails, _simpleGrainStatistics);
         }
     }
 }
