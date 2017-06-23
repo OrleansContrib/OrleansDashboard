@@ -18,21 +18,9 @@ namespace OrleansDashboard
         private List<GrainTraceEntry> history = new List<GrainTraceEntry>();
 
 
-        private readonly ISiloDetailsProvider siloDetailsProvider;
+        private ISiloDetailsProvider siloDetailsProvider;
 
-        public DashboardGrain()
-        {
-            // note: normally we would use dependency injection
-            // but since we do not have access to the registered services collection 
-            // from within a bootstrapper we do it this way:
-            // first try to resolve from the container, if not present in container
-            // then instantiate the default
-            this.siloDetailsProvider =
-                (this.ServiceProvider.GetService(typeof(ISiloDetailsProvider)) as ISiloDetailsProvider)
-                ?? new MembershipTableSiloDetailsProvider(this.GrainFactory);
-
-        }
-
+      
 
         private async Task Callback(object _)
         {
@@ -102,6 +90,16 @@ namespace OrleansDashboard
 
         public override Task OnActivateAsync()
         {
+            // note: normally we would use dependency injection
+            // but since we do not have access to the registered services collection 
+            // from within a bootstrapper we do it this way:
+            // first try to resolve from the container, if not present in container
+            // then instantiate the default
+            this.siloDetailsProvider =
+                (this.ServiceProvider.GetService(typeof(ISiloDetailsProvider)) as ISiloDetailsProvider)
+                ?? new MembershipTableSiloDetailsProvider(this.GrainFactory);
+
+
             this.Counters = new DashboardCounters();
             this.RegisterTimer(this.Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
             this.StartTime = DateTime.UtcNow;
