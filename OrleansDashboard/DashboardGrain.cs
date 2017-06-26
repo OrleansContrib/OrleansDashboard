@@ -17,24 +17,29 @@ namespace OrleansDashboard
         private DateTime StartTime { get; set; }
         private List<GrainTraceEntry> history = new List<GrainTraceEntry>();
 
+
+        private ISiloDetailsProvider siloDetailsProvider;
+
+      
+
         private async Task Callback(object _)
         {
             var metricsGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             var activationCountTask = metricsGrain.GetTotalActivationCount();
-            var hostsTask = metricsGrain.GetDetailedHosts(true);
             var simpleGrainStatsTask = metricsGrain.GetSimpleGrainStatistics();
+            var siloDetailsTask = siloDetailsProvider.GetSiloDetails();
 
-            await Task.WhenAll(activationCountTask, hostsTask, simpleGrainStatsTask);
+            await Task.WhenAll(activationCountTask,  simpleGrainStatsTask, siloDetailsTask);
 
-            RecalculateCounters(activationCountTask.Result, hostsTask.Result, simpleGrainStatsTask.Result);
+            RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result);
         }
 
-        internal void RecalculateCounters(int activationCount, IList<MembershipEntry> hosts,
+        internal void RecalculateCounters(int activationCount, SiloDetails[] hosts,
             IList<SimpleGrainStatistic> simpleGrainStatistics)
         {
             this.Counters.TotalActivationCount = activationCount;
 
-            this.Counters.TotalActiveHostCount = hosts.Count(x => x.Status == SiloStatus.Active);
+            this.Counters.TotalActiveHostCount = hosts.Count(x => x.SiloStatus == SiloStatus.Active);
             this.Counters.TotalActivationCountHistory.Enqueue(activationCount);
             this.Counters.TotalActiveHostCountHistory.Enqueue(this.Counters.TotalActiveHostCount);
 
@@ -50,19 +55,7 @@ namespace OrleansDashboard
             // TODO - whatever max elapsed time
             var elapsedTime = Math.Min((DateTime.UtcNow - this.StartTime).TotalSeconds, 100);
 
-            this.Counters.Hosts = hosts.Select(x => new SiloDetails
-            {
-                FaultZone = x.FaultZone,
-                HostName = x.HostName,
-                IAmAliveTime = x.IAmAliveTime.ToString("o"),
-                ProxyPort = x.ProxyPort,
-                RoleName = x.RoleName,
-                SiloAddress = x.SiloAddress.ToParsableString(),
-                SiloName = x.SiloName,
-                StartTime = x.StartTime.ToString("o"),
-                Status = x.Status.ToString(),
-                UpdateZone = x.UpdateZone
-            }).ToArray();
+            this.Counters.Hosts = hosts;
 
             var aggregatedTotals = this.history
                 .GroupBy(x => new GrainSiloKey(x.Grain, x.SiloAddress))
@@ -97,6 +90,16 @@ namespace OrleansDashboard
 
         public override Task OnActivateAsync()
         {
+            // note: normally we would use dependency injection
+            // but since we do not have access to the registered services collection 
+            // from within a bootstrapper we do it this way:
+            // first try to resolve from the container, if not present in container
+            // then instantiate the default
+            this.siloDetailsProvider =
+                (this.ServiceProvider.GetService(typeof(ISiloDetailsProvider)) as ISiloDetailsProvider)
+                ?? new MembershipTableSiloDetailsProvider(this.GrainFactory);
+
+
             this.Counters = new DashboardCounters();
             this.RegisterTimer(this.Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
             this.StartTime = DateTime.UtcNow;
