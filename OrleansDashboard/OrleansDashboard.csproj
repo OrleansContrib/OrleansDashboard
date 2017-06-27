@@ -12,6 +12,7 @@
     <Copyright>Copyright © 2017</Copyright>
     <Authors>OrleansContrib</Authors>
     <PackageIconUrl>http://dotnet.github.io/orleans/assets/logo.png</PackageIconUrl>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
