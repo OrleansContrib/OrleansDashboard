@@ -1,226 +1,209 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Owin;
+﻿using Microsoft.AspNetCore.Mvc;
 using Orleans.Providers;
 using Orleans.Runtime;
+using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
-
-    public class DashboardController : IDisposable
+    [Route("")]
+    public class DashboardController : Controller
     {
-        public TaskScheduler TaskScheduler { get; private set; }
-        public IProviderRuntime ProviderRuntime { get; private set; }
+        private readonly TaskScheduler taskScheduler;
+        private readonly IProviderRuntime providerRuntime;
 
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        DashboardTraceListener traceListener;
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private readonly DashboardTraceListener traceListener;
 
-        public DashboardController(Router router, TaskScheduler taskScheduler, IProviderRuntime providerRuntime, DashboardTraceListener traceListener)
+        public DashboardController(TaskScheduler taskScheduler, IProviderRuntime providerRuntime, DashboardTraceListener traceListener)
         {
             this.traceListener = traceListener;
-            this.TaskScheduler = taskScheduler;
-            this.ProviderRuntime = providerRuntime;
-
-            Action<string, Func<IOwinContext, IDictionary<string, string>, Task>> add = router.Add;
-
-            add("/", Index);
-            add("/index.min.js", IndexJs);
-            add("/favicon.ico", Favicon);
-            add("/DashboardCounters", GetDashboardCounters);
-            add("/RuntimeStats/:address", GetRuntimeStats);
-            add("/HistoricalStats/:address", GetHistoricalStats);
-            add("/GrainStats/:grain", GetGrainStats);
-            add("/SiloProperties/:address", GetSiloExtendedProperties);
-            add("/Trace", Trace);
-            add("/ClusterStats", GetClusterStats);
-            add("/SiloStats/:address", GetSiloStats);
-            add("/SiloCounters/:address", GetSiloCounters);
-            add("/Reminders", GetReminders);
-            add("/Reminders/:page", GetReminders);
+            this.taskScheduler = taskScheduler;
+            this.providerRuntime = providerRuntime;
         }
 
-        Task Index(IOwinContext context, IDictionary<string,string> parameters)
+        private static IActionResult CreateFileResult(string name, string contentType)
         {
-            return context.ReturnFile("Index.html", "text/html");
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream($"OrleansDashboard.{name}"))
+            using (var reader = new BinaryReader(stream))
+            {
+                var content = reader.ReadBytes((int)stream.Length);
+                return new FileContentResult(content, contentType);
+            }
         }
 
-        Task IndexJs(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet]
+        public Task<IActionResult> Index()
         {
-            return context.ReturnFile("index.min.js", "application/javascript");
+            return Task.FromResult(CreateFileResult("Index.html", "text/html"));
         }
 
-        Task Favicon(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("index.min.js")]
+        public Task<IActionResult> IndexJs()
         {
-            return context.ReturnBinaryFile("favicon.ico", "image/x-icon");
+            return Task.FromResult(CreateFileResult("index.min.js", "application/javascript"));
         }
 
-        async Task GetDashboardCounters(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("favicon.ico")]
+        public Task<IActionResult> Favicon()
         {
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+            return Task.FromResult(CreateFileResult("favicon.ico", "image/x-icon"));
+        }
+
+        [HttpGet("DashboardCounters")]
+        public async Task<IActionResult> GetDashboardCounters()
+        {
+            var grain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
             var result = await Dispatch(grain.GetCounters).ConfigureAwait(false);
-            await context.ReturnJson(result).ConfigureAwait(false);
+            return Ok(result);
         }
 
-        async Task GetRuntimeStats(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("RuntimeStats/{address}")]
+        public async Task<IActionResult> GetRuntimeStats(string address)
         {
-            var address = SiloAddress.FromParsableString(EscapeString(parameters["address"]));
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
-            
+            var siloAddress = SiloAddress.FromParsableString(address);
+
+            var grain = providerRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
+
             var result = await Dispatch(async () =>
             {
-                Dictionary<SiloAddress, SiloStatus> silos = await grain.GetHosts(true).ConfigureAwait(false);
-                SiloStatus siloStatus;
-                if (silos.TryGetValue(address, out siloStatus))
+                var silos = await grain.GetHosts(true).ConfigureAwait(false);
+                if (silos.TryGetValue(siloAddress, out SiloStatus _))
                 {
-                    return (await grain.GetRuntimeStatistics(new SiloAddress[] { address }).ConfigureAwait(false)).FirstOrDefault();
+                    return (await grain.GetRuntimeStatistics(new[] { siloAddress }).ConfigureAwait(false)).FirstOrDefault();
                 }
                 return null;
             }).ConfigureAwait(false);
 
-
-            await context.ReturnJson(result).ConfigureAwait(false);
+            return Ok(result);
         }
 
-        async Task GetHistoricalStats(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("HistoricalStats/{address}")]
+        public async Task<IActionResult> GetHistoricalStats(string address)
         {
-            var address = EscapeString(parameters["address"]);
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
+            var grain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
 
             var result = await Dispatch(grain.GetRuntimeStatistics).ConfigureAwait(false);
 
-            await context.ReturnJson(result).ConfigureAwait(false);
+            return Ok(result);
         }
 
-        async Task GetSiloExtendedProperties(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("SiloProperties/{address}")]
+        public async Task<IActionResult> GetSiloExtendedProperties(string address)
         {
-            var address = EscapeString(parameters["address"]);
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
+            var grain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
 
             var result = await Dispatch(grain.GetExtendedProperties).ConfigureAwait(false);
 
-            await context.ReturnJson(result).ConfigureAwait(false);
+            return Ok(result);
         }
 
-        async Task GetGrainStats(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("GrainStats/{grainName}")]
+        public async Task<IActionResult> GetGrainStats(string grainName)
         {
-            var grainName = EscapeString(parameters["grain"]);
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+            var grain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
-            var result = await Dispatch(async () =>
-            {
-                return await grain.GetGrainTracing(grainName).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var result = await Dispatch(() => grain.GetGrainTracing(grainName)).ConfigureAwait(false);
 
-            await context.ReturnJson(result).ConfigureAwait(false);
+            return Ok(result);
         }
 
-        async Task GetClusterStats(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("ClusterStats")]
+        public async Task<IActionResult> GetClusterStats()
         {
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+            var grain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
             var result = await Dispatch(grain.GetClusterTracing).ConfigureAwait(false);
 
-            await context.ReturnJson(result).ConfigureAwait(false);
+            return Ok(result);
         }
 
-        async Task GetSiloStats(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("SiloStats/{address}")]
+        public async Task<IActionResult> GetSiloStats(string address)
         {
-            var address = EscapeString(parameters["address"]);
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+            var grain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
-            var result = await Dispatch(async () =>
-            {
-                return await grain.GetSiloTracing(address).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var result = await Dispatch(() => grain.GetSiloTracing(address)).ConfigureAwait(false);
 
-            await context.ReturnJson(result).ConfigureAwait(false);
+            return Ok(result);
         }
 
-        async Task GetSiloCounters(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("SiloCounters/{address}")]
+        public async Task<IActionResult> GetSiloCounters(string address)
         {
-            var address = EscapeString(parameters["address"]);
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
+            var grain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(address);
 
             var result = await Dispatch(grain.GetCounters).ConfigureAwait(false);
 
-            await context.ReturnJson(result).ConfigureAwait(false);
+            return Ok(result);
         }
 
-        async Task GetReminders(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("Reminders")]
+        public Task<IActionResult> GetReminders()
+        {
+            return GetRemindersByPage(1);
+        }
+
+        [HttpGet("Reminders/{page:int}")]
+        public async Task<IActionResult> GetRemindersByPage(int page)
         {
             const int pageSize = 25;
-            int page = 1;
-            if (parameters.ContainsKey("page"))
-            {
-                int.TryParse(parameters["page"], out page);
-            }
 
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<IDashboardRemindersGrain>(0);
+            var grain = providerRuntime.GrainFactory.GetGrain<IDashboardRemindersGrain>(0);
 
-            var result = await Dispatch(async () =>
-            {
-                return await grain.GetReminders(page, pageSize).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var result = await Dispatch(() => grain.GetReminders(page, pageSize)).ConfigureAwait(false);
 
-          
-
-            await context.ReturnJson(result).ConfigureAwait(false);
+            return Ok(result);
         }
 
-        async Task Trace(IOwinContext context, IDictionary<string, string> parameters)
+        [HttpGet("Trace")]
+        public async Task<IActionResult> Trace()
         {
-            context.Response.Protocol = "HTTP/1.1";
-            await Dispatch(async () => {
-
-                using (var writer = new TraceWriter(this.traceListener, context))
+            await Dispatch(async () =>
+            {
+                using (var writer = new TraceWriter(this.traceListener, HttpContext))
                 {
-                    writer.Write(@"
-   ____       _                        _____            _     _                         _ 
+                    await writer.WriteAsync(@"
+   ____       _                        _____            _     _                         _
   / __ \     | |                      |  __ \          | |   | |                       | |
  | |  | |_ __| | ___  __ _ _ __  ___  | |  | | __ _ ___| |__ | |__   ___   __ _ _ __ __| |
  | |  | | '__| |/ _ \/ _` | '_ \/ __| | |  | |/ _` / __| '_ \| '_ \ / _ \ / _` | '__/ _` |
  | |__| | |  | |  __/ (_| | | | \__ \ | |__| | (_| \__ \ | | | |_) | (_) | (_| | | | (_| |
   \____/|_|  |_|\___|\__,_|_| |_|___/ |_____/ \__,_|___/_| |_|_.__/ \___/ \__,_|_|  \__,_|
-                                                                                          
+
 You are connected to the Orleans Dashboard log streaming service
-");
-                    writer.Write($"Silo {this.ProviderRuntime.ToSiloAddress()}\r\nTime: {DateTime.UtcNow.ToString()}\r\n\r\n");
-                    await Task.Delay(TimeSpan.FromMinutes(60), cancellationTokenSource.Token);
-                    writer.Write("Disonnecting after 60 minutes\r\n");
+").ConfigureAwait(false);
+                    await writer.WriteAsync($"Silo {this.providerRuntime.ToSiloAddress()}\r\nTime: {DateTime.UtcNow}\r\n\r\n").ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromMinutes(60), cancellationTokenSource.Token).ConfigureAwait(false);
+                    await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
                 }
-
-            });
+            }).ConfigureAwait(false);
+            return Ok();
         }
 
-        Task Dispatch(Func<Task> func)
+        private Task Dispatch(Func<Task> func)
         {
-            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, 
-                TaskScheduler).Result;
+            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None,
+                taskScheduler).Result;
         }
 
-        Task<T> Dispatch<T>(Func<Task<T>> func)
+        private Task<T> Dispatch<T>(Func<Task<T>> func)
         {
-            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, TaskScheduler).Result;
+            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, taskScheduler).Result;
         }
 
-        static string EscapeString(string value)
+        protected override void Dispose(bool disposing)
         {
-            if (string.IsNullOrWhiteSpace(value)) return value;
-            return value
-                .Replace("%3C", "<")
-                .Replace("%20", " ")
-                .Replace("%3E", ">");
-        }
-
-        public void Dispose()
-        {
-            cancellationTokenSource.Cancel();
+            if (disposing)
+            {
+                cancellationTokenSource.Cancel();
+            }
         }
     }
-
-
 }
