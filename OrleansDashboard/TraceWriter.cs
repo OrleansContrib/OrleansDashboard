@@ -1,33 +1,35 @@
-﻿using Microsoft.Owin;
+﻿using Microsoft.AspNetCore.Http;
 using System;
+using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
     public class TraceWriter : IDisposable
     {
+        private readonly DashboardTraceListener traceListener;
+        private readonly HttpContext context;
 
-        DashboardTraceListener traceListener;
-        IOwinContext context;
-
-        public TraceWriter(DashboardTraceListener traceListener, IOwinContext context)
+        public TraceWriter(DashboardTraceListener traceListener, HttpContext context)
         {
             this.traceListener = traceListener;
-            this.traceListener.Add(this.Write);
+            this.traceListener.Add(Write);
             this.context = context;
-
         }
 
-        public void Write(string message)
+        private void Write(string message)
         {
-            this.context.Response.Write(message);
-            this.context.Response.Body.Flush();
+            WriteAsync(message).Wait();
         }
 
+        public async Task WriteAsync(string message)
+        {
+            await context.Response.WriteAsync(message).ConfigureAwait(false);
+            context.Response.Body.Flush();
+        }
 
         public void Dispose()
         {
-            this.traceListener.Remove(this.Write);
+            traceListener.Remove(Write);
         }
     }
-
 }
