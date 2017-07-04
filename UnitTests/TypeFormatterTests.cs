@@ -32,8 +32,6 @@ namespace UnitTests
         {
             var example = typeof(IGenericGrain<Tuple<string, int>>).FullName;
 
-            Console.WriteLine(example);
-
             var name = TypeFormatter.Parse(example);
 
             Assert.Equal("TestGrains.IGenericGrain<Tuple<String, Int32>>", name);
@@ -43,8 +41,6 @@ namespace UnitTests
         public void TestGenericGrainWithMultipleTs()
         {
             var example = typeof(ITestGenericGrain<string, int>).FullName;
-
-            Console.WriteLine(example);
 
             var name = TypeFormatter.Parse(example);
 
