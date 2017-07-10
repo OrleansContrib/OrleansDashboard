@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace OrleansDashboard
 {
     [Route("")]
-    public class DashboardController : Controller
+    public class DashboardController : ControllerBase
     {
         private readonly TaskScheduler taskScheduler;
         private readonly IProviderRuntime providerRuntime;

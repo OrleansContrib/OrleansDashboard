@@ -6,6 +6,8 @@ using Orleans.Runtime;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.FileProviders;
 
 namespace OrleansDashboard
 {
@@ -70,7 +72,22 @@ namespace OrleansDashboard
                         .AddSingleton(dashboardTraceListener)
                         .AddSingleton(new UserCredentials(username, password))
                     )
-                    .UseStartup<DashboardStartup>()
+                    .ConfigureServices(services =>
+                    {
+                        services
+                            .AddMvcCore()
+                            .AddApplicationPart(typeof(DashboardController).Assembly)
+                            .AddJsonFormatters();
+                    })
+                    .Configure(app =>
+                    {
+                        if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                        {
+                            app.UseMiddleware<BasicAuthMiddleware>();
+                        }
+
+                        app.UseMvc();
+                    })
                     .UseKestrel()
                     .UseUrls($"http://localhost:{port}");
                 host = builder.Build();
