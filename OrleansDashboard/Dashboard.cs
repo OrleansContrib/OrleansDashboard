@@ -63,6 +63,9 @@ namespace OrleansDashboard
             var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
             var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
 
+            var credentials = new UserCredentials(username, password);
+
+
             try
             {
                 var builder = new WebHostBuilder()
@@ -70,7 +73,6 @@ namespace OrleansDashboard
                         .AddSingleton(TaskScheduler.Current)
                         .AddSingleton(providerRuntime)
                         .AddSingleton(dashboardTraceListener)
-                        .AddSingleton(new UserCredentials(username, password))
                     )
                     .ConfigureServices(services =>
                     {
@@ -81,9 +83,11 @@ namespace OrleansDashboard
                     })
                     .Configure(app =>
                     {
-                        if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                        if (credentials.HasValue())
                         {
-                            app.UseMiddleware<BasicAuthMiddleware>();
+                            // only when usename and password are configured
+                            // do we inject basicauth middleware in the pipeline
+                            app.UseMiddleware<BasicAuthMiddleware>(credentials);
                         }
 
                         app.UseMvc();
