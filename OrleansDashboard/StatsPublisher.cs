@@ -25,7 +25,7 @@ namespace OrleansDashboard
 
         public Task Close()
         {
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public async Task ReportStats(List<ICounter> statsCounters)
@@ -49,7 +49,7 @@ namespace OrleansDashboard
         {
             this.Name = name;
             this.ProviderRuntime = providerRuntime;
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public Task Init(string deploymentId, string storageConnectionString, SiloAddress siloAddress, string siloName, IPEndPoint gateway, string hostName)
@@ -59,14 +59,14 @@ namespace OrleansDashboard
 
         public Task ReportMetrics(ISiloPerformanceMetrics metricsData)
         {
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         Task Dispatch(Func<Task> func)
         {
             var scheduler = Dashboard.OrleansScheduler;
             return scheduler == null 
-                ? TaskDone.Done 
+                ? Task.CompletedTask 
                 : Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler);
         }
     }

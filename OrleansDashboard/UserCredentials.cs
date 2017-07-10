@@ -11,5 +11,11 @@
         public string Username { get; }
 
         public string Password { get; }
+
+        public bool HasValue()
+        {
+            return false == string.IsNullOrEmpty(Username)
+                   && false == string.IsNullOrEmpty(Password);
+        }
     }
 }

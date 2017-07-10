@@ -19,12 +19,6 @@ namespace OrleansDashboard
 
         public Task Invoke(HttpContext context)
         {
-            if (string.IsNullOrWhiteSpace(userCredentials.Username) ||
-                string.IsNullOrWhiteSpace(userCredentials.Password))
-            {
-                return next(context);
-            }
-
             if (context.Request.Headers.ContainsKey("Authorization"))
             {
                 var value = context.Request.Headers["Authorization"].ToString();
