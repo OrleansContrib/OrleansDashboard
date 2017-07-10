@@ -15,8 +15,6 @@ namespace OrleansDashboard
     {
         private readonly TaskScheduler taskScheduler;
         private readonly IProviderRuntime providerRuntime;
-
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private readonly DashboardTraceListener traceListener;
 
         public DashboardController(TaskScheduler taskScheduler, IProviderRuntime providerRuntime, DashboardTraceListener traceListener)
@@ -165,6 +163,8 @@ namespace OrleansDashboard
         [HttpGet("Trace")]
         public async Task<IActionResult> Trace()
         {
+            var token = this.HttpContext.RequestAborted;
+
             await Dispatch(async () =>
             {
                 using (var writer = new TraceWriter(this.traceListener, HttpContext))
@@ -180,7 +180,7 @@ namespace OrleansDashboard
 You are connected to the Orleans Dashboard log streaming service
 ").ConfigureAwait(false);
                     await writer.WriteAsync($"Silo {this.providerRuntime.ToSiloAddress()}\r\nTime: {DateTime.UtcNow}\r\n\r\n").ConfigureAwait(false);
-                    await Task.Delay(TimeSpan.FromMinutes(60), cancellationTokenSource.Token).ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
                     await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
@@ -196,14 +196,6 @@ You are connected to the Orleans Dashboard log streaming service
         private Task<T> Dispatch<T>(Func<Task<T>> func)
         {
             return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, taskScheduler).Result;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                cancellationTokenSource.Cancel();
-            }
         }
     }
 }

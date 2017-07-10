@@ -11,8 +11,9 @@ namespace OrleansDashboard
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services
-                .AddMvc()
-                .AddApplicationPart(typeof(DashboardController).Assembly);
+                .AddMvcCore()
+                .AddApplicationPart(typeof(DashboardController).Assembly)
+                .AddJsonFormatters();
 
             return services.BuildServiceProvider();
         }
