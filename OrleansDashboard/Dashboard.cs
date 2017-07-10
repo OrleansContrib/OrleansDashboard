@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.FileProviders;
 
 namespace OrleansDashboard
 {
@@ -45,7 +43,7 @@ namespace OrleansDashboard
 
             OrleansScheduler = null;
 
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public static TaskScheduler OrleansScheduler { get; private set; }

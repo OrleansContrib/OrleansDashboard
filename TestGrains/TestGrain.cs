@@ -25,7 +25,7 @@ namespace TestGrains
         {
 
             if (rand.Next(100) > 50) throw new ApplicationException();
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public override async Task OnActivateAsync()
@@ -37,7 +37,7 @@ namespace TestGrains
 
         public Task ReceiveReminder(string reminderName, TickStatus status)
         {
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
     }
 }

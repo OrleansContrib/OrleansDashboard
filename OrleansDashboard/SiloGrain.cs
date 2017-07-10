@@ -64,7 +64,7 @@ namespace OrleansDashboard
         public Task SetOrleansVersion(string version)
         {
             this.Version = version;
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public Task<Dictionary<string, string>> GetExtendedProperties()
@@ -93,7 +93,7 @@ namespace OrleansDashboard
         public Task ReportCounters(StatCounter[] counters)
         {
             this.Counters = counters;
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public Task<StatCounter[]> GetCounters()
