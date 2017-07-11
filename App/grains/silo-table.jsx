@@ -8,7 +8,7 @@ module.exports = React.createClass({
             <td style={{textOverflow: "ellipsis"}} title={stat.siloAddress}><a href={`#/host/${stat.siloAddress}`}>{stat.siloAddress}</a></td>
             <td><span className="pull-right"><strong>{stat.activationCount}</strong></span></td>
             <td><span className="pull-right"><strong>{(stat.totalCalls === 0) ? "0.00" : (100 * stat.totalExceptions / stat.totalCalls).toFixed(2)}</strong> <small>%</small></span></td>
-            <td><span className="pull-right"><strong>{(stat.totalSeconds === 0) ? "0" : (stat.totalCalls / stat.totalSeconds).toFixed(2)}</strong> <small>req/sec</small></span></td>
+            <td><span className="pull-right"><strong>{(stat.totalSeconds === 0) ? "0" : (stat.totalCalls / 100).toFixed(2)}</strong> <small>req/sec</small></span></td>
             <td><span className="pull-right"><strong>{(stat.totalCalls === 0) ? "0" : (stat.totalAwaitTime / stat.totalCalls).toFixed(2)}</strong> <small>ms/req</small></span></td>
         </tr>
     },

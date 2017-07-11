@@ -13,7 +13,7 @@ module.exports = React.createClass({
             <td>{systemGrain ? <span className="label label-primary">System Grain</span> : null}{dashboardGrain ? <span className="label label-primary">Dashboard Grain</span> : null}</td>
             <td><span className="pull-right"><strong>{stat.activationCount}</strong></span></td>
             <td><span className="pull-right"><strong>{(stat.totalCalls === 0) ? "0.00" : (100 * stat.totalExceptions / stat.totalCalls).toFixed(2)}</strong> <small>%</small></span></td>
-            <td><span className="pull-right"><strong>{(stat.totalCalls / stat.totalSeconds).toFixed(2)}</strong> <small>req/sec</small></span></td>
+            <td><span className="pull-right"><strong>{(stat.totalCalls / 100).toFixed(2)}</strong> <small>req/sec</small></span></td>
             <td><span className="pull-right"><strong>{(stat.totalCalls === 0) ? "0" : (stat.totalAwaitTime / stat.totalCalls).toFixed(2)}</strong> <small>ms/req</small></span></td>
         </tr>
     },

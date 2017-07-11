@@ -422,7 +422,7 @@ module.exports = React.createClass({
                     React.createElement(
                         'strong',
                         null,
-                        (stat.totalCalls / stat.totalSeconds).toFixed(2)
+                        (stat.totalCalls / 100).toFixed(2)
                     ),
                     ' ',
                     React.createElement(
@@ -1302,7 +1302,7 @@ module.exports = React.createClass({
                     React.createElement(
                         "strong",
                         null,
-                        stat.totalSeconds === 0 ? "0" : (stat.totalCalls / stat.totalSeconds).toFixed(2)
+                        stat.totalSeconds === 0 ? "0" : (stat.totalCalls / 100).toFixed(2)
                     ),
                     " ",
                     React.createElement(
