@@ -24,7 +24,7 @@ namespace OrleansDashboard
         public async Task WriteAsync(string message)
         {
             await context.Response.WriteAsync(message).ConfigureAwait(false);
-            context.Response.Body.Flush();
+            await context.Response.Body.FlushAsync().ConfigureAwait(false);
         }
 
         public void Dispose()

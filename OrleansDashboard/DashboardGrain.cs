@@ -183,7 +183,7 @@ namespace OrleansDashboard
         public Task Init()
         {
             // just used to activate the grain
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public Task SubmitTracing(string siloIdentity, GrainTraceEntry[] grainTrace)
@@ -218,7 +218,7 @@ namespace OrleansDashboard
             history.AddRange(allGrainTrace);
             history.RemoveAll(x => x.Period < retirementWindow);
 
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
     }
 }

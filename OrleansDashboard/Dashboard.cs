@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 
 namespace OrleansDashboard
 {
@@ -43,7 +43,7 @@ namespace OrleansDashboard
 
             OrleansScheduler = null;
 
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public static TaskScheduler OrleansScheduler { get; private set; }
@@ -61,6 +61,9 @@ namespace OrleansDashboard
             var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
             var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
 
+            var credentials = new UserCredentials(username, password);
+
+
             try
             {
                 var builder = new WebHostBuilder()
@@ -68,9 +71,25 @@ namespace OrleansDashboard
                         .AddSingleton(TaskScheduler.Current)
                         .AddSingleton(providerRuntime)
                         .AddSingleton(dashboardTraceListener)
-                        .AddSingleton(new UserCredentials(username, password))
                     )
-                    .UseStartup<DashboardStartup>()
+                    .ConfigureServices(services =>
+                    {
+                        services
+                            .AddMvcCore()
+                            .AddApplicationPart(typeof(DashboardController).Assembly)
+                            .AddJsonFormatters();
+                    })
+                    .Configure(app =>
+                    {
+                        if (credentials.HasValue())
+                        {
+                            // only when usename and password are configured
+                            // do we inject basicauth middleware in the pipeline
+                            app.UseMiddleware<BasicAuthMiddleware>(credentials);
+                        }
+
+                        app.UseMvc();
+                    })
                     .UseKestrel()
                     .UseUrls($"http://localhost:{port}");
                 host = builder.Build();
