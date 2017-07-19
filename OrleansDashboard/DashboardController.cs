@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Orleans.Providers;
-using Orleans.Runtime;
-using System;
+﻿using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Orleans.Providers;
 
 namespace OrleansDashboard
 {
@@ -62,25 +60,6 @@ namespace OrleansDashboard
             return Ok(result);
         }
 
-        [HttpGet("RuntimeStats/{address}")]
-        public async Task<IActionResult> GetRuntimeStats(string address)
-        {
-            var siloAddress = SiloAddress.FromParsableString(address);
-
-            var grain = providerRuntime.GrainFactory.GetGrain<IManagementGrain>(0);
-
-            var result = await Dispatch(async () =>
-            {
-                var silos = await grain.GetHosts(true).ConfigureAwait(false);
-                if (silos.TryGetValue(siloAddress, out SiloStatus _))
-                {
-                    return (await grain.GetRuntimeStatistics(new[] { siloAddress }).ConfigureAwait(false)).FirstOrDefault();
-                }
-                return null;
-            }).ConfigureAwait(false);
-
-            return Ok(result);
-        }
 
         [HttpGet("HistoricalStats/{address}")]
         public async Task<IActionResult> GetHistoricalStats(string address)

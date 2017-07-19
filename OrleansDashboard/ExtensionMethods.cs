@@ -1,8 +1,8 @@
-﻿using Orleans.Providers;
-using Orleans.Runtime.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Orleans.Providers;
+using Orleans.Runtime.Configuration;
 
 namespace OrleansDashboard
 {
@@ -14,7 +14,7 @@ namespace OrleansDashboard
             return $"{parts[0].Substring(1)}:{parts[1]}@{parts[2]}";
         }
 
-        public static void RegisterDashboard(this GlobalConfiguration config, int port = 8080, string username = null, string password = null)
+        public static void RegisterDashboard(this GlobalConfiguration config, int port = 8080, string username = null, string password = null, string hostName = null)
         {
             var settings = new Dictionary<string, string>
             {
@@ -25,6 +25,12 @@ namespace OrleansDashboard
                 settings.Add("Username", username);
                 settings.Add("Password", password);
             }
+
+            if (!string.IsNullOrWhiteSpace(hostName))
+            {
+                settings.Add("Host", hostName);
+            }
+
             config.RegisterBootstrapProvider<Dashboard>("Dashboard", settings);
 
             config.RegisterStatisticsProvider<StatsPublisher>("DashboardStats");

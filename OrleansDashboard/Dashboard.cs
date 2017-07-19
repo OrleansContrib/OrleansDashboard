@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Orleans.Providers;
-using Orleans.Runtime;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Orleans.Providers;
+using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
@@ -57,10 +57,11 @@ namespace OrleansDashboard
             this.dashboardTraceListener = new DashboardTraceListener();
 
             var port = config.Properties.ContainsKey("Port") ? int.Parse(config.Properties["Port"]) : 8080;
+            var hostname = config.Properties.ContainsKey("Host") ? config.Properties["Host"] : "*";
 
             var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
             var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
-
+            
             var credentials = new UserCredentials(username, password);
 
 
@@ -91,7 +92,7 @@ namespace OrleansDashboard
                         app.UseMvc();
                     })
                     .UseKestrel()
-                    .UseUrls($"http://localhost:{port}");
+                    .UseUrls($"http://{hostname}:{port}");
                 host = builder.Build();
                 host.Start();
             }
