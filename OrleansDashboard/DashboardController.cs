@@ -25,8 +25,7 @@ namespace OrleansDashboard
         private static IActionResult CreateFileResult(string name, string contentType)
         {
 #if NETSTANDARD1_6
-            // TODO: NETSTANDARD.
-            var assembly = Assembly.GetEntryAssembly();
+            var assembly = typeof(DashboardController).GetTypeInfo().Assembly;
 #else
             var assembly = Assembly.GetExecutingAssembly();
 #endif
