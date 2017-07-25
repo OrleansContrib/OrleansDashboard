@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -77,7 +78,7 @@ namespace OrleansDashboard
                     {
                         services
                             .AddMvcCore()
-                            .AddApplicationPart(typeof(DashboardController).Assembly)
+                            .AddApplicationPart(typeof(DashboardController).GetTypeInfo().Assembly)
                             .AddJsonFormatters();
                     })
                     .Configure(app =>
@@ -109,7 +110,7 @@ namespace OrleansDashboard
             await dashboardGrain.Init();
 
             var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
-            await siloGrain.SetOrleansVersion(typeof(SiloAddress).Assembly.GetName().Version.ToString());
+            await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
             Trace.Listeners.Add(dashboardTraceListener);
 
             // horrible hack to grab the scheduler
