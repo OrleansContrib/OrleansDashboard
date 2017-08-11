@@ -20,11 +20,18 @@ namespace OrleansDashboard
         string siloAddress;
         public Logger Logger { get; private set; }
 
+        IGrainMethodNameFormatter methodNameFormatter = new DefaultGrainMethodNameFormatter();
+
         public GrainProfiler(TaskScheduler taskScheduler, IProviderRuntime providerRuntime)
         {
             this.TaskScheduler = taskScheduler;
             this.ProviderRuntime = providerRuntime;
             this.Logger = this.ProviderRuntime.GetLogger("GrainProfiler");
+
+            // check if custom method name formatter is registered
+            var formatter = (IGrainMethodNameFormatter)providerRuntime.ServiceProvider.GetService(typeof(IGrainMethodNameFormatter));
+            if (formatter != null)
+                methodNameFormatter = formatter;
 
             // register interceptor, wrapping any previously set interceptor
             this.innerInterceptor = providerRuntime.GetInvokeInterceptor();
@@ -77,7 +84,7 @@ namespace OrleansDashboard
 
                     var elapsedMs = (double)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond;
 
-                    var key = string.Format("{0}.{1}", grainName, GetMethodName(targetMethod, request));
+                    var key = string.Format("{0}.{1}", grainName, methodNameFormatter.Format(targetMethod, request, grain));
 
                     grainTrace.AddOrUpdate(key, _ =>
                     {
@@ -88,7 +95,7 @@ namespace OrleansDashboard
                             SiloAddress = siloAddress,
                             ElapsedTime = elapsedMs,
                             Grain = grainName ,
-                            Method = GetMethodName(targetMethod, request),
+                            Method = methodNameFormatter.Format(targetMethod, request, grain),
                             Period = DateTime.UtcNow
                         };
                     },
@@ -107,24 +114,6 @@ namespace OrleansDashboard
             }
 
             return result;
-        }
-
-        readonly ConcurrentDictionary<MethodInfo, bool> messageArgumentMethods =
-             new ConcurrentDictionary<MethodInfo, bool>();
-
-        string GetMethodName(MethodInfo targetMethod, InvokeMethodRequest request)
-        {
-            if (targetMethod == null)
-                return "Unknown";
-
-            bool IsMessageArgumentMethod(MethodInfo m) => m.GetCustomAttributes().Any(x => x.GetType().Name == "MessageArgumentAttribute");
-            if (messageArgumentMethods.GetOrAdd(targetMethod, IsMessageArgumentMethod))
-            {
-                var arg = request.Arguments[0];
-                return arg?.GetType().Name ?? "NULL";
-            }
-
-            return targetMethod.Name;
         }
 
         Timer timer = null;

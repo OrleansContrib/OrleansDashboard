@@ -1,7 +1,13 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.DependencyInjection;
+
 using Orleans;
+using Orleans.CodeGeneration;
+using Orleans.Runtime.Configuration;
 using Orleans.TestingHost;
 using OrleansDashboard;
 using TestGrains;
@@ -17,6 +23,7 @@ namespace TestHost
 
             // Deploy 3 silos
             var options = new TestClusterOptions(3);
+            options.ClusterConfiguration.UseStartupType<Startup>();
             options.ClusterConfiguration.Globals.RegisterDashboard();
             var cluster = new TestCluster(options);
             cluster.Deploy();
@@ -39,11 +46,38 @@ namespace TestHost
             cluster.StopAllSilos();
         }
 
+        class Startup
+        {
+            public IServiceProvider ConfigureServices(IServiceCollection services)
+            {
+                services.AddSingleton<IGrainMethodNameFormatter, MessageBasedGrainFormatter>();
+                return services.BuildServiceProvider();
+            }
+        }
+
+        class MessageBasedGrainFormatter : IGrainMethodNameFormatter
+        {
+            public string Format(MethodInfo targetMethod, InvokeMethodRequest request, IGrain grain)
+            {
+                if (targetMethod == null)
+                    return "Unknown";
+
+                if (grain is TestMessageBasedGrain)
+                {
+                    var arg = request.Arguments[0];
+                    return arg?.GetType().Name ?? $"{targetMethod.Name}(NULL)";
+                }
+
+                return targetMethod.Name;
+            }
+        }
+
         private static async Task CallGenerator(IClusterClient client, CancellationTokenSource tokenSource)
         {
             var a = client.GetGrain<ITestMessageBasedGrain>(42);
             a.Receive("string").Wait();
-            a.Receive(DateTime.UtcNow).Wait();
+            a.ReceiveVoid(DateTime.UtcNow).Wait();
+            a.Notify(null).Wait();
 
             var x = client.GetGrain<ITestGenericGrain<string, int>>("test");
             x.TestT("string").Wait();

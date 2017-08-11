@@ -4,21 +4,17 @@ using System.Threading.Tasks;
 
 namespace TestGrains
 {
-    [AttributeUsage(AttributeTargets.Method)]
-    public class MessageArgumentAttribute : Attribute
-    {}
-
     public interface ITestMessageBasedGrain : IGrainWithIntegerKey
     {
-        Task Receive(object message);
+        Task<object> Receive(object message);
+        Task ReceiveVoid(object message);
+        Task Notify(object message);
     }
 
     public class TestMessageBasedGrain : Grain, ITestMessageBasedGrain
     {
-        [MessageArgument]
-        public Task Receive(object message)
-        {
-            return TaskDone.Done;
-        }
+        public Task<object> Receive(object message) => Task.FromResult((object)null);
+        public Task ReceiveVoid(object message) => Task.CompletedTask;
+        public Task Notify(object message) => Task.CompletedTask;
     }
 }
