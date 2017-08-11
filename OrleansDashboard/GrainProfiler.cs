@@ -77,7 +77,7 @@ namespace OrleansDashboard
 
                     var elapsedMs = (double)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond;
 
-                    var key = string.Format("{0}.{1}", grainName, targetMethod?.Name ?? "Unknown");
+                    var key = string.Format("{0}.{1}", grainName, GetMethodName(targetMethod, request));
 
                     grainTrace.AddOrUpdate(key, _ =>
                     {
@@ -88,7 +88,7 @@ namespace OrleansDashboard
                             SiloAddress = siloAddress,
                             ElapsedTime = elapsedMs,
                             Grain = grainName ,
-                            Method = targetMethod?.Name ?? "Unknown",
+                            Method = GetMethodName(targetMethod, request),
                             Period = DateTime.UtcNow
                         };
                     },
@@ -107,6 +107,24 @@ namespace OrleansDashboard
             }
 
             return result;
+        }
+
+        readonly ConcurrentDictionary<MethodInfo, bool> messageArgumentMethods =
+             new ConcurrentDictionary<MethodInfo, bool>();
+
+        string GetMethodName(MethodInfo targetMethod, InvokeMethodRequest request)
+        {
+            if (targetMethod == null)
+                return "Unknown";
+
+            bool IsMessageArgumentMethod(MethodInfo m) => m.GetCustomAttributes().Any(x => x.GetType().Name == "MessageArgumentAttribute");
+            if (messageArgumentMethods.GetOrAdd(targetMethod, IsMessageArgumentMethod))
+            {
+                var arg = request.Arguments[0];
+                return arg?.GetType().Name ?? "NULL";
+            }
+
+            return targetMethod.Name;
         }
 
         Timer timer = null;
