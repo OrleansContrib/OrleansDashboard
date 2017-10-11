@@ -14,7 +14,10 @@
   "devDependencies": {
     "babel-preset-es2015": "^6.5.0",
     "babel-preset-react": "^6.5.0",
-    "babelify": "^7.2.0"
+    "babelify": "^7.2.0",
+    "envify": "^4.1.0",
+    "uglify-js": "^3.1.3",
+    "uglifyify": "^4.0.4"
   },
   "scripts": {
     "test": "mocha"

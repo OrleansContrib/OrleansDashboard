@@ -95,8 +95,8 @@ namespace TestHost
 
                 // interceptors are currently broken for generic grains
                 // https://github.com/dotnet/orleans/issues/2358
-                //var genericClient = GrainClient.GrainFactory.GetGrain<IGenericGrain<string>>("foo");
-                //genericClient.Echo("hello world").Wait();
+                var genericClient = client.GetGrain<IGenericGrain<string>>("foo");
+                genericClient.Echo("hello world").Wait();
             }
         }
     }

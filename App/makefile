@@ -4,10 +4,7 @@ build:
 	@echo Test
 	@mocha
 	@echo Build
-	@browserify -t babelify index.jsx --outfile ../OrleansDashboard/index.js
-	@echo Compress
-	@uglifyjs ../OrleansDashboard/index.js  --output ../OrleansDashboard/index.min.js --compress warnings=false
-	@wc -c ../OrleansDashboard/index.js
+	@browserify  -t babelify index.jsx  -g [ envify --NODE_ENV production ] -g uglifyify  | uglifyjs --compress warnings=false --mangle > ../OrleansDashboard/index.min.js
 	@wc -c ../OrleansDashboard/index.min.js
 	@echo Done
 
