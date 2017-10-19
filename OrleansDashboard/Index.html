@@ -1,4 +1,4 @@
-﻿git <!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -7,12 +7,12 @@
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.2/css/AdminLTE.min.css">
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.2/css/skins/skin-purple.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.3.11/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.3.11/css/skins/skin-purple.min.css">
 
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    
+
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -21,62 +21,64 @@
     <![endif]-->
 
     <style id="dark-theme-style" media="">
-    .log {
-      background:#1e282c;
-      border: 1px solid #333;
-      color:silver;
-    }
+        .log {
+            background: #1e282c;
+            border: 1px solid #333;
+            color: silver;
+        }
 
-    .content-wrapper {
-        background:#1e282c;
-        color:silver;
-    }
-    .info-box {
-        background:#222D32;
-        color:silver;
-    }
-    .box{
-        background:#222D32;
-        color:silver;
-        border-top-color:#444;
-    }
+        .content-wrapper {
+            background: #1e282c;
+            color: silver;
+        }
 
-    .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
-        border-top: 1px solid #333;
-        border-bottom: 1px solid #333;
-    }
+        .info-box {
+            background: #222D32;
+            color: silver;
+        }
 
-    .table-bordered>thead>tr>th, .table-bordered>tbody>tr>th, .table-bordered>tfoot>tr>th, .table-bordered>thead>tr>td, .table-bordered>tbody>tr>td, .table-bordered>tfoot>tr>td {
-        border: 1px solid #333;
-    }
+        .box {
+            background: #222D32;
+            color: silver;
+            border-top-color: #444;
+        }
 
-    .box-header.with-border {
-        border-bottom: 1px solid #444;
-    }
-    .box-header{
-        color:silver;
-    }
+        .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+        }
 
-    .well{
-        background:#1e282c;
-        border: 1px solid #333;
-    }
+        .table-bordered > thead > tr > th, .table-bordered > tbody > tr > th, .table-bordered > tfoot > tr > th, .table-bordered > thead > tr > td, .table-bordered > tbody > tr > td, .table-bordered > tfoot > tr > td {
+            border: 1px solid #333;
+        }
+
+        .box-header.with-border {
+            border-bottom: 1px solid #444;
+        }
+
+        .box-header {
+            color: silver;
+        }
+
+        .well {
+            background: #1e282c;
+            border: 1px solid #333;
+        }
     </style>
 
     <style>
+        .log {
+            height: 100%;
+        }
 
-    .log{
-      height: 100%;
-    }
-
-    .error-container{
-        position: absolute;
-        z-index: 10000;
-        width: 400px;
-        top: 20px;
-        left: 100%;
-        margin-left: -420px;
-    }
+        .error-container {
+            position: absolute;
+            z-index: 10000;
+            width: 400px;
+            top: 20px;
+            left: 100%;
+            margin-left: -420px;
+        }
     </style>
 
 </head>
@@ -98,18 +100,18 @@
             <nav class="navbar navbar-static-top">
 
                 <nav class="navbar navbar-static-top">
-                      <!-- Sidebar toggle button-->
+                    <!-- Sidebar toggle button-->
 
-                      <div class="_navbar-custom-menu">
+                    <div class="_navbar-custom-menu">
                         <ul class="nav navbar-nav pull-right">
 
-                          <li class="dropdown messages-menu">
-                            <span id="button-toggles-content"></span>
-                          </li>
+                            <li class="dropdown messages-menu">
+                                <span id="button-toggles-content"></span>
+                            </li>
 
                         </ul>
-                      </div>
-                    </nav>
+                    </div>
+                </nav>
 
             </nav>
         </header>
@@ -119,9 +121,7 @@
             <section class="sidebar">
 
                 <div id="menu">
-                    <ul class="sidebar-menu">
-
-                    </ul>
+                    <ul class="sidebar-menu"></ul>
                 </div>
             </section>
             <!-- /.sidebar -->
@@ -140,8 +140,6 @@
 
         </div>
         <!-- /.content-wrapper -->
-
-
         <!-- Add the sidebar's background. This div must be placed
              immediately after the control sidebar -->
         <div class="control-sidebar-bg"></div>
@@ -151,10 +149,7 @@
 
     <!-- ./wrapper -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js"></script>
-    <script src="//code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.3.2/js/app.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jQuery-slimScroll/1.3.8/jquery.slimscroll.min.js"></script>
     <script src="/index.min.js"></script>
 </body>
 </html>
