@@ -11,7 +11,8 @@ module.exports = React.createClass({
   },
 
   scroll:function(){
-    body.scrollIntoView(false);
+    this.refs.log.scrollIntoView(false);
+    //body.scrollIntoView(false);
     //body.scrollTop = body.scrollHeight;
   },
 
@@ -39,9 +40,9 @@ module.exports = React.createClass({
   render:function(){
     return <div>
       <pre ref="log" className="log">{this.state.log}</pre>
-        <a href="javascript:void"  onClick={this.toggle} className="btn btn-default" style={{float:"right", marginTop:"-64px"}}>
-          {this.state.scrollEnabled ? "Pause" : "Resume"}
-        </a>
+      <a href="javascript:void"  onClick={this.toggle} className="btn btn-default" style={{marginLeft: "-100px",position: "fixed",top: "75px",left: "100%"}}>
+        {this.state.scrollEnabled ? "Pause" : "Resume"}
+      </a>
     </div>
   }
 });
