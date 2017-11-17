@@ -24,11 +24,8 @@ namespace OrleansDashboard
 
         private static IActionResult CreateFileResult(string name, string contentType)
         {
-#if NETSTANDARD1_6
             var assembly = typeof(DashboardController).GetTypeInfo().Assembly;
-#else
-            var assembly = Assembly.GetExecutingAssembly();
-#endif
+
             using (var stream = assembly.GetManifestResourceStream($"OrleansDashboard.{name}"))
             using (var reader = new BinaryReader(stream))
             {

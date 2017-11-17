@@ -7,15 +7,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Providers;
 using Orleans.Runtime;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace OrleansDashboard
 {
     public class Dashboard : IBootstrapProvider
     {
         private IWebHost host;
-        private Logger logger;
-        private GrainProfiler profiler;
-
         private DashboardTraceListener dashboardTraceListener;
 
         public static int HistoryLength => 100;
@@ -36,12 +35,6 @@ namespace OrleansDashboard
             }
             catch { }
 
-            try
-            {
-                profiler?.Dispose();
-            }
-            catch { }
-
             OrleansScheduler = null;
 
             return Task.CompletedTask;
@@ -53,58 +46,56 @@ namespace OrleansDashboard
         {
             this.Name = name;
 
-            this.logger = providerRuntime.GetLogger("Dashboard");
+            var options = providerRuntime.ServiceProvider.GetRequiredService < IOptions<DashboardOptions>>();
+            var logger = providerRuntime.ServiceProvider.GetRequiredService<ILogger<Dashboard>>();
 
             this.dashboardTraceListener = new DashboardTraceListener();
 
-            var port = config.Properties.ContainsKey("Port") ? int.Parse(config.Properties["Port"]) : 8080;
-            var hostname = config.Properties.ContainsKey("Host") ? config.Properties["Host"] : "*";
-
-            var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
-            var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
-            
-            var credentials = new UserCredentials(username, password);
-
-
-            try
+            if (options.Value.HostSelf)
             {
-                var builder = new WebHostBuilder()
-                    .ConfigureServices(s => s
-                        .AddSingleton(TaskScheduler.Current)
-                        .AddSingleton(providerRuntime)
-                        .AddSingleton(dashboardTraceListener)
-                    )
-                    .ConfigureServices(services =>
-                    {
-                        services
-                            .AddMvcCore()
-                            .AddApplicationPart(typeof(DashboardController).GetTypeInfo().Assembly)
-                            .AddJsonFormatters();
-                    })
-                    .Configure(app =>
-                    {
-                        if (credentials.HasValue())
+                try
+                {
+                    var builder = new WebHostBuilder()
+                        .ConfigureServices(s => s
+                            .AddSingleton(TaskScheduler.Current)
+                            .AddSingleton(providerRuntime)
+                            .AddSingleton(dashboardTraceListener)
+                        )
+                        .ConfigureServices(services =>
                         {
-                            // only when usename and password are configured
-                            // do we inject basicauth middleware in the pipeline
-                            app.UseMiddleware<BasicAuthMiddleware>(credentials);
-                        }
+                            services
+                                .AddMvcCore()
+                                .AddApplicationPart(typeof(DashboardController).GetTypeInfo().Assembly)
+                                .AddJsonFormatters();
+                        })
+                        .Configure(app =>
+                        {
+                            if (options.Value.HasUsernameAndPassword())
+                            {
+                                // only when usename and password are configured
+                                // do we inject basicauth middleware in the pipeline
+                                app.UseMiddleware<BasicAuthMiddleware>();
+                            }
 
-                        app.UseMvc();
-                    })
-                    .UseKestrel()
-                    .UseUrls($"http://{hostname}:{port}");
-                host = builder.Build();
-                host.Start();
+                            app.UseMvc();
+                        })
+                        .UseKestrel()
+                        .UseUrls($"http://{options.Value.Host}:{options.Value.Port}");
+                    host = builder.Build();
+                    host.Start();
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(10001, ex.ToString());
+                }
+
+                logger.LogInformation($"Dashboard listening on {options.Value.Port}");
             }
-            catch (Exception ex)
-            {
-                this.logger.Error(10001, ex.ToString());
-            }
 
-            this.logger.Verbose($"Dashboard listening on {port}");
-
-            this.profiler = new GrainProfiler(TaskScheduler.Current, providerRuntime);
+            // horrible hack to grab the scheduler
+            // to allow the stats publisher to push
+            // counters to grains
+            SiloDispatcher.Setup();
 
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
             await dashboardGrain.Init();
@@ -113,9 +104,6 @@ namespace OrleansDashboard
             await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
             Trace.Listeners.Add(dashboardTraceListener);
 
-            // horrible hack to grab the scheduler
-            // to allow the stats publisher to push
-            // counters to grains
             OrleansScheduler = TaskScheduler.Current;
         }
     }
