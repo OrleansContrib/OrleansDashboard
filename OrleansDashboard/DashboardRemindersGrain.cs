@@ -16,8 +16,6 @@ namespace OrleansDashboard
 
         public async Task<ReminderResponse> GetReminders(int pageNumber, int pageSize)
         {
-            var pageStart = (pageNumber * pageSize) - pageSize;
-
             var reminderData = await _reminderTable.ReadRows(0, 0xffffffff);
 
             return new ReminderResponse {
@@ -58,8 +56,6 @@ namespace OrleansDashboard
 
         private static ReminderInfo ToReminderInfo(ReminderEntry entry)
         {
-          
-
             return new ReminderInfo
             {
                 PrimaryKey = PrimaryKeyAsString(entry.GrainRef),

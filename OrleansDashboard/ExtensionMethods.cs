@@ -9,7 +9,6 @@ namespace OrleansDashboard
 {
     public static class ExtensionMethods
     {
-
         public static void RegisterDashboard(this GlobalConfiguration config, int port = 8080, string username = null, string password = null, string hostName = null)
         {
             var settings = new Dictionary<string, string>

@@ -6,14 +6,12 @@ namespace OrleansDashboard
 {
     public class DashboardTraceListener : TraceListener
     {
-
-        List<Action<string>> actions;
+        private readonly List<Action<string>> actions;
 
         public DashboardTraceListener()
         {
             actions = new List<Action<string>>();
         }
-
 
         public override void Write(string message)
         {
@@ -27,7 +25,6 @@ namespace OrleansDashboard
                 {
                     this.Remove(action);
                 }
-                
             }
         }
 
@@ -40,7 +37,6 @@ namespace OrleansDashboard
         {
             this.actions.Remove(action);
         }
-
 
         public override void WriteLine(string message) => this.Write(message + "\r\n");
     }
