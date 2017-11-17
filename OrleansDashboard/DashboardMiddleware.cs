@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -33,7 +34,7 @@ namespace OrleansDashboard
 
             if (request.Path == "/")
             {
-                await WriteFileAsync(context, "Index.html", "text/html");
+                await WriteIndexFile(context);
 
                 return;
             }
@@ -160,10 +161,43 @@ namespace OrleansDashboard
             context.Response.StatusCode = 200;
             context.Response.ContentType = contentType;
 
-            using (var stream = assembly.GetManifestResourceStream($"OrleansDashboard.{name}"))
+            var stream = OpenFile(name, assembly);
+
+            using (stream)
             {
                 await stream.CopyToAsync(context.Response.Body);
             }
+        }
+
+        private static async Task WriteIndexFile(HttpContext context)
+        {
+            var assembly = typeof(DashboardController).GetTypeInfo().Assembly;
+
+            context.Response.StatusCode = 200;
+            context.Response.ContentType = "text/html";
+
+            var stream = OpenFile("Index.html", assembly);
+
+            using (stream)
+            {
+                var content = new StreamReader(stream).ReadToEnd();
+
+                var basePath = context.Request.PathBase;
+
+                if (basePath != "/")
+                {
+                    basePath = basePath + "/";
+                }
+
+                content = content.Replace("{{BASE}}", basePath);
+
+                await context.Response.WriteAsync(content);
+            }
+        }
+
+        private static Stream OpenFile(string name, Assembly assembly)
+        {
+            return assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
         }
     }
 }

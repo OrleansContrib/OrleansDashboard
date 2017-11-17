@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Orleans.Providers;
-using Orleans.Runtime;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Orleans;
+using Orleans.Providers;
+using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
@@ -27,61 +28,57 @@ namespace OrleansDashboard
             {
                 Trace.Listeners.Remove(dashboardTraceListener);
             }
-            catch { }
+            catch
+            {
+                /* NOOP */   
+            }
 
             try
             {
                 host?.Dispose();
             }
-            catch { }
-
-            OrleansScheduler = null;
+            catch
+            {
+                /* NOOP */
+            }
 
             return Task.CompletedTask;
         }
 
-        public static TaskScheduler OrleansScheduler { get; private set; }
-
         public async Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
         {
-            this.Name = name;
+            Name = name;
 
             var options = providerRuntime.ServiceProvider.GetRequiredService < IOptions<DashboardOptions>>();
             var logger = providerRuntime.ServiceProvider.GetRequiredService<ILogger<Dashboard>>();
 
-            this.dashboardTraceListener = new DashboardTraceListener();
+            dashboardTraceListener = new DashboardTraceListener();
 
             if (options.Value.HostSelf)
             {
                 try
                 {
-                    var builder = new WebHostBuilder()
-                        .ConfigureServices(s => s
-                            .AddSingleton(TaskScheduler.Current)
-                            .AddSingleton(providerRuntime)
-                            .AddSingleton(dashboardTraceListener)
-                        )
-                        .ConfigureServices(services =>
-                        {
-                            services
-                                .AddMvcCore()
-                                .AddApplicationPart(typeof(DashboardController).GetTypeInfo().Assembly)
-                                .AddJsonFormatters();
-                        })
-                        .Configure(app =>
-                        {
-                            if (options.Value.HasUsernameAndPassword())
+                    host =
+                        new WebHostBuilder()
+                            .ConfigureServices(services =>
                             {
-                                // only when usename and password are configured
-                                // do we inject basicauth middleware in the pipeline
-                                app.UseMiddleware<BasicAuthMiddleware>();
-                            }
+                                services.AddOrleansDashboardSilo(providerRuntime.GrainFactory);
+                            })
+                            .Configure(app =>
+                            {
+                                if (options.Value.HasUsernameAndPassword())
+                                {
+                                    // only when usename and password are configured
+                                    // do we inject basicauth middleware in the pipeline
+                                    app.UseMiddleware<BasicAuthMiddleware>();
+                                }
 
-                            app.UseMvc();
-                        })
-                        .UseKestrel()
-                        .UseUrls($"http://{options.Value.Host}:{options.Value.Port}");
-                    host = builder.Build();
+                                app.UseOrleansDashboard();
+                            })
+                            .UseKestrel()
+                            .UseUrls($"http://{options.Value.Host}:{options.Value.Port}")
+                            .Build();
+
                     host.Start();
                 }
                 catch (Exception ex)
@@ -102,9 +99,8 @@ namespace OrleansDashboard
 
             var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
             await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
-            Trace.Listeners.Add(dashboardTraceListener);
 
-            OrleansScheduler = TaskScheduler.Current;
+            Trace.Listeners.Add(dashboardTraceListener);
         }
     }
 }

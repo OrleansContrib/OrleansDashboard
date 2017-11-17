@@ -66,5 +66,13 @@ namespace Orleans
 
             return services;
         }
+
+        public static IServiceCollection AddOrleansDashboardSilo(this IServiceCollection services, IGrainFactory grainFactory)
+        {
+            services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
+            services.AddSingleton(grainFactory);
+
+            return services;
+        }
     }
 }

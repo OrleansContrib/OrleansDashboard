@@ -19,14 +19,14 @@ namespace OrleansDashboard
         public override async Task OnActivateAsync()
         {
             stats = new Queue<SiloRuntimeStatistics>();
-            this.Counters = new StatCounter[0];
+            Counters = new StatCounter[0];
 
             foreach (var x in Enumerable.Range(1, Dashboard.HistoryLength))
             {
                 stats.Enqueue(null);
             }
 
-            timer = this.RegisterTimer(this.Callback, true, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            timer = RegisterTimer(Callback, true, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
             await Callback(false);
 
@@ -36,14 +36,14 @@ namespace OrleansDashboard
         async Task Callback(object canDeactivate)
         {
             var address = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
-            var grain = this.GrainFactory.GetGrain<IManagementGrain>(0);
+            var grain = GrainFactory.GetGrain<IManagementGrain>(0);
             try
             {
                 var results = (await grain.GetRuntimeStatistics(new SiloAddress[] { address })).FirstOrDefault();
                 stats.Enqueue(results);
-                while (this.stats.Count > Dashboard.HistoryLength)
+                while (stats.Count > Dashboard.HistoryLength)
                 {
-                    this.stats.Dequeue();
+                    stats.Dequeue();
                 }
             }
             catch (Exception)
@@ -52,18 +52,18 @@ namespace OrleansDashboard
                 if (!(bool)canDeactivate) return;
                 if (null != timer) timer.Dispose();
                 timer = null;
-                this.DeactivateOnIdle();
+                DeactivateOnIdle();
             }
         }
 
         public Task<SiloRuntimeStatistics[]> GetRuntimeStatistics()
         {
-            return Task.FromResult(this.stats.ToArray());
+            return Task.FromResult(stats.ToArray());
         }
 
         public Task SetOrleansVersion(string version)
         {
-            this.Version = version;
+            Version = version;
             return Task.CompletedTask;
         }
 
@@ -82,9 +82,9 @@ namespace OrleansDashboard
             catch
             { }
 
-            if (null != this.Version)
+            if (null != Version)
             {
-                results.Add("OrleansVersion", this.Version);
+                results.Add("OrleansVersion", Version);
             }
 
             return Task.FromResult(results);
@@ -92,13 +92,13 @@ namespace OrleansDashboard
 
         public Task ReportCounters(StatCounter[] counters)
         {
-            this.Counters = counters;
+            Counters = counters;
             return Task.CompletedTask;
         }
 
         public Task<StatCounter[]> GetCounters()
         {
-            return Task.FromResult(this.Counters);
+            return Task.FromResult(Counters);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace OrleansDashboard
 
         public Task<T> DispatchAsync<T>(Func<Task<T>> action)
         {
-            return Task<Task<T>>.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
+            return Task<Task<T>>.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, scheduler).Unwrap();
         }
 
         public bool CanDispatch()

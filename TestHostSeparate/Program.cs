@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans;
@@ -51,7 +52,7 @@ namespace TestHostSeparate
 
             var cts = new CancellationTokenSource();
 
-            // TestCalls.Make(client, cts);
+            TestCalls.Make(client, cts);
 
             WebHost.CreateDefaultBuilder(args)
                 .ConfigureServices(services =>
@@ -64,7 +65,10 @@ namespace TestHostSeparate
                 })
                 .Configure(app =>
                 {
-                    app.UseOrleansDashboard();
+                    app.Map("/dashboard", d =>
+                    {
+                        d.UseOrleansDashboard();
+                    });
                 })
                 .Build()
                 .Run();

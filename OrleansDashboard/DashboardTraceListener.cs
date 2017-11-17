@@ -23,21 +23,21 @@ namespace OrleansDashboard
                 }
                 catch (Exception)
                 {
-                    this.Remove(action);
+                    Remove(action);
                 }
             }
         }
 
         public void Add(Action<string> action)
         {
-            this.actions.Add(action);
+            actions.Add(action);
         }
 
         public void Remove(Action<string> action)
         {
-            this.actions.Remove(action);
+            actions.Remove(action);
         }
 
-        public override void WriteLine(string message) => this.Write(message + "\r\n");
+        public override void WriteLine(string message) => Write(message + "\r\n");
     }
 }

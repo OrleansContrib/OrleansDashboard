@@ -2,13 +2,10 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Orleans;
-using Orleans.CodeGeneration;
 using Orleans.Providers;
-using Orleans.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -35,10 +32,10 @@ namespace OrleansDashboard
             this.services = services;
             this.logger = logger;
 
-            this.formatMethodName = services.GetService<Func<IGrainCallContext, string>>() ?? DefaultFormatter;
+            formatMethodName = services.GetService<Func<IGrainCallContext, string>>() ?? DefaultFormatter;
 
             // register timer to report every second
-            timer = new Timer(this.ProcessStats, null, 1 * 1000, 1 * 1000);
+            timer = new Timer(ProcessStats, null, 1 * 1000, 1 * 1000);
         }
 
         public void Dispose()
