@@ -6,10 +6,10 @@ namespace OrleansDashboard
 {
     public class TraceWriter : IDisposable
     {
-        private readonly DashboardTraceListener traceListener;
+        private readonly DashboardLogger traceListener;
         private readonly HttpContext context;
 
-        public TraceWriter(DashboardTraceListener traceListener, HttpContext context)
+        public TraceWriter(DashboardLogger traceListener, HttpContext context)
         {
             this.traceListener = traceListener;
             this.traceListener.Add(Write);
@@ -23,7 +23,7 @@ namespace OrleansDashboard
 
         public async Task WriteAsync(string message)
         {
-            await context.Response.WriteAsync(message).ConfigureAwait(false);
+            await context.Response.WriteAsync(message + "\r\n").ConfigureAwait(false);
             await context.Response.Body.FlushAsync().ConfigureAwait(false);
         }
 

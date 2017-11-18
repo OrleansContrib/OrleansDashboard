@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -16,46 +15,21 @@ namespace OrleansDashboard
     public class Dashboard : IBootstrapProvider
     {
         private IWebHost host;
-        private DashboardTraceListener dashboardTraceListener;
 
         public static int HistoryLength => 100;
 
         public string Name { get; private set; }
 
-        public Task Close()
-        {
-            try
-            {
-                Trace.Listeners.Remove(dashboardTraceListener);
-            }
-            catch
-            {
-                /* NOOP */   
-            }
-
-            try
-            {
-                host?.Dispose();
-            }
-            catch
-            {
-                /* NOOP */
-            }
-
-            return Task.CompletedTask;
-        }
-
         public async Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
         {
             Name = name;
 
-            var options = providerRuntime.ServiceProvider.GetRequiredService < IOptions<DashboardOptions>>();
-            var logger = providerRuntime.ServiceProvider.GetRequiredService<ILogger<Dashboard>>();
-
-            dashboardTraceListener = new DashboardTraceListener();
+            var options = providerRuntime.ServiceProvider.GetRequiredService<IOptions<DashboardOptions>>();
 
             if (options.Value.HostSelf)
             {
+                var logger = providerRuntime.ServiceProvider.GetRequiredService<ILogger<Dashboard>>();
+
                 try
                 {
                     host =
@@ -94,13 +68,36 @@ namespace OrleansDashboard
             // counters to grains
             SiloDispatcher.Setup();
 
-            var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
-            await dashboardGrain.Init();
+            await ActivateDashboardGrainAsync(providerRuntime);
+            await ActivateSiloGrainAsync(providerRuntime);
+        }
 
+        private static async Task ActivateSiloGrainAsync(IProviderRuntime providerRuntime)
+        {
             var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
-            await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
 
-            Trace.Listeners.Add(dashboardTraceListener);
+            await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
+        }
+
+        private static async Task ActivateDashboardGrainAsync(IProviderRuntime providerRuntime)
+        {
+            var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+
+            await dashboardGrain.Init();
+        }
+
+        public Task Close()
+        {
+            try
+            {
+                host?.Dispose();
+            }
+            catch
+            {
+                /* NOOP */
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

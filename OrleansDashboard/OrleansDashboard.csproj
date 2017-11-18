@@ -31,8 +31,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="2.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Formatters.Json" Version="1.1.3" />
     <PackageReference Include="Microsoft.Orleans.Core" Version="2.0.0-beta1" />
     <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.0.0-beta1" />
     <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="2.0.0-beta1" />

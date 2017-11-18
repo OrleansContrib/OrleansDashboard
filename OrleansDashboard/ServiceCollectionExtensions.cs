@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime.Configuration;
@@ -61,6 +62,10 @@ namespace Orleans
                 services.AddSingleton(client);
             }
 
+            var logger = new DashboardLogger();
+
+            services.AddSingleton<ILoggerProvider>(logger);
+            services.AddSingleton(logger);
             services.AddSingleton<IExternalDispatcher, ClientDispatcher>();
             services.AddSingleton<IGrainFactory>(c => c.GetRequiredService<IClusterClient>());
 
@@ -69,6 +74,10 @@ namespace Orleans
 
         public static IServiceCollection AddOrleansDashboardSilo(this IServiceCollection services, IGrainFactory grainFactory)
         {
+            var logger = new DashboardLogger();
+
+            services.AddSingleton<ILoggerProvider>(logger);
+            services.AddSingleton(logger);
             services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
             services.AddSingleton(grainFactory);
 

@@ -65,9 +65,11 @@ namespace TestHostSeparate
                 })
                 .Configure(app =>
                 {
+                    app.UseOrleansDashboard();
+
                     app.Map("/dashboard", d =>
                     {
-                        d.UseOrleansDashboard();
+                        // d.UseOrleansDashboard();
                     });
                 })
                 .Build()

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -19,13 +20,18 @@ namespace OrleansDashboard
 
         private readonly IExternalDispatcher dispatcher;
         private readonly IGrainFactory grainFactory;
+        private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
 
-        public DashboardMiddleware(RequestDelegate next, IGrainFactory grainFactory, IExternalDispatcher dispatcher)
+        public DashboardMiddleware(RequestDelegate next, 
+            IGrainFactory grainFactory, 
+            IExternalDispatcher dispatcher,
+            DashboardLogger logger)
         {
-            this.next = next;
             this.grainFactory = grainFactory;
             this.dispatcher = dispatcher;
+            this.logger = logger;
+            this.next = next;
         }
 
         public async Task Invoke(HttpContext context)
@@ -141,6 +147,13 @@ namespace OrleansDashboard
                 return;
             }
 
+            if (request.Path == "/Trace")
+            {
+                await TraceAsync(context);
+
+                return;
+            }
+
             await next(context);
         }
 
@@ -156,7 +169,7 @@ namespace OrleansDashboard
 
         private static async Task WriteFileAsync(HttpContext context, string name, string contentType)
         {
-            var assembly = typeof(DashboardController).GetTypeInfo().Assembly;
+            var assembly = typeof(DashboardMiddleware).GetTypeInfo().Assembly;
 
             context.Response.StatusCode = 200;
             context.Response.ContentType = contentType;
@@ -171,7 +184,7 @@ namespace OrleansDashboard
 
         private static async Task WriteIndexFile(HttpContext context)
         {
-            var assembly = typeof(DashboardController).GetTypeInfo().Assembly;
+            var assembly = typeof(DashboardMiddleware).GetTypeInfo().Assembly;
 
             context.Response.StatusCode = 200;
             context.Response.ContentType = "text/html";
@@ -193,6 +206,32 @@ namespace OrleansDashboard
 
                 await context.Response.WriteAsync(content);
             }
+        }
+
+
+        public async Task TraceAsync(HttpContext context)
+        {
+            var token = context.RequestAborted;
+
+            await dispatcher.DispatchAsync(async () =>
+            {
+                using (var writer = new TraceWriter(logger, context))
+                {
+                    await writer.WriteAsync(@"
+   ____       _                        _____            _     _                         _
+  / __ \     | |                      |  __ \          | |   | |                       | |
+ | |  | |_ __| | ___  __ _ _ __  ___  | |  | | __ _ ___| |__ | |__   ___   __ _ _ __ __| |
+ | |  | | '__| |/ _ \/ _` | '_ \/ __| | |  | |/ _` / __| '_ \| '_ \ / _ \ / _` | '__/ _` |
+ | |__| | |  | |  __/ (_| | | | \__ \ | |__| | (_| \__ \ | | | |_) | (_) | (_| | | | (_| |
+  \____/|_|  |_|\___|\__,_|_| |_|___/ |_____/ \__,_|___/_| |_|_.__/ \___/ \__,_|_|  \__,_|
+
+You are connected to the Orleans Dashboard log streaming service
+").ConfigureAwait(false);
+
+                    await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
+                    await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
+                }
+            }).ConfigureAwait(false);
         }
 
         private static Stream OpenFile(string name, Assembly assembly)
