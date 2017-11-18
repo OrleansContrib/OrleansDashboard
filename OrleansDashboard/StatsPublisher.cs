@@ -13,6 +13,7 @@ namespace OrleansDashboard
     {
         public string Name { get; set; }
         public string Value { get; set; }
+        public string Delta { get; set; }
     }
 
     public class StatsPublisher : IProvider, IStatisticsPublisher, ISiloMetricsDataPublisher
@@ -56,7 +57,8 @@ namespace OrleansDashboard
                 var values = statsCounters.Select(x => new StatCounter
                 {
                     Name = x.Name,
-                    Value = x.GetValueString()
+                    Value = x.GetValueString(),
+                    Delta = x.IsValueDelta ? x.GetDeltaString() : null
                 }).OrderBy(x => x.Name).ToArray();
 
                 await dispatcher.DispatchAsync(() => grain.ReportCounters(values));
@@ -73,7 +75,7 @@ namespace OrleansDashboard
                 {
                     var name = char.ToLowerInvariant(key[0]) + key.Substring(1);
 
-                    counters.Add(new StatCounter { Name = name, Value = string.Format(CultureInfo.InvariantCulture, "{0}", value) });
+                    counters.Add(new StatCounter { Name = name, Delta = "N/A", Value = string.Format(CultureInfo.InvariantCulture, "{0}", value) });
                 };
 
                 AddValue(nameof(metricsData.ActivationCount), metricsData.ActivationCount);
