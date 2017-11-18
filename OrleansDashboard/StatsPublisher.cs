@@ -1,16 +1,14 @@
-﻿using Orleans;
-using Orleans.Providers;
-using Orleans.Runtime;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Orleans.Providers;
+using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
-
     public class StatCounter
     {
         public string Name { get; set; }
@@ -18,10 +16,32 @@ namespace OrleansDashboard
         public string Delta { get; set; }
     }
 
-    public class StatsPublisher : IConfigurableStatisticsPublisher, IStatisticsPublisher, IProvider, ISiloMetricsDataPublisher
+    public class StatsPublisher : IProvider, IStatisticsPublisher, ISiloMetricsDataPublisher
     {
+        private IExternalDispatcher dispatcher;
+        private IProviderRuntime runtime;
+
         public string Name { get; private set; }
-        public IProviderRuntime ProviderRuntime { get; private set; }
+
+        public Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
+        {
+            Name = name;
+
+            dispatcher = providerRuntime.ServiceProvider.GetRequiredService<IExternalDispatcher>();
+            runtime = providerRuntime;
+
+            return Task.CompletedTask;
+        }
+
+        public Task Init(string deploymentId, string storageConnectionString, SiloAddress siloAddress, string siloName, IPEndPoint gateway, string hostName)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task Init(bool isSilo, string storageConnectionString, string deploymentId, string address, string siloName, string hostName)
+        {
+            return Task.CompletedTask;
+        }
 
         public Task Close()
         {
@@ -30,45 +50,52 @@ namespace OrleansDashboard
 
         public async Task ReportStats(List<ICounter> statsCounters)
         {
-            var grain = this.ProviderRuntime.GrainFactory.GetGrain<ISiloGrain>(this.ProviderRuntime.ToSiloAddress());
-            var values = statsCounters.Select(x => new StatCounter { Name = x.Name, Value = x.GetValueString(), Delta = x.IsValueDelta ? x.GetDeltaString() : null}).OrderBy(x => x.Name).ToArray();
-            await Dispatch(async () => {
-                await grain.ReportCounters(values);
-            });
+            if (dispatcher.CanDispatch())
+            {
+                var grain = runtime.GrainFactory.GetGrain<ISiloGrain>(runtime.ToSiloAddress());
+
+                var values = statsCounters.Select(x => new StatCounter
+                {
+                    Name = x.Name,
+                    Value = x.GetValueString(),
+                    Delta = x.IsValueDelta ? x.GetDeltaString() : null
+                }).OrderBy(x => x.Name).ToArray();
+
+                await dispatcher.DispatchAsync(() => grain.ReportCounters(values));
+            }
         }
 
-        public void AddConfiguration(string deploymentId, bool isSilo, string siloName, SiloAddress address, IPEndPoint gateway, string hostName)
-        { }
-
-        public Task Init(bool isSilo, string storageConnectionString, string deploymentId, string address, string siloName, string hostName)
+        public async Task ReportMetrics(ISiloPerformanceMetrics metricsData)
         {
-            throw new NotImplementedException();
-        }
+            if (dispatcher.CanDispatch())
+            {
+                var counters = new List<StatCounter>();
 
-        public Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
-        {
-            this.Name = name;
-            this.ProviderRuntime = providerRuntime;
-            return Task.CompletedTask;
-        }
+                void AddValue(string key, object value)
+                {
+                    var name = char.ToLowerInvariant(key[0]) + key.Substring(1);
 
-        public Task Init(string deploymentId, string storageConnectionString, SiloAddress siloAddress, string siloName, IPEndPoint gateway, string hostName)
-        {
-            throw new NotImplementedException();
-        }
+                    counters.Add(new StatCounter { Name = name, Delta = "N/A", Value = string.Format(CultureInfo.InvariantCulture, "{0}", value) });
+                };
 
-        public Task ReportMetrics(ISiloPerformanceMetrics metricsData)
-        {
-            return Task.CompletedTask;
-        }
+                AddValue(nameof(metricsData.ActivationCount), metricsData.ActivationCount);
+                AddValue(nameof(metricsData.AvailablePhysicalMemory), metricsData.AvailablePhysicalMemory);
+                AddValue(nameof(metricsData.ClientCount), metricsData.ClientCount);
+                AddValue(nameof(metricsData.CpuUsage), metricsData.CpuUsage);
+                AddValue(nameof(metricsData.IsOverloaded), metricsData.IsOverloaded);
+                AddValue(nameof(metricsData.MemoryUsage), metricsData.MemoryUsage);
+                AddValue(nameof(metricsData.ReceivedMessages), metricsData.ReceivedMessages);
+                AddValue(nameof(metricsData.ReceiveQueueLength), metricsData.ReceiveQueueLength);
+                AddValue(nameof(metricsData.RecentlyUsedActivationCount), metricsData.RecentlyUsedActivationCount);
+                AddValue(nameof(metricsData.RequestQueueLength), metricsData.RequestQueueLength);
+                AddValue(nameof(metricsData.SendQueueLength), metricsData.SendQueueLength);
+                AddValue(nameof(metricsData.SentMessages), metricsData.SentMessages);
+                AddValue(nameof(metricsData.TotalPhysicalMemory), metricsData.TotalPhysicalMemory);
 
-        Task Dispatch(Func<Task> func)
-        {
-            var scheduler = Dashboard.OrleansScheduler;
-            return scheduler == null 
-                ? Task.CompletedTask 
-                : Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, scheduler);
+                var grain = runtime.GrainFactory.GetGrain<ISiloGrain>(runtime.ToSiloAddress());
+
+                await dispatcher.DispatchAsync(() => grain.ReportCounters(counters.ToArray()));
+            }
         }
     }
-   
 }

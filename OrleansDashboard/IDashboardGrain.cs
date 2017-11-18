@@ -1,13 +1,10 @@
-﻿using Orleans;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Orleans;
 
 namespace OrleansDashboard
 {
-    public interface IDashboardGrain : IGrain, IGrainWithIntegerKey
+    public interface IDashboardGrain : IGrainWithIntegerKey
     {
         Task Init();
 

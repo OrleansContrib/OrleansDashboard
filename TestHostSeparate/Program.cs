@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Threading;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Hosting;
@@ -8,7 +11,7 @@ using TestGrains;
 
 // ReSharper disable MethodSupportsCancellation
 
-namespace TestHost
+namespace TestHostSeparate
 {
     public static class Program
     {
@@ -23,7 +26,7 @@ namespace TestHost
                     .UseConfiguration(configuration)
                     .UseDashboard(options =>
                     {
-                        options.HostSelf = true;
+                        options.HostSelf = false;
                     })
                     .AddApplicationPartsFromReferences(typeof(TestCalls).Assembly)
                     .ConfigureLogging(builder =>
@@ -37,6 +40,7 @@ namespace TestHost
             var client =
                 new ClientBuilder()
                     .UseConfiguration(ClientConfiguration.LocalhostSilo())
+                    .UseDashboard()
                     .AddApplicationPartsFromReferences(typeof(TestCalls).Assembly)
                     .ConfigureLogging(builder =>
                     {
@@ -50,8 +54,29 @@ namespace TestHost
 
             TestCalls.Make(client, cts);
 
-            Console.WriteLine("Press key to exit...");
-            Console.ReadLine();
+            WebHost.CreateDefaultBuilder(args)
+                .ConfigureServices(services =>
+                {
+                    services.AddServicesForSelfHostedDashboard(client, options =>
+                    {
+                        options.HideTrace = true;
+                    });
+                })
+                .ConfigureLogging(builder =>
+                {
+                    builder.AddConsole();
+                })
+                .Configure(app =>
+                {
+                    app.UseOrleansDashboard();
+
+                    app.Map("/dashboard", d =>
+                    {
+                        d.UseOrleansDashboard();
+                    });
+                })
+                .Build()
+                .Run();
 
             cts.Cancel();
 

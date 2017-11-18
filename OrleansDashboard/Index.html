@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <base href="{{BASE}}" />
     <title>Orleans Dashboard</title>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -68,7 +69,13 @@
 
     <style>
         .log {
-            height: 100%;
+            position: absolute;
+            top: 50px;
+            left: 230px;
+            right: 0;
+            border: 0;
+            bottom: 0;
+            margin: 0;
         }
 
         .error-container {
@@ -145,10 +152,13 @@
         <div class="control-sidebar-bg"></div>
 
     </div>
-
+    
+    <script>
+        var hideTrace = {{HIDE_TRACE}};
+    </script>
 
     <!-- ./wrapper -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js"></script>
-    <script src="/index.min.js"></script>
+    <script src="{{BASE}}index.min.js"></script>
 </body>
 </html>

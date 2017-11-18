@@ -1,10 +1,12 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime;
 
@@ -13,110 +15,89 @@ namespace OrleansDashboard
     public class Dashboard : IBootstrapProvider
     {
         private IWebHost host;
-        private Logger logger;
-        private GrainProfiler profiler;
-
-        private DashboardTraceListener dashboardTraceListener;
 
         public static int HistoryLength => 100;
 
         public string Name { get; private set; }
 
-        public Task Close()
-        {
-            try
-            {
-                Trace.Listeners.Remove(dashboardTraceListener);
-            }
-            catch { }
-
-            try
-            {
-                host?.Dispose();
-            }
-            catch { }
-
-            try
-            {
-                profiler?.Dispose();
-            }
-            catch { }
-
-            OrleansScheduler = null;
-
-            return Task.CompletedTask;
-        }
-
-        public static TaskScheduler OrleansScheduler { get; private set; }
-
         public async Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
         {
-            this.Name = name;
+            Name = name;
 
-            this.logger = providerRuntime.GetLogger("Dashboard");
+            var options = providerRuntime.ServiceProvider.GetRequiredService<IOptions<DashboardOptions>>();
 
-            this.dashboardTraceListener = new DashboardTraceListener();
-
-            var port = config.Properties.ContainsKey("Port") ? int.Parse(config.Properties["Port"]) : 8080;
-            var hostname = config.Properties.ContainsKey("Host") ? config.Properties["Host"] : "*";
-
-            var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
-            var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
-            
-            var credentials = new UserCredentials(username, password);
-
-
-            try
+            if (options.Value.HostSelf)
             {
-                var builder = new WebHostBuilder()
-                    .ConfigureServices(s => s
-                        .AddSingleton(TaskScheduler.Current)
-                        .AddSingleton(providerRuntime)
-                        .AddSingleton(dashboardTraceListener)
-                    )
-                    .ConfigureServices(services =>
-                    {
-                        services
-                            .AddMvcCore()
-                            .AddApplicationPart(typeof(DashboardController).GetTypeInfo().Assembly)
-                            .AddJsonFormatters();
-                    })
-                    .Configure(app =>
-                    {
-                        if (credentials.HasValue())
-                        {
-                            // only when usename and password are configured
-                            // do we inject basicauth middleware in the pipeline
-                            app.UseMiddleware<BasicAuthMiddleware>(credentials);
-                        }
+                var logger = providerRuntime.ServiceProvider.GetRequiredService<ILogger<Dashboard>>();
 
-                        app.UseMvc();
-                    })
-                    .UseKestrel()
-                    .UseUrls($"http://{hostname}:{port}");
-                host = builder.Build();
-                host.Start();
+                try
+                {
+                    host =
+                        new WebHostBuilder()
+                            .ConfigureServices(services =>
+                            {
+                                services.AddServicesForHostedDashboard(providerRuntime.GrainFactory);
+                            })
+                            .Configure(app =>
+                            {
+                                if (options.Value.HasUsernameAndPassword())
+                                {
+                                    // only when usename and password are configured
+                                    // do we inject basicauth middleware in the pipeline
+                                    app.UseMiddleware<BasicAuthMiddleware>();
+                                }
+
+                                app.UseOrleansDashboard();
+                            })
+                            .UseKestrel()
+                            .UseUrls($"http://{options.Value.Host}:{options.Value.Port}")
+                            .Build();
+
+                    host.Start();
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(10001, ex.ToString());
+                }
+
+                logger.LogInformation($"Dashboard listening on {options.Value.Port}");
             }
-            catch (Exception ex)
-            {
-                this.logger.Error(10001, ex.ToString());
-            }
-
-            this.logger.Verbose($"Dashboard listening on {port}");
-
-            this.profiler = new GrainProfiler(TaskScheduler.Current, providerRuntime);
-
-            var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
-            await dashboardGrain.Init();
-
-            var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
-            await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
-            Trace.Listeners.Add(dashboardTraceListener);
 
             // horrible hack to grab the scheduler
             // to allow the stats publisher to push
             // counters to grains
-            OrleansScheduler = TaskScheduler.Current;
+            SiloDispatcher.Setup();
+
+            await ActivateDashboardGrainAsync(providerRuntime);
+            await ActivateSiloGrainAsync(providerRuntime);
+        }
+
+        private static async Task ActivateSiloGrainAsync(IProviderRuntime providerRuntime)
+        {
+            var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
+
+            await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
+        }
+
+        private static async Task ActivateDashboardGrainAsync(IProviderRuntime providerRuntime)
+        {
+            var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+
+            await dashboardGrain.Init();
+        }
+
+        public Task Close()
+        {
+            try
+            {
+                host?.Dispose();
+            }
+            catch
+            {
+                /* NOOP */
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -15,16 +15,13 @@ namespace OrleansDashboard
     {
         private DashboardCounters Counters { get; set; }
         private DateTime StartTime { get; set; }
-        private List<GrainTraceEntry> history = new List<GrainTraceEntry>();
-
+        private readonly List<GrainTraceEntry> history = new List<GrainTraceEntry>();
 
         private ISiloDetailsProvider siloDetailsProvider;
-
-      
-
+        
         private async Task Callback(object _)
         {
-            var metricsGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
+            var metricsGrain = GrainFactory.GetGrain<IManagementGrain>(0);
             var activationCountTask = metricsGrain.GetTotalActivationCount();
             var simpleGrainStatsTask = metricsGrain.GetSimpleGrainStatistics();
             var siloDetailsTask = siloDetailsProvider.GetSiloDetails();
@@ -37,27 +34,27 @@ namespace OrleansDashboard
         internal void RecalculateCounters(int activationCount, SiloDetails[] hosts,
             IList<SimpleGrainStatistic> simpleGrainStatistics)
         {
-            this.Counters.TotalActivationCount = activationCount;
+            Counters.TotalActivationCount = activationCount;
 
-            this.Counters.TotalActiveHostCount = hosts.Count(x => x.SiloStatus == SiloStatus.Active);
-            this.Counters.TotalActivationCountHistory.Enqueue(activationCount);
-            this.Counters.TotalActiveHostCountHistory.Enqueue(this.Counters.TotalActiveHostCount);
+            Counters.TotalActiveHostCount = hosts.Count(x => x.SiloStatus == SiloStatus.Active);
+            Counters.TotalActivationCountHistory.Enqueue(activationCount);
+            Counters.TotalActiveHostCountHistory.Enqueue(Counters.TotalActiveHostCount);
 
-            while (this.Counters.TotalActivationCountHistory.Count > Dashboard.HistoryLength)
+            while (Counters.TotalActivationCountHistory.Count > Dashboard.HistoryLength)
             {
-                this.Counters.TotalActivationCountHistory.Dequeue();
+                Counters.TotalActivationCountHistory.Dequeue();
             }
-            while (this.Counters.TotalActiveHostCountHistory.Count > Dashboard.HistoryLength)
+            while (Counters.TotalActiveHostCountHistory.Count > Dashboard.HistoryLength)
             {
-                this.Counters.TotalActiveHostCountHistory.Dequeue();
+                Counters.TotalActiveHostCountHistory.Dequeue();
             }
 
             // TODO - whatever max elapsed time
-            var elapsedTime = Math.Min((DateTime.UtcNow - this.StartTime).TotalSeconds, 100);
+            var elapsedTime = Math.Min((DateTime.UtcNow - StartTime).TotalSeconds, 100);
 
-            this.Counters.Hosts = hosts;
+            Counters.Hosts = hosts;
 
-            var aggregatedTotals = this.history
+            var aggregatedTotals = history
                 .GroupBy(x => new GrainSiloKey(x.Grain, x.SiloAddress))
                 .ToDictionary(g => g.Key, g => new AggregatedGrainTotals
                 {
@@ -66,12 +63,11 @@ namespace OrleansDashboard
                     TotalExceptions = g.Sum(x => x.ExceptionCount)
                 });
 
-            this.Counters.SimpleGrainStats = simpleGrainStatistics.Select(x =>
+            Counters.SimpleGrainStats = simpleGrainStatistics.Select(x =>
             {
                 var grainName = TypeFormatter.Parse(x.GrainType);
                 var siloAddress = x.SiloAddress.ToParsableString();
-                AggregatedGrainTotals totals;
-                if (!aggregatedTotals.TryGetValue(new GrainSiloKey(grainName, siloAddress), out totals))
+                if (!aggregatedTotals.TryGetValue(new GrainSiloKey(grainName, siloAddress), out var totals))
                 {
                     totals = new AggregatedGrainTotals();
                 }
@@ -95,27 +91,27 @@ namespace OrleansDashboard
             // from within a bootstrapper we do it this way:
             // first try to resolve from the container, if not present in container
             // then instantiate the default
-            this.siloDetailsProvider =
-                (this.ServiceProvider.GetService(typeof(ISiloDetailsProvider)) as ISiloDetailsProvider)
-                ?? new MembershipTableSiloDetailsProvider(this.GrainFactory);
+            siloDetailsProvider =
+                (ServiceProvider.GetService(typeof(ISiloDetailsProvider)) as ISiloDetailsProvider)
+                ?? new MembershipTableSiloDetailsProvider(GrainFactory);
 
 
-            this.Counters = new DashboardCounters();
-            this.RegisterTimer(this.Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-            this.StartTime = DateTime.UtcNow;
+            Counters = new DashboardCounters();
+            RegisterTimer(Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            StartTime = DateTime.UtcNow;
             return base.OnActivateAsync();
         }
 
         public Task<DashboardCounters> GetCounters()
         {
-            return Task.FromResult(this.Counters);
+            return Task.FromResult(Counters);
         }
 
         public Task<Dictionary<string, Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain)
         {
             var results = new Dictionary<string, Dictionary<string, GrainTraceEntry>>();
 
-            foreach (var historicValue in this.history.Where(x => x.Grain == grain))
+            foreach (var historicValue in history.Where(x => x.Grain == grain))
             {
                 var grainMethodKey = $"{grain}.{historicValue.Method}";
                 if (!results.ContainsKey(grainMethodKey))
@@ -144,7 +140,7 @@ namespace OrleansDashboard
         {
             var results = new Dictionary<string, GrainTraceEntry>();
 
-            foreach (var historicValue in this.history)
+            foreach (var historicValue in history)
             {
                 var key = historicValue.Period.ToPeriodString();
                 if (!results.ContainsKey(key)) results.Add(key, new GrainTraceEntry
@@ -164,7 +160,7 @@ namespace OrleansDashboard
         {
             var results = new Dictionary<string, GrainTraceEntry>();
 
-            foreach (var historicValue in this.history.Where(x => x.SiloAddress == address))
+            foreach (var historicValue in history.Where(x => x.SiloAddress == address))
             {
                 var key = historicValue.Period.ToPeriodString();
                 if (!results.ContainsKey(key)) results.Add(key, new GrainTraceEntry
@@ -197,7 +193,7 @@ namespace OrleansDashboard
 
             // fill in any previously captured methods which aren't in this reporting window
             var allGrainTrace = new List<GrainTraceEntry>(grainTrace);
-            var values = this.history.Where(x => x.SiloAddress == siloIdentity).GroupBy(x => x.GrainAndMethod).Select(x => x.First());
+            var values = history.Where(x => x.SiloAddress == siloIdentity).GroupBy(x => x.GrainAndMethod).Select(x => x.First());
             foreach (var value in values)
             {
                 if (!grainTrace.Any(x => x.GrainAndMethod == value.GrainAndMethod))
