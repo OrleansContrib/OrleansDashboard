@@ -57,7 +57,10 @@ namespace TestHostSeparate
             WebHost.CreateDefaultBuilder(args)
                 .ConfigureServices(services =>
                 {
-                    services.AddServicesForSelfHostedDashboard(client);
+                    services.AddServicesForSelfHostedDashboard(client, options =>
+                    {
+                        options.HideTrace = true;
+                    });
                 })
                 .ConfigureLogging(builder =>
                 {
@@ -69,7 +72,7 @@ namespace TestHostSeparate
 
                     app.Map("/dashboard", d =>
                     {
-                        // d.UseOrleansDashboard();
+                        d.UseOrleansDashboard();
                     });
                 })
                 .Build()

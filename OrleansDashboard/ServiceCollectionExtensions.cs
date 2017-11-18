@@ -58,13 +58,15 @@ namespace Orleans
             return app;
         }
 
-        public static IServiceCollection AddServicesForSelfHostedDashboard(this IServiceCollection services, IClusterClient client = null)
+        public static IServiceCollection AddServicesForSelfHostedDashboard(this IServiceCollection services, IClusterClient client = null,
+            Action<DashboardOptions> configurator = null)
         {
             if (client != null)
             {
                 services.AddSingleton(client);
             }
 
+            services.Configure(configurator ?? (x => { }));
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IExternalDispatcher, ClientDispatcher>();

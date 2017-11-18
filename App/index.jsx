@@ -267,7 +267,7 @@ routie.reload();
 
 
 function getMenu(){
-    return [
+    var result = [
         {
             name:"Overview",
             path:"#/",
@@ -287,11 +287,16 @@ function getMenu(){
             name:"Reminders",
             path:"#/reminders",
             icon:"fa-circle"
-        },
-        {
+        }
+    ];
+
+    if (!window.hideTrace) {
+        result.push({
             name:"Log Stream",
             path:"#/trace",
             icon:"fa-file-text"
-        }
-    ];
+        });
+    }
+
+    return result;
 }

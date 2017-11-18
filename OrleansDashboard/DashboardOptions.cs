@@ -7,10 +7,12 @@
         public string Password { get; set; }
 
         public string Host { get; set; } = "*";
-
-        public int Port { get; set; } = 8080;
+    
+        public bool HideTrace { get; set; }
 
         public bool HostSelf { get; set; } = true;
+
+        public int Port { get; set; } = 8080;
 
         public bool HasUsernameAndPassword()
         {

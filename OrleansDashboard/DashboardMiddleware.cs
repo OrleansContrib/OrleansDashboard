@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Orleans;
@@ -19,6 +20,7 @@ namespace OrleansDashboard
         };
 
         private readonly IExternalDispatcher dispatcher;
+        private readonly IOptions<DashboardOptions> options;
         private readonly IGrainFactory grainFactory;
         private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
@@ -26,10 +28,12 @@ namespace OrleansDashboard
         public DashboardMiddleware(RequestDelegate next, 
             IGrainFactory grainFactory, 
             IExternalDispatcher dispatcher,
+            IOptions<DashboardOptions> options,
             DashboardLogger logger)
         {
             this.grainFactory = grainFactory;
             this.dispatcher = dispatcher;
+            this.options = options;
             this.logger = logger;
             this.next = next;
         }
@@ -182,7 +186,7 @@ namespace OrleansDashboard
             }
         }
 
-        private static async Task WriteIndexFile(HttpContext context)
+        private async Task WriteIndexFile(HttpContext context)
         {
             var assembly = typeof(DashboardMiddleware).GetTypeInfo().Assembly;
 
@@ -203,13 +207,13 @@ namespace OrleansDashboard
                 }
 
                 content = content.Replace("{{BASE}}", basePath);
+                content = content.Replace("{{HIDE_TRACE}}", options.Value.HideTrace.ToString().ToLowerInvariant());
 
                 await context.Response.WriteAsync(content);
             }
         }
 
-
-        public async Task TraceAsync(HttpContext context)
+        private async Task TraceAsync(HttpContext context)
         {
             var token = context.RequestAborted;
 
@@ -236,7 +240,16 @@ You are connected to the Orleans Dashboard log streaming service
 
         private static Stream OpenFile(string name, Assembly assembly)
         {
-            return assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
+            var file = new FileInfo(name);
+
+            if (file.Exists)
+            {
+                return file.OpenRead();
+            }
+            else
+            {
+                return assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
+            }
         }
     }
 }

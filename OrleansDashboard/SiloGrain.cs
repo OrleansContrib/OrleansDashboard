@@ -14,12 +14,11 @@ namespace OrleansDashboard
         IDisposable timer;
 
         public string Version { get; private set; }
-        public StatCounter[] Counters { get; private set; }
+        public Dictionary<string, StatCounter> Counters { get; set; } = new Dictionary<string, StatCounter>();
 
         public override async Task OnActivateAsync()
         {
             stats = new Queue<SiloRuntimeStatistics>();
-            Counters = new StatCounter[0];
 
             foreach (var x in Enumerable.Range(1, Dashboard.HistoryLength))
             {
@@ -92,13 +91,16 @@ namespace OrleansDashboard
 
         public Task ReportCounters(StatCounter[] counters)
         {
-            Counters = counters;
+            foreach (var counter in counters)
+            {
+                Counters[counter.Name] = counter;
+            }
             return Task.CompletedTask;
         }
 
         public Task<StatCounter[]> GetCounters()
         {
-            return Task.FromResult(Counters);
+            return Task.FromResult(Counters.Values.ToArray());
         }
     }
 }
