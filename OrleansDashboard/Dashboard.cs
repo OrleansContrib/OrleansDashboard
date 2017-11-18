@@ -36,7 +36,7 @@ namespace OrleansDashboard
                         new WebHostBuilder()
                             .ConfigureServices(services =>
                             {
-                                services.AddOrleansDashboardSilo(providerRuntime.GrainFactory);
+                                services.AddServicesForHostedDashboard(providerRuntime.GrainFactory);
                             })
                             .Configure(app =>
                             {

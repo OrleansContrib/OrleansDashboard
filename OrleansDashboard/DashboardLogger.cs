@@ -10,7 +10,9 @@ namespace OrleansDashboard
         private readonly NoopDisposable scope = new NoopDisposable();
         private readonly List<Action<string>> actions;
 
-        public DashboardLogger()
+        public static readonly DashboardLogger Instance = new DashboardLogger();
+
+        private DashboardLogger()
         {
             actions = new List<Action<string>>();
         }

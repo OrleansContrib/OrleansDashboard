@@ -120,7 +120,7 @@ namespace OrleansDashboard
             if (request.Path.StartsWithSegments("/SiloStats", out var address2))
             {
                 var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.GetGrainTracing(address2.ToValue())).ConfigureAwait(false);
+                var result = await dispatcher.DispatchAsync(() => grain.GetSiloTracing(address2.ToValue())).ConfigureAwait(false);
 
                 await WriteJson(context, result);
 

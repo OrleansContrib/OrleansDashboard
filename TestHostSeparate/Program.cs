@@ -57,7 +57,7 @@ namespace TestHostSeparate
             WebHost.CreateDefaultBuilder(args)
                 .ConfigureServices(services =>
                 {
-                    services.AddOrleansDashboardClient(client);
+                    services.AddServicesForSelfHostedDashboard(client);
                 })
                 .ConfigureLogging(builder =>
                 {

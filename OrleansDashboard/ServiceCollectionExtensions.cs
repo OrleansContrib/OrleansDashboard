@@ -36,7 +36,10 @@ namespace Orleans
         {
             services.Configure(configurator ?? (x => { }));
             services.AddGrainCallFilter<GrainProfiler>();
+            services.AddSingleton(DashboardLogger.Instance);
+            services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
+            services.AddSingleton<ISiloDetailsProvider, SiloStatusOracleSiloDetailsProvider>();
 
             return services;
         }
@@ -55,29 +58,25 @@ namespace Orleans
             return app;
         }
 
-        public static IServiceCollection AddOrleansDashboardClient(this IServiceCollection services, IClusterClient client = null)
+        public static IServiceCollection AddServicesForSelfHostedDashboard(this IServiceCollection services, IClusterClient client = null)
         {
             if (client != null)
             {
                 services.AddSingleton(client);
             }
 
-            var logger = new DashboardLogger();
-
-            services.AddSingleton<ILoggerProvider>(logger);
-            services.AddSingleton(logger);
+            services.AddSingleton(DashboardLogger.Instance);
+            services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IExternalDispatcher, ClientDispatcher>();
             services.AddSingleton<IGrainFactory>(c => c.GetRequiredService<IClusterClient>());
 
             return services;
         }
 
-        public static IServiceCollection AddOrleansDashboardSilo(this IServiceCollection services, IGrainFactory grainFactory)
+        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory)
         {
-            var logger = new DashboardLogger();
-
-            services.AddSingleton<ILoggerProvider>(logger);
-            services.AddSingleton(logger);
+            services.AddSingleton(DashboardLogger.Instance);
+            services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
             services.AddSingleton(grainFactory);
 
