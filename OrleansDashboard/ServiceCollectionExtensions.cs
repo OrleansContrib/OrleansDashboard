@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime.Configuration;
@@ -75,11 +76,12 @@ namespace Orleans
             return services;
         }
 
-        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory)
+        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory, IOptions<DashboardOptions> options)
         {
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
+            services.AddSingleton<IOptions<DashboardOptions>>(options);
             services.AddSingleton(grainFactory);
 
             return services;

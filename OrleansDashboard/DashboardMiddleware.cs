@@ -215,6 +215,12 @@ namespace OrleansDashboard
 
         private async Task TraceAsync(HttpContext context)
         {
+            if (options.Value.HideTrace)
+            {
+                context.Response.StatusCode = 403;
+                return;
+            }
+
             var token = context.RequestAborted;
 
             await dispatcher.DispatchAsync(async () =>

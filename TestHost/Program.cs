@@ -24,6 +24,7 @@ namespace TestHost
                     .UseDashboard(options =>
                     {
                         options.HostSelf = true;
+                        options.HideTrace = true;
                     })
                     .AddApplicationPartsFromReferences(typeof(TestCalls).Assembly)
                     .ConfigureLogging(builder =>
