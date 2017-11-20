@@ -111,7 +111,7 @@ module.exports = React.createClass({
                 <div style={{textAlign:"center"}}>
                     <h4>CPU Usage</h4>
                     
-                    <div style={{lineHeight:"40px"}}>Not data available</div>
+                    <div style={{lineHeight:"40px"}}>No data available</div>
                 </div>
             );
         }
@@ -128,7 +128,7 @@ module.exports = React.createClass({
                 <div style={{textAlign:"center"}}>
                     <h4>Memory Usage</h4>
 
-                    <div style={{lineHeight:"40px"}}>Not data available</div>
+                    <div style={{lineHeight:"40px"}}>No data available</div>
                 </div>
             );
         }
