@@ -97,6 +97,16 @@ namespace OrleansDashboard
                 /* NOOP */
             }
 
+            try
+            {
+                // Teardown the silo dispatcher to prevent deadlocks.
+                SiloDispatcher.Teardown();
+            }
+            catch
+            {
+                /* NOOP */
+            }
+
             return Task.CompletedTask;
         }
     }
