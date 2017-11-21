@@ -223,11 +223,9 @@ namespace OrleansDashboard
 
             var token = context.RequestAborted;
 
-            await dispatcher.DispatchAsync(async () =>
+            using (var writer = new TraceWriter(logger, context))
             {
-                using (var writer = new TraceWriter(logger, context))
-                {
-                    await writer.WriteAsync(@"
+                await writer.WriteAsync(@"
    ____       _                        _____            _     _                         _
   / __ \     | |                      |  __ \          | |   | |                       | |
  | |  | |_ __| | ___  __ _ _ __  ___  | |  | | __ _ ___| |__ | |__   ___   __ _ _ __ __| |
@@ -238,10 +236,9 @@ namespace OrleansDashboard
 You are connected to the Orleans Dashboard log streaming service
 ").ConfigureAwait(false);
 
-                    await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
-                    await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
-                }
-            }).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
+                await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
+            }
         }
 
         private static Stream OpenFile(string name, Assembly assembly)

@@ -48,7 +48,7 @@ namespace OrleansDashboard
             return Task.CompletedTask;
         }
 
-        public async Task ReportStats(List<ICounter> statsCounters)
+        public Task ReportStats(List<ICounter> statsCounters)
         {
             if (dispatcher.CanDispatch())
             {
@@ -61,11 +61,13 @@ namespace OrleansDashboard
                     Delta = x.IsValueDelta ? x.GetDeltaString() : null
                 }).OrderBy(x => x.Name).ToArray();
 
-                await dispatcher.DispatchAsync(() => grain.ReportCounters(values));
+                dispatcher.DispatchAsync(() => grain.ReportCounters(values));
             }
+
+            return Task.CompletedTask;
         }
 
-        public async Task ReportMetrics(ISiloPerformanceMetrics metricsData)
+        public Task ReportMetrics(ISiloPerformanceMetrics metricsData)
         {
             if (dispatcher.CanDispatch())
             {
@@ -94,8 +96,10 @@ namespace OrleansDashboard
 
                 var grain = runtime.GrainFactory.GetGrain<ISiloGrain>(runtime.ToSiloAddress());
 
-                await dispatcher.DispatchAsync(() => grain.ReportCounters(counters.ToArray()));
+                dispatcher.DispatchAsync(() => grain.ReportCounters(counters.ToArray()));
             }
+
+            return Task.CompletedTask;
         }
     }
 }
