@@ -19,12 +19,41 @@
     <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+    
+    <style>
+        .log {
+            height: 100%;
+        }
+
+        .log-filter {
+            padding-left: 20px;
+            border: 0;
+            background: #f5f5f5;
+            z-index: 1;
+            outline: none;
+            box-shadow: 4px -2px 5px 5px #d8d9da;
+        }
+
+        .error-container {
+            position: absolute;
+            z-index: 10000;
+            width: 400px;
+            top: 20px;
+            left: 100%;
+            margin-left: -420px;
+        }
+    </style>
 
     <style id="dark-theme-style" media="">
         .log {
             background: #1e282c;
             border: 1px solid #333;
             color: silver;
+        }
+
+        .log-filter {
+            background: #222D32;
+            box-shadow: 4px -2px 5px 5px #444c52;
         }
 
         .content-wrapper {
@@ -63,21 +92,6 @@
         .well {
             background: #1e282c;
             border: 1px solid #333;
-        }
-    </style>
-
-    <style>
-        .log {
-            height: 100%;
-        }
-
-        .error-container {
-            position: absolute;
-            z-index: 10000;
-            width: 400px;
-            top: 20px;
-            left: 100%;
-            margin-left: -420px;
         }
     </style>
 
