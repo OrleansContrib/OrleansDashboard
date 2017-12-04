@@ -5,11 +5,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Orleans.CodeGeneration;
 using Orleans.Providers;
 using Orleans.Runtime;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace OrleansDashboard
 {
@@ -146,7 +146,14 @@ namespace OrleansDashboard
                 {
                     await dashboardGrain.SubmitTracing(siloAddress, data).ConfigureAwait(false);
                     return null;
-                }).Wait(30000);
+                }).ContinueWith(result => {
+
+                    if (null != result.Exception)
+                    {
+                        this.Logger.Log(100001, Severity.Warning, "Exception thrown sending tracing to dashboard grain", new object[0], result.Exception);
+                    }
+                });
+                
             }
             catch (Exception ex)
             {
