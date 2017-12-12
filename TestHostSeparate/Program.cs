@@ -28,7 +28,7 @@ namespace TestHostSeparate
                     {
                         options.HostSelf = false;
                     })
-                    .AddApplicationPartsFromReferences(typeof(TestCalls).Assembly)
+                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
                         builder.AddConsole();
@@ -41,7 +41,7 @@ namespace TestHostSeparate
                 new ClientBuilder()
                     .UseConfiguration(ClientConfiguration.LocalhostSilo())
                     .UseDashboard()
-                    .AddApplicationPartsFromReferences(typeof(TestCalls).Assembly)
+                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
                         builder.AddConsole();
