@@ -31,8 +31,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="2.0.1" />
-    <PackageReference Include="Microsoft.Orleans.Core" Version="2.0.0-beta1" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.0.0-beta1" />
-    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="2.0.0-beta1" />
+    <PackageReference Include="Microsoft.Orleans.Core" Version="2.0.0-beta2" />
+    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.0.0-beta2" />
+    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="2.0.0-beta2" />
   </ItemGroup>
 </Project>
