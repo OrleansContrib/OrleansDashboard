@@ -1,19 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2008
+VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansDashboard", "OrleansDashboard\OrleansDashboard.csproj", "{D10D584C-93F0-45C7-AB85-F8461CA91282}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestGrains", "TestGrains\TestGrains.csproj", "{2AF80447-CF9D-46ED-8468-A2A4BBA76776}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHost", "TestHost\TestHost.csproj", "{7F2CD09F-E395-44E9-88F4-7F66EE1BFD7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestHost", "TestHost\TestHost.csproj", "{7F2CD09F-E395-44E9-88F4-7F66EE1BFD7C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceTests", "PerformanceTests\PerformanceTests.csproj", "{3949D01E-E3FC-4E9D-BC0C-4408AA94BE17}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{B5AEAD1C-3AC9-47F6-BD01-829D8675EA2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHostSeparate", "TestHostSeparate\TestHostSeparate.csproj", "{21E13CC2-0531-4FCF-821D-76DCD86ECB0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestHostSeparate", "TestHostSeparate\TestHostSeparate.csproj", "{21E13CC2-0531-4FCF-821D-76DCD86ECB0D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{E881064C-81AE-4C23-9CE0-1B5072C648F4}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

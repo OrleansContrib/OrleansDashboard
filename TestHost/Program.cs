@@ -26,7 +26,7 @@ namespace TestHost
                         options.HostSelf = true;
                         options.HideTrace = false;
                     })
-                    .AddApplicationPartsFromReferences(typeof(TestCalls).Assembly)
+                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
                         builder.AddConsole();
@@ -38,7 +38,7 @@ namespace TestHost
             var client =
                 new ClientBuilder()
                     .UseConfiguration(ClientConfiguration.LocalhostSilo())
-                    .AddApplicationPartsFromReferences(typeof(TestCalls).Assembly)
+                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
                         builder.AddConsole();

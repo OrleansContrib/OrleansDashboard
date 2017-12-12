@@ -26,7 +26,7 @@ namespace Orleans
         public static ISiloHostBuilder UseDashboard(this ISiloHostBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.AddApplicationPartsFromReferences(typeof(Dashboard).Assembly);
+            builder.ConfigureApplicationParts(appParts =>appParts.AddApplicationPart(typeof(Dashboard).Assembly));
             builder.ConfigureServices(services => services.AddDashboard(configurator));
 
             return builder;
@@ -47,7 +47,7 @@ namespace Orleans
 
         public static IClientBuilder UseDashboard(this IClientBuilder builder)
         {
-            builder.AddApplicationPartsFromReferences(typeof(Dashboard).Assembly);
+            builder.ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(Dashboard).Assembly));
 
             return builder;
         }
