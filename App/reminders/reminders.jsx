@@ -8,8 +8,8 @@ module.exports = React.createClass({
     render:function(){
         var totalPages =  this.props.remindersData.count / 25;
         var showPrevious = this.props.page > 1;
-        var showNext = this.props.remindersData.reminders.length == 25;
-        var showLast = totalPages / 25 > this.props.page;
+        var showNext = totalPages > this.props.page;
+        var showLast = totalPages > this.props.page + 1;
         return <div>
             <div className="row">
                 <div className="col-md-12">
