@@ -28,7 +28,6 @@ function scroll(){
 }
 
 ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
-
 var errorTimer;
 function showError(message){
     ReactDom.render(<Alert onClose={closeError}>{message}</Alert>, document.getElementById('error-message-content'));
@@ -50,6 +49,21 @@ function loadDashboardCounters(){
         dashboardCounters = data;
         events.emit('dashboard-counters', data);
     });
+}
+
+function getVersion() {
+    var version = '1.0.0';
+    var renderVersion = function(){
+        ReactDom.render(<span id="version">v.{version}</span>, document.getElementById('version-content'));    
+    }
+
+    var loadData = function(cb){
+        http.get('/version', function(err, data){
+            version = data.version;
+            renderVersion();
+        });
+    }
+    loadData();
 }
 
 // we always want to refresh the dashboard counters
@@ -95,7 +109,7 @@ routie('', function(){
 
     events.on('dashboard-counters', render);
     events.on('refresh', loadData);
-
+    getVersion();
     loadDashboardCounters();
 });
 

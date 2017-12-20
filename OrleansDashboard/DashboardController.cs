@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -47,6 +48,15 @@ namespace OrleansDashboard
         public Task<IActionResult> IndexJs()
         {
             return Task.FromResult(CreateFileResult("index.min.js", "application/javascript"));
+        }
+
+        [HttpGet("version")]
+        public Task<object> GetVersion()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            string version = fvi.FileVersion;
+            return Task.FromResult<object>(new {version});
         }
 
         [HttpGet("favicon.ico")]
