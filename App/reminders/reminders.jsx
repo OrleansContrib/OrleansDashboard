@@ -6,7 +6,7 @@ var Panel = require('../components/panel.jsx');
 
 module.exports = React.createClass({
     render:function(){
-        var totalPages =  this.props.remindersData.count / 25;
+        var totalPages =  Math.ceil(this.props.remindersData.count / 25);
         var showFirst = this.props.page > 2;
         var showPrevious = this.props.page > 1;
         var showNext = totalPages > this.props.page;
@@ -27,7 +27,7 @@ module.exports = React.createClass({
                   <span> </span>
                   {showNext ? <a className="btn btn-default bg-purple" href={`#/reminders/${this.props.page + 1}`}>Next <i className="fa fa-arrow-circle-right"></i></a> : null}
                   <span> </span>
-                  {showLast ? <a className="btn btn-default bg-purple" href={`#/reminders/${totalPages}`}>Last ({this.props.totalPages}) <i className="fa fa-arrow-circle-right"></i></a> : null}
+                  {showLast ? <a className="btn btn-default bg-purple" href={`#/reminders/${totalPages}`}>Last <i className="fa fa-arrow-circle-right"></i></a> : null}
                 </div>
               </div>
             </Panel>
