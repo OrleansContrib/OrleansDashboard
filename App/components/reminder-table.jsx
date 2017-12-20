@@ -37,16 +37,16 @@ module.exports = React.createClass({
                     <th>Primary Key</th>
                     <th></th>
                     <th style={{textAlign:"left"}}>Name</th>
-                    <th style={{textAlign:"left"}}>StartAt</th>
+                    <th style={{textAlign:"left"}}>Start At</th>
                     <th style={{textAlign:"right"}}>Period</th>
                 </tr>
                 <tr>
-                    <th style={{textAlign:"left"}}><input onChange={this.handleChange} value={this.state['grain_reference']} type="text" name="grain_reference"/></th>
-                    <th style={{textAlign:"left"}}><input onChange={this.handleChange} value={this.state['primary_key']} type="text" name="primary_key"/></th>
+                    <th style={{textAlign:"left"}}><input onChange={this.handleChange} value={this.state['grain_reference']} type="text" name="grain_reference" className="form-control" placeholder="Filter by Grain Reference" /></th>
+                    <th style={{textAlign:"left"}}><input onChange={this.handleChange} value={this.state['primary_key']} type="text" name="primary_key" className="form-control" placeholder="Filter by Primary Key" /></th>
                     <th></th>
-                    <th style={{textAlign:"left"}}><input onChange={this.handleChange} value={this.state['name']} type="text" name="name"/></th>
-                    <th style={{textAlign:"left"}}><input onChange={this.handleChange} value={this.state['startAt']} type="text" name="startAt"/></th>
-                    <th style={{textAlign:"right"}}><input onChange={this.handleChange} value={this.state['period']} type="text" name="period"/></th>
+                    <th style={{textAlign:"left"}}><input onChange={this.handleChange} value={this.state['name']} type="text" name="name" className="form-control" placeholder="Filter by Name" /></th>
+                    <th style={{textAlign:"left"}}><input onChange={this.handleChange} value={this.state['startAt']} type="text" name="startAt" className="form-control" placeholder="Filter by Start At" /></th>
+                    <th style={{textAlign:"right"}}><input onChange={this.handleChange} value={this.state['period']} type="text" name="period" className="form-control" placeholder="Filter by Period" /></th>
                 </tr>
                 {filteredData.map(this.renderReminder)}
             </tbody>
