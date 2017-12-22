@@ -238,11 +238,16 @@ routie('/reminders/:page?', function(page){
         renderPage(<Page title="Reminders"><Reminders remindersData={remindersData} page={page} /></Page>, "#/reminders");
     }
 
+    var rerouteToLastPage = function(lastPage){
+        return document.location.hash = `/reminders/${lastPage}`
+    }
+
     var loadData = function(cb){
         http.get(`/Reminders/${page}`, function(err, data){
             var maxLastPage = Math.ceil(data.count / 25);
             if (page > maxLastPage)
-                return document.location.hash = `/reminders/${maxLastPage}`
+                 rerouteToLastPage(maxLastPage)
+            else
             remindersData = data;
             renderReminders();
         });
