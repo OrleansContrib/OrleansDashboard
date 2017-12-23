@@ -3,7 +3,7 @@ var React = require('react');
 
 module.exports = React.createClass({
     getInitialState: function() {
-        return {grain_reference: null, primary_key: null, name: null, startAt: null, period: null};
+        return {grain_reference: '', primary_key: '', name: '', startAt: '', period: ''};
     },
     handleChange: function(e) {
         this.setState({
