@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>OrleansDashboard</id>
+    <version>1.5.5</version>
+    <authors>richorama</authors>
+    <owners>richorama</owners>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/OrleansContrib/OrleansDashboard</projectUrl>
+    <iconUrl>http://dotnet.github.io/orleans/assets/logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>An admin dashboard for Microsoft Orleans</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags>orleans dashboard metrics monitor</tags>
+    <dependencies>
+    </dependencies>
+  </metadata>
+</package>
