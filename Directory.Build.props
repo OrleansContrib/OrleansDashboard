@@ -1,5 +1,5 @@
 <Project>
   <PropertyGroup>
-    <OrleansPackageVersion Condition=" '$(OrleansPackageVersion)'=='' ">2.0.0-beta2</OrleansPackageVersion>
+    <OrleansPackageVersion Condition=" '$(OrleansPackageVersion)'=='' ">2.0.0-beta3</OrleansPackageVersion>
   </PropertyGroup>
 </Project>
