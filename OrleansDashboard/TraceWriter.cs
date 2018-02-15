@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace OrleansDashboard
 {
@@ -18,7 +18,9 @@ namespace OrleansDashboard
 
         private void Write(string message)
         {
-            WriteAsync(message).Wait();
+            var task = WriteAsync(message);
+            task.ConfigureAwait(false);
+            task.ContinueWith(_ => { /* noop */ });
         }
 
         public async Task WriteAsync(string message)
