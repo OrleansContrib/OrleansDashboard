@@ -17,11 +17,11 @@ namespace OrleansDashboard
 
         private readonly Func<IGrainCallContext, string> formatMethodName;
         private readonly Timer timer;
-        private readonly ConcurrentDictionary<string, GrainTraceEntry> grainTrace = new ConcurrentDictionary<string, GrainTraceEntry>();
         private readonly ILogger<GrainProfiler> logger;
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IExternalDispatcher dispatcher;
         private readonly IGrainFactory grainFactory;
+        private ConcurrentDictionary<string, GrainTraceEntry> grainTrace = new ConcurrentDictionary<string, GrainTraceEntry>();
         private string siloAddress;
 
         public GrainProfiler(
@@ -115,7 +115,9 @@ namespace OrleansDashboard
         {
             if (dispatcher.CanDispatch())
             {
-                var items = grainTrace.ToArray().Select(x => x.Value).ToArray();
+                var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, GrainTraceEntry>());
+
+                var items = currentTrace.Values.ToArray();
 
                 foreach (var item in items)
                 {
