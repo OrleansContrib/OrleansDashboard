@@ -5,32 +5,36 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Orleans;
-using Orleans.Providers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
-    public class GrainProfiler : IGrainCallFilter
+    public class GrainProfiler : IIncomingGrainCallFilter
     {
         private static readonly Func<IGrainCallContext, string> DefaultFormatter = c => c.Method?.Name ?? "Unknown";
 
         private readonly Func<IGrainCallContext, string> formatMethodName;
         private readonly Timer timer;
-        private readonly IServiceProvider services;
-        private readonly IExternalDispatcher dispatcher;
+        private readonly ConcurrentDictionary<string, GrainTraceEntry> grainTrace = new ConcurrentDictionary<string, GrainTraceEntry>();
         private readonly ILogger<GrainProfiler> logger;
+        private readonly ILocalSiloDetails localSiloDetails;
+        private readonly IExternalDispatcher dispatcher;
+        private readonly IGrainFactory grainFactory;
         private string siloAddress;
-        private ConcurrentDictionary<string, GrainTraceEntry> grainTrace = new ConcurrentDictionary<string, GrainTraceEntry>();
 
         public GrainProfiler(
-            IServiceProvider services,
+            ILogger<GrainProfiler> logger,
+            ILocalSiloDetails localSiloDetails,
             IExternalDispatcher dispatcher,
-            ILogger<GrainProfiler> logger)
+            IServiceProvider services,
+            IGrainFactory grainFactory)
         {
             this.dispatcher = dispatcher;
-            this.services = services;
             this.logger = logger;
+            this.localSiloDetails = localSiloDetails;
+            this.grainFactory = grainFactory;
 
             formatMethodName = services.GetService<Func<IGrainCallContext, string>>() ?? DefaultFormatter;
 
@@ -47,9 +51,7 @@ namespace OrleansDashboard
         {
             if (siloAddress == null)
             {
-                var providerRuntime = services.GetRequiredService<IProviderRuntime>();
-
-                siloAddress = providerRuntime.SiloIdentity.ToSiloAddress();
+                siloAddress = localSiloDetails.SiloAddress.ToParsableString();
             }
 
             var stopwatch = Stopwatch.StartNew();
@@ -111,34 +113,28 @@ namespace OrleansDashboard
         
         private void ProcessStats(object state)
         {
-            if (!dispatcher.CanDispatch())
+            if (dispatcher.CanDispatch())
             {
-                return;
-            }
+                var items = grainTrace.ToArray().Select(x => x.Value).ToArray();
 
-            var currentTrace = grainTrace;
-
-            grainTrace = new ConcurrentDictionary<string, GrainTraceEntry>();
-
-            var items = currentTrace.Values.ToArray();
-
-            foreach (var item in items)
-            {
-                item.Grain = TypeFormatter.Parse(item.Grain);
-            }
-
-            try
-            {
-                dispatcher.DispatchAsync(async () =>
+                foreach (var item in items)
                 {
-                    var dashboardGrain = services.GetRequiredService<IGrainFactory>().GetGrain<IDashboardGrain>(0);
+                    item.Grain = TypeFormatter.Parse(item.Grain);
+                }
 
-                    await dashboardGrain.SubmitTracing(siloAddress, items).ConfigureAwait(false);
-                }).Wait(30000);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(100001, "Exception thrown sending tracing to dashboard grain", ex);
+                try
+                {
+                    dispatcher.DispatchAsync(async () =>
+                    {
+                        var dashboardGrain = grainFactory.GetGrain<IDashboardGrain>(0);
+
+                        await dashboardGrain.SubmitTracing(siloAddress, items).ConfigureAwait(false);
+                    }).Wait(30000);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(100001, "Exception thrown sending tracing to dashboard grain", ex);
+                }
             }
         }
     }

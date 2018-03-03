@@ -3,43 +3,42 @@ using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
     public class SiloGrain : Grain, ISiloGrain
     {
-        Queue<SiloRuntimeStatistics> stats;
-        IDisposable timer;
-
-        public string Version { get; private set; }
-        public Dictionary<string, StatCounter> Counters { get; set; } = new Dictionary<string, StatCounter>();
+        private readonly Queue<SiloRuntimeStatistics> stats = new Queue<SiloRuntimeStatistics>();
+        private readonly Dictionary<string, StatCounter> counters = new Dictionary<string, StatCounter>();
+        private IDisposable timer;
+        private string versionOrleans;
+        private string versionHost;
 
         public override async Task OnActivateAsync()
         {
-            stats = new Queue<SiloRuntimeStatistics>();
-
             foreach (var x in Enumerable.Range(1, Dashboard.HistoryLength))
             {
                 stats.Enqueue(null);
             }
 
-            timer = RegisterTimer(Callback, true, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            timer = RegisterTimer(x => CollectStatistics((bool)x), true, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
-            await Callback(false);
+            await CollectStatistics(false);
 
             await base.OnActivateAsync();
         }
 
-        async Task Callback(object canDeactivate)
+        private async Task CollectStatistics(bool canDeactivate)
         {
-            var address = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
-            var grain = GrainFactory.GetGrain<IManagementGrain>(0);
+            var siloAddress = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
+            var managementGrain = GrainFactory.GetGrain<IManagementGrain>(0);
             try
             {
-                var results = (await grain.GetRuntimeStatistics(new SiloAddress[] { address })).FirstOrDefault();
+                var results = (await managementGrain.GetRuntimeStatistics(new SiloAddress[] { siloAddress })).FirstOrDefault();
+
                 stats.Enqueue(results);
+
                 while (stats.Count > Dashboard.HistoryLength)
                 {
                     stats.Dequeue();
@@ -48,10 +47,13 @@ namespace OrleansDashboard
             catch (Exception)
             {
                 // we can't get the silo stats, it's probably dead, so kill the grain
-                if (!(bool)canDeactivate) return;
-                if (null != timer) timer.Dispose();
-                timer = null;
-                DeactivateOnIdle();
+                if (!canDeactivate)
+                {
+                    timer?.Dispose();
+                    timer = null;
+
+                    DeactivateOnIdle();
+                }
             }
         }
 
@@ -60,9 +62,11 @@ namespace OrleansDashboard
             return Task.FromResult(stats.ToArray());
         }
 
-        public Task SetOrleansVersion(string version)
+        public Task SetVersion(string orleans, string host)
         {
-            Version = version;
+            versionOrleans = orleans;
+            versionHost = host;
+
             return Task.CompletedTask;
         }
 
@@ -70,21 +74,8 @@ namespace OrleansDashboard
         {
             var results = new Dictionary<string, string>();
 
-            try
-            {
-                var assembly = Assembly.GetEntryAssembly();
-                if (null != assembly)
-                {
-                    results.Add("HostVersion", assembly.GetName().Version.ToString());
-                }
-            }
-            catch
-            { }
-
-            if (null != Version)
-            {
-                results.Add("OrleansVersion", Version);
-            }
+            results["HostVersion"] = versionHost;
+            results["OrleansVersion"] = versionOrleans;
 
             return Task.FromResult(results);
         }
@@ -93,14 +84,15 @@ namespace OrleansDashboard
         {
             foreach (var counter in counters)
             {
-                Counters[counter.Name] = counter;
+                this.counters[counter.Name] = counter;
             }
+
             return Task.CompletedTask;
         }
 
         public Task<StatCounter[]> GetCounters()
         {
-            return Task.FromResult(Counters.Values.ToArray());
+            return Task.FromResult(counters.Values.OrderBy(x => x.Name).ToArray());
         }
     }
 }
