@@ -47,7 +47,7 @@ namespace OrleansDashboard
             catch (Exception)
             {
                 // we can't get the silo stats, it's probably dead, so kill the grain
-                if (!canDeactivate)
+                if (canDeactivate)
                 {
                     timer?.Dispose();
                     timer = null;
@@ -72,10 +72,11 @@ namespace OrleansDashboard
 
         public Task<Dictionary<string, string>> GetExtendedProperties()
         {
-            var results = new Dictionary<string, string>();
-
-            results["HostVersion"] = versionHost;
-            results["OrleansVersion"] = versionOrleans;
+            var results = new Dictionary<string, string>
+            {
+                ["HostVersion"] = versionHost,
+                ["OrleansVersion"] = versionOrleans
+            };
 
             return Task.FromResult(results);
         }
