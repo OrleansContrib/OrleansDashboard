@@ -74,7 +74,7 @@ namespace OrleansDashboard
                 {
                     stopwatch.Stop();
 
-                    var elapsedMs = (double)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond;
+                    var elapsedMs = stopwatch.Elapsed.TotalMilliseconds;
                     var grainName = context.Grain.GetType().FullName;
                     var methodName = formatMethodName(context);
 
