@@ -3,10 +3,10 @@ using Orleans;
 
 namespace OrleansDashboard
 {
-
-    public class ReminderResponse
+    public sealed class ReminderResponse
     {
         public int Count { get; set; }
+
         public ReminderInfo[] Reminders { get; set; }
     }
 

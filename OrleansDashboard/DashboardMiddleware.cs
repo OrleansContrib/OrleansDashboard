@@ -42,7 +42,7 @@ namespace OrleansDashboard
         {
             var request = context.Request;
 
-            if (request.Path == "/")
+            if (request.Path == "/" || string.IsNullOrEmpty(request.Path))
             {
                 await WriteIndexFile(context);
 

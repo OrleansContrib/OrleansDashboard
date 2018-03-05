@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans.Configuration;
 using Orleans.Hosting;
-using Orleans.Runtime.Configuration;
+using Orleans.Runtime;
 using OrleansDashboard;
 
 // ReSharper disable CheckNamespace
@@ -15,19 +14,12 @@ namespace Orleans
 {
     public static class ServiceCollectionExtensions
     {
-        public static ClusterConfiguration RegisterDashboard(this ClusterConfiguration config)
-        {
-            config.Globals.RegisterBootstrapProvider<Dashboard>("Dashboard", new Dictionary<string, string>());
-            config.Globals.RegisterStatisticsProvider<StatsPublisher>("DashboardStats");
-
-            return config;
-        }
-
         public static ISiloHostBuilder UseDashboard(this ISiloHostBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.ConfigureApplicationParts(appParts =>appParts.AddApplicationPart(typeof(Dashboard).Assembly));
+            builder.ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(Dashboard).Assembly));
             builder.ConfigureServices(services => services.AddDashboard(configurator));
+            builder.AddStartupTask<Dashboard>();
 
             return builder;
         }
@@ -36,11 +28,12 @@ namespace Orleans
             Action<DashboardOptions> configurator = null)
         {
             services.Configure(configurator ?? (x => { }));
-            services.AddGrainCallFilter<GrainProfiler>();
+            services.AddIncomingGrainCallFilter<GrainProfiler>();
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
             services.AddSingleton<ISiloDetailsProvider, SiloStatusOracleSiloDetailsProvider>();
+            services.AddSingleton<ITelemetryProducer, DashboardTelemetryProducer>();
 
             return services;
         }
@@ -76,12 +69,12 @@ namespace Orleans
             return services;
         }
 
-        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory, IOptions<DashboardOptions> options)
+        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory, DashboardOptions options)
         {
             services.AddSingleton(DashboardLogger.Instance);
+            services.AddSingleton(Options.Create(options));
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
-            services.AddSingleton<IOptions<DashboardOptions>>(options);
             services.AddSingleton(grainFactory);
 
             return services;

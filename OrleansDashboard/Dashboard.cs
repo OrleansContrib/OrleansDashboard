@@ -7,40 +7,48 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Orleans;
-using Orleans.Providers;
 using Orleans.Runtime;
+using System.Threading;
 
 namespace OrleansDashboard
 {
-    public class Dashboard : IBootstrapProvider
+    public sealed class Dashboard : IStartupTask, IDisposable
     {
         private IWebHost host;
+        private readonly ILogger<Dashboard> logger;
+        private readonly ILocalSiloDetails localSiloDetails;
+        private readonly IGrainFactory grainFactory;
+        private readonly DashboardOptions dashboardOptions;
 
         public static int HistoryLength => 100;
 
-        public string Name { get; private set; }
-
-        public async Task Init(string name, IProviderRuntime providerRuntime, IProviderConfiguration config)
+        public Dashboard(
+            ILogger<Dashboard> logger,
+            ILocalSiloDetails localSiloDetails,
+            IGrainFactory grainFactory,
+            IOptions<DashboardOptions> dashboardOptions)
         {
-            Name = name;
+            this.logger = logger;
+            this.grainFactory = grainFactory;
+            this.localSiloDetails = localSiloDetails;
+            this.dashboardOptions = dashboardOptions.Value;
+        }
 
-            var options = providerRuntime.ServiceProvider.GetRequiredService<IOptions<DashboardOptions>>();
-
-            if (options.Value.HostSelf)
+        public Task Execute(CancellationToken cancellationToken)
+        {
+            if (dashboardOptions.HostSelf)
             {
-                var logger = providerRuntime.ServiceProvider.GetRequiredService<ILogger<Dashboard>>();
-
                 try
                 {
                     host =
                         new WebHostBuilder()
                             .ConfigureServices(services =>
                             {
-                                services.AddServicesForHostedDashboard(providerRuntime.GrainFactory, options);
+                                services.AddServicesForHostedDashboard(grainFactory, dashboardOptions);
                             })
                             .Configure(app =>
                             {
-                                if (options.Value.HasUsernameAndPassword())
+                                if (dashboardOptions.HasUsernameAndPassword())
                                 {
                                     // only when usename and password are configured
                                     // do we inject basicauth middleware in the pipeline
@@ -50,7 +58,7 @@ namespace OrleansDashboard
                                 app.UseOrleansDashboard();
                             })
                             .UseKestrel()
-                            .UseUrls($"http://{options.Value.Host}:{options.Value.Port}")
+                            .UseUrls($"http://{dashboardOptions.Host}:{dashboardOptions.Port}")
                             .Build();
 
                     host.Start();
@@ -60,7 +68,7 @@ namespace OrleansDashboard
                     logger.Error(10001, ex.ToString());
                 }
 
-                logger.LogInformation($"Dashboard listening on {options.Value.Port}");
+                logger.LogInformation($"Dashboard listening on {dashboardOptions.Port}");
             }
 
             // horrible hack to grab the scheduler
@@ -68,25 +76,26 @@ namespace OrleansDashboard
             // counters to grains
             SiloDispatcher.Setup();
 
-            await ActivateDashboardGrainAsync(providerRuntime);
-            await ActivateSiloGrainAsync(providerRuntime);
+            return Task.WhenAll(
+                ActivateDashboardGrainAsync(),
+                ActivateSiloGrainAsync());
         }
 
-        private static async Task ActivateSiloGrainAsync(IProviderRuntime providerRuntime)
+        private async Task ActivateSiloGrainAsync()
         {
-            var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
+            var siloGrain = grainFactory.GetGrain<ISiloGrain>(localSiloDetails.SiloAddress.ToParsableString());
 
-            await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
+            await siloGrain.SetVersion(GetOrleansVersion(), GetHostVersion());
         }
 
-        private static async Task ActivateDashboardGrainAsync(IProviderRuntime providerRuntime)
+        private async Task ActivateDashboardGrainAsync()
         {
-            var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
+            var dashboardGrain = grainFactory.GetGrain<IDashboardGrain>(0);
 
             await dashboardGrain.Init();
         }
 
-        public Task Close()
+        public void Dispose()
         {
             try
             {
@@ -106,8 +115,30 @@ namespace OrleansDashboard
             {
                 /* NOOP */
             }
+        }
 
-            return Task.CompletedTask;
+        private static string GetOrleansVersion()
+        {
+            return typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString();
+        }
+
+        private static string GetHostVersion()
+        {
+            try
+            {
+                var assembly = Assembly.GetEntryAssembly();
+
+                if (assembly != null)
+                {
+                    return assembly.GetName().Version.ToString();
+                }
+            }
+            catch
+            {
+                /* NOOP */
+            }
+
+            return "1.0.0.0";
         }
     }
 }
