@@ -20,10 +20,7 @@ Then add with programmatic configuration:
 
 ```c#
 new SiloHostBuilder()
-  .UseDashboard(options =>
-  {
-    options.HostSelf = true;
-  })
+  .UseDashboard(options => { })
   .Build();
 ```
 
@@ -31,16 +28,24 @@ Start the silo, and open this url in your browser: [`http://localhost:8080`](htt
 
 ## Configuring the Dashboard
 
-The dashboard supports the following attributes in the configuration:
+The dashboard supports the following properties for the configuration:
 
-* `Port` : Set the the number for the dashboard to listen on.
 * `Username` : Set a username for accessing the dashboard (basic auth).
 * `Password` : Set a password for accessing the dashboard (basic auth).
+* `Host` : Host name to bind the web server to (default is *).
+* `Port` : Set the the number for the dashboard to listen on (default is 8080).
+* `HostSelf` : Set the dashboard to host it's own http server (default is true).
 
-```xml
-<BootstrapProviders>
-    <Provider Type="OrleansDashboard.Dashboard" Name="Dashboard" Port="1234" Username="my_username" Password="my_password" />
-</BootstrapProviders>
+```c#
+new SiloHostBuilder()
+  .UseDashboard(options => { 
+    options.Username = "USERNAME";
+    options.Password = "PASSWORD";
+    options.Host = "*";
+    options.Port = 8080;
+    options.HostSelf = true;
+  })
+  .Build();
 ```
 
 ## Using the Dashboard
