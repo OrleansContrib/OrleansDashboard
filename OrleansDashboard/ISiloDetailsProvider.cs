@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Runtime;
@@ -67,12 +68,12 @@ namespace OrleansDashboard
             {
                 FaultZone = x.FaultZone,
                 HostName = x.HostName,
-                IAmAliveTime = x.IAmAliveTime.ToString("o"),
+                IAmAliveTime = x.IAmAliveTime.ToISOString(),
                 ProxyPort = x.ProxyPort,
                 RoleName = x.RoleName,
                 SiloAddress = x.SiloAddress.ToParsableString(),
                 SiloName = x.SiloName,
-                StartTime = x.StartTime.ToString("o"),
+                StartTime = x.StartTime.ToISOString(),
                 Status = x.Status.ToString(),
                 SiloStatus = x.Status,
                 UpdateZone = x.UpdateZone

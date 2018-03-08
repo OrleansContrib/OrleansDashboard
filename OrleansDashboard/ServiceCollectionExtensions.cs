@@ -29,11 +29,25 @@ namespace Orleans
         {
             services.Configure(configurator ?? (x => { }));
             services.AddIncomingGrainCallFilter<GrainProfiler>();
+            services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
+            services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
-            services.AddSingleton<ISiloDetailsProvider, SiloStatusOracleSiloDetailsProvider>();
             services.AddSingleton<ITelemetryProducer, DashboardTelemetryProducer>();
+            services.AddSingleton<ISiloDetailsProvider>(c =>
+            {
+                var membershipTable = c.GetService<IMembershipTable>();
+
+                if (membershipTable != null)
+                {
+                    return c.GetRequiredService<MembershipTableSiloDetailsProvider>();
+                }
+                else
+                {
+                    return c.GetRequiredService<SiloStatusOracleSiloDetailsProvider>();
+                }
+            });
 
             return services;
         }
