@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHostWindows", "TestHostWindows\TestHostWindows.csproj", "{DA563B35-345B-4586-B564-4276123DBDF0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{21E13CC2-0531-4FCF-821D-76DCD86ECB0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21E13CC2-0531-4FCF-821D-76DCD86ECB0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21E13CC2-0531-4FCF-821D-76DCD86ECB0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA563B35-345B-4586-B564-4276123DBDF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA563B35-345B-4586-B564-4276123DBDF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA563B35-345B-4586-B564-4276123DBDF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA563B35-345B-4586-B564-4276123DBDF0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
