@@ -28,7 +28,7 @@ namespace Orleans
             Action<DashboardOptions> configurator = null)
         {
             services.Configure(configurator ?? (x => { }));
-            services.AddIncomingGrainCallFilter<GrainProfiler>();
+            services.AddGrainCallFilter<GrainProfiler>();
             services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
