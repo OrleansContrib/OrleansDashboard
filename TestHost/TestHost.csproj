@@ -8,9 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
-    <PackageReference Include="Microsoft.Orleans.Client" Version="2.0.0-rc1" />
-    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="2.0.0-rc1" />
-    <PackageReference Include="Microsoft.Orleans.OrleansTelemetryConsumers.Counters" Version="2.0.0-rc1" />
+    <PackageReference Include="Microsoft.Orleans.Client" Version="2.0.0-rc2" />
+    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="2.0.0-rc2" />
+    <PackageReference Include="Microsoft.Orleans.OrleansTelemetryConsumers.Counters" Version="2.0.0-rc2" />
     <PackageReference Include="System.Management" Version="4.5.0-preview1-26216-02" />
   </ItemGroup>
 
