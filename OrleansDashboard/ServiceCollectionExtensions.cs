@@ -20,6 +20,7 @@ namespace Orleans
             builder.ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(Dashboard).Assembly));
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
+            builder.AddIncomingGrainCallFilter<GrainProfiler>();
 
             return builder;
         }
@@ -28,7 +29,6 @@ namespace Orleans
             Action<DashboardOptions> configurator = null)
         {
             services.Configure(configurator ?? (x => { }));
-            services.AddIncomingGrainCallFilter<GrainProfiler>();
             services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
