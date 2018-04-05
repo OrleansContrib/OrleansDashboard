@@ -18,6 +18,16 @@ namespace UnitTests
         }
 
         [Fact]
+        public void TestCustomType()
+        {
+            var example = "ExecuteAsync(CreateApp)";
+
+            var name = TypeFormatter.Parse(example);
+
+            Assert.Equal("ExecuteAsync(CreateApp)", name);
+        }
+
+        [Fact]
         public void TestFriendlyNameForStrings()
         {
             var example = "TestGrains.GenericGrain`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]";

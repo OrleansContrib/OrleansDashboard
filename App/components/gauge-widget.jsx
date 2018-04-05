@@ -48,11 +48,12 @@ module.exports = React.createClass({
 
     render:function(){
 		var percent = Math.floor(100 * this.props.value / this.props.max);
-        return <div ref="container" style={{textAlign:"center"}}>
+        return <div ref="container" style={{textAlign:"center", position:"relative", minHeight:"100px"}}>
             <h4>{this.props.title}</h4>
-			<div style={{position:"absolute", textAlign:"center", fontSize:"60px", fontWeight:"100", width:"90%", paddingTop:"60px"}}>{percent}%</div>
-            {this.renderChart()}
-            <span>{this.props.description}</span>
+			<div style={{position:"absolute", textAlign:"center", fontSize:"60px", fontWeight:"100", left:"0",right:"0", top:"50%", marginTop:"-45px"}}>{percent}%</div>
+			<div style={{position:"absolute", textAlign:"center", fontSize:"60px", fontWeight:"100", width:"100%", }}></div>
+            	{this.renderChart()}
+            <span style={{lineHeight:"40px"}}>{this.props.description}</span>
         </div>
     }
 

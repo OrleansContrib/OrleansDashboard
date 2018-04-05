@@ -20,7 +20,7 @@ module.exports = React.createClass({
         return <tr key={host}>
             <td><a href={"#/host/" + host}>{host}</a></td>
             <td><SiloState status={silo.status}/></td>
-            <td>up for {humanize(new Date().getTime() - new Date(silo.startTime).getTime(), { round: true, largest: 2  })}</td>
+            <td>{(silo.startTime) ? (<span>up for {humanize(new Date().getTime() - new Date(silo.startTime).getTime(), { round: true, largest: 2  })}</span>) : (<span>uptime is not available</span>)}</td>
             <td><span className="pull-right"><strong>{subTotal}</strong> <small>activations</small></span></td>
         </tr>
     },

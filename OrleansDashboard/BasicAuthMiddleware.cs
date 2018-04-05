@@ -3,18 +3,19 @@ using Microsoft.AspNetCore.Http.Features;
 using System;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace OrleansDashboard
 {
     internal class BasicAuthMiddleware
     {
         private readonly RequestDelegate next;
-        private readonly UserCredentials userCredentials;
+        private readonly DashboardOptions options;
 
-        public BasicAuthMiddleware(RequestDelegate next, UserCredentials userCredentials)
+        public BasicAuthMiddleware(RequestDelegate next, IOptions<DashboardOptions> options)
         {
             this.next = next;
-            this.userCredentials = userCredentials;
+            this.options = options.Value;
         }
 
         public Task Invoke(HttpContext context)
@@ -28,11 +29,12 @@ namespace OrleansDashboard
 
                 var parts = decodedString.Split(':');
 
-                if (parts.Length == 2 && parts[0] == userCredentials.Username && parts[1] == userCredentials.Password)
+                if (parts.Length == 2 && parts[0] == options.Username && parts[1] == options.Password)
                 {
                     return next(context);
                 }
             }
+
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = "Unauthorized";
             context.Response.Headers.Add("WWW-Authenticate", new[] { "Basic realm=\"OrleansDashboard\"" });

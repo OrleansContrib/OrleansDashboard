@@ -16,41 +16,36 @@ Using the Package Manager Console:
 PM> Install-Package OrleansDashboard
 ```
 
-Then add this bootstrap provider to your Orleans silo configuration:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<OrleansConfiguration xmlns="urn:orleans">
-  <Globals>
-    <BootstrapProviders>
-      <Provider Type="OrleansDashboard.Dashboard" Name="Dashboard" />
-    </BootstrapProviders>
-    ...
-```
-
-...or use programmatic configuration:
+Then add with programmatic configuration:
 
 ```c#
-var siloHost = new SiloHost(...);
-siloHost.InitializeOrleansSilo();
-siloHost.Config.Globals.RegisterDashboard(); // port, username and password can also be supplied
-siloHost.StartOrleansSilo();
+new SiloHostBuilder()
+  .UseDashboard(options => { })
+  .Build();
 ```
 
 Start the silo, and open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
 
 ## Configuring the Dashboard
 
-The dashboard supports the following attributes in the configuration:
+The dashboard supports the following properties for the configuration:
 
-* `Port` : Set the the number for the dashboard to listen on.
 * `Username` : Set a username for accessing the dashboard (basic auth).
 * `Password` : Set a password for accessing the dashboard (basic auth).
+* `Host` : Host name to bind the web server to (default is *).
+* `Port` : Set the the number for the dashboard to listen on (default is 8080).
+* `HostSelf` : Set the dashboard to host it's own http server (default is true).
 
-```xml
-<BootstrapProviders>
-    <Provider Type="OrleansDashboard.Dashboard" Name="Dashboard" Port="1234" Username="my_username" Password="my_password" />
-</BootstrapProviders>
+```c#
+new SiloHostBuilder()
+  .UseDashboard(options => { 
+    options.Username = "USERNAME";
+    options.Password = "PASSWORD";
+    options.Host = "*";
+    options.Port = 8080;
+    options.HostSelf = true;
+  })
+  .Build();
 ```
 
 ## Using the Dashboard
@@ -63,22 +58,34 @@ The dashboard will also relay trace information over http. You can view this in 
 
 ## Building the UI
 
+This is only required if you want to modify the user interface.
+
 The user interface is react.js, using browserify to compose the javascript delivered to the browser.
 The HTML and JS files are embedded resources within the dashboard DLL.
 
-To build the UI, you must have node.js installed, and browserify:
+To build the UI, you must have [node.js installed](https://nodejs.org/en/), and [browserify](http://browserify.org/):
 
 ```
 $ npm install browserify -g
 ```
 
-To build the `index.min.js` file, follow these steps.
+To build `index.min.js`, which contains the UI components and dependencies (), follow these steps.
 
 ```
 $ cd App
 $ npm install
-$ browserify -t babelify index.jsx --outfile ../OrleansDashboard/index.min.js
+$ browserify  -t babelify index.jsx  -g [ envify --NODE_ENV production ] -g uglifyify  | uglifyjs --compress warnings=false --mangle > ../OrleansDashboard/index.min.js
 ```
+
+Alternativelty you can call make (if you have it installed):
+
+```
+$ make
+```
+
+Either command will copy the bundled, minified javascript file into the correct place, for it to be picked up as an embedded resource in the .NET OrleansDashboard project.
+
+You will need to rebuild the OrleansDashboard project to see any changes.
 
 ## Dashboard API
 

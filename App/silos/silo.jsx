@@ -38,6 +38,19 @@ module.exports = React.createClass({
             return lambda(x);
         });
     },
+    
+    hasSeries:function(lambda){
+        var hasValue = false;
+
+        for (var key in this.props.data) {
+            var value = this.props.data[key];
+            if (value && lambda(value)) {
+                hasValue = true;
+            }
+        }
+
+        return hasValue;
+    },
 
     render:function(){
         if (!this.hasData(this.props.data)){
@@ -83,16 +96,51 @@ module.exports = React.createClass({
             configuration["Host version"] = this.props.siloProperties.hostVersion;
         }
 
+        var cpuGauge;
+        var memGauge;
+
+        if (this.hasSeries(x => x.cpuUsage > 0)) {
+            cpuGauge = (
+                <div>
+                    <Gauge value={last.cpuUsage} max={100} title="CPU Usage" description={Math.floor(last.cpuUsage) + "% utilisation"}/>
+                    <ChartWidget series={[this.querySeries(x => x.cpuUsage)]} />
+                </div>
+            );
+        } else {
+            cpuGauge = (
+                <div style={{textAlign:"center"}}>
+                    <h4>CPU Usage</h4>
+                    
+                    <div style={{lineHeight:"40px"}}>No data available</div>
+                </div>
+            );
+        }
+        
+        if (this.hasSeries(x => (x.totalPhysicalMemory - x.availableMemory) > 0)) {
+            memGauge = (
+                <div>
+                    <Gauge value={(last.totalPhysicalMemory || 0) - (last.availableMemory || 0)} max={(last.totalPhysicalMemory || 1)} title="Memory Usage"  description={Math.floor((last.availableMemory || 0) / (1024 * 1024)) + " MB free"}/>
+                    <ChartWidget series={[this.querySeries(x => (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024))]} />
+                </div>
+            );
+        } else {
+            memGauge = (
+                <div style={{textAlign:"center"}}>
+                    <h4>Memory Usage</h4>
+
+                    <div style={{lineHeight:"40px"}}>No data available</div>
+                </div>
+            );
+        }
+
         return <div>
                 <Panel title="Overview" >
                     <div className="row">
                         <div className="col-md-4">
-                            <Gauge value={last.cpuUsage} max={100} title="CPU Usage" description={Math.floor(last.cpuUsage) + "% utilisation"}/>
-                            <ChartWidget series={[this.querySeries(x => x.cpuUsage)]} />
+                            {cpuGauge}
                         </div>
                         <div className="col-md-4">
-                            <Gauge value={(last.totalPhysicalMemory || 0) - (last.availableMemory || 0)} max={(last.totalPhysicalMemory || 1)} title="Memory Usage"  description={Math.floor((last.availableMemory || 0) / (1024 * 1024)) + " MB free"}/>
-                            <ChartWidget series={[this.querySeries(x => (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024))]} />
+                            {memGauge}
                         </div>
                         <div className="col-md-4">
                             <Gauge value={last.recentlyUsedActivationCount} max={last.activationCount} title="Grain Usage"  description={last.activationCount + " activations, " + Math.floor(last.recentlyUsedActivationCount * 100 / last.activationCount) + "% recently used"}/>

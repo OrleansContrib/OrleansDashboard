@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
@@ -35,14 +34,14 @@ namespace OrleansDashboard
         {
             public Token(TokenType type, string value)
             {
-                this.Type = type;
-                this.Value = value;
+                Type = type;
+                Value = value;
             }
             public TokenType Type { get; set; }
             public string Value { get; set; }
             public override string ToString()
             {
-                return string.Format("{0} = {1}", this.Type, this.Value);
+                return string.Format("{0} = {1}", Type, Value);
             }
         }
 

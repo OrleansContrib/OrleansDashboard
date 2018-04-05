@@ -5,6 +5,7 @@ using OrleansDashboard;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace PerformanceTests
@@ -33,7 +34,7 @@ namespace PerformanceTests
         [Params(1000)]
         public int GrainCallsPerActivationCount { get; set; }
 
-        [Setup]
+        [GlobalSetup]
         public void Setup()
         {
             SetupAsync().Wait();
@@ -46,7 +47,7 @@ namespace PerformanceTests
             {
                 _silos.Add(new MembershipEntry
                 {
-                    SiloAddress = SiloAddress.NewLocalAddress(i)
+                    SiloAddress = NewSiloAddress(i)
                 });
             }
             _siloDetails = _silos.Select(x => new SiloDetails()
@@ -114,5 +115,8 @@ namespace PerformanceTests
         {
             _dashboardGrain.RecalculateCounters(_totalActivationCount, _siloDetails, _simpleGrainStatistics);
         }
+
+        private static SiloAddress NewSiloAddress(int generation) =>
+            SiloAddress.New(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 33333), generation);
     }
 }
