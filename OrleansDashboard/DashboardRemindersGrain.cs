@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Orleans;
-using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
@@ -16,8 +15,6 @@ namespace OrleansDashboard
 
         public async Task<ReminderResponse> GetReminders(int pageNumber, int pageSize)
         {
-            var pageStart = (pageNumber * pageSize) - pageSize;
-
             var reminderData = await _reminderTable.ReadRows(0, 0xffffffff);
 
             return new ReminderResponse {
@@ -34,35 +31,11 @@ namespace OrleansDashboard
             }; 
         }
 
-        private static string PrimaryKeyAsString(GrainReference grainRef)
-        {
-            if (grainRef.IsPrimaryKeyBasedOnLong())
-            {
-                // long
-                var pk = grainRef.GetPrimaryKeyLong(out var ext).ToString();
-                if (null == ext) return pk;
-                return $"{pk} + {ext}";
-            }
-
-            if (null != grainRef.GetPrimaryKeyString())
-            {
-                // string
-                return grainRef.GetPrimaryKeyString();
-            }
-    
-            // guid
-            var guidPk = grainRef.GetPrimaryKey(out var guidExt).ToString();
-            if (null == guidExt) return guidPk;
-            return $"{guidPk} + {guidExt}";
-        }
-
         private static ReminderInfo ToReminderInfo(ReminderEntry entry)
         {
-          
-
             return new ReminderInfo
             {
-                PrimaryKey = PrimaryKeyAsString(entry.GrainRef),
+                PrimaryKey = entry.GrainRef.PrimaryKeyAsString(),
                 GrainReference = entry.GrainRef.ToString(),
                 Name = entry.ReminderName,
                 StartAt = entry.StartAt,

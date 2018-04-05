@@ -1,22 +1,17 @@
-﻿using Orleans;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Orleans;
 
 namespace TestGrains
 {
-
-    public interface ITestGenericGrain<T,U> : IGrainWithStringKey
+    public interface ITestGenericGrain<T, U> : IGrainWithStringKey
     {
         Task<T> TestT(T value);
 
         Task<U> TestU(U value);
 
         Task<T> TestTU(T value1, U value2);
-
     }
+
     public class TestGenericGrain<T, U> : Grain, ITestGenericGrain<T, U>
     {
         public Task<T> TestT(T value)

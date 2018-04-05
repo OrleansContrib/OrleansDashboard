@@ -27,7 +27,7 @@ namespace OrleansDashboard
         public long Count { get; set; }
         public long ExceptionCount { get; set; }
         public double ElapsedTime { get; set; }
-        public string GrainAndMethod => $"{this.Grain}.{this.Method}";
+        public string GrainAndMethod => $"{Grain}.{Method}";
     }
 
     public class SiloDetails
@@ -55,8 +55,8 @@ namespace OrleansDashboard
             TotalActiveHostCountHistory = new Queue<int>();
             foreach (var x in Enumerable.Range(1, Dashboard.HistoryLength))
             {
-                this.TotalActivationCountHistory.Enqueue(0);
-                this.TotalActiveHostCountHistory.Enqueue(0);
+                TotalActivationCountHistory.Enqueue(0);
+                TotalActiveHostCountHistory.Enqueue(0);
             }
         }
 
@@ -90,7 +90,7 @@ namespace OrleansDashboard
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((GrainSiloKey)obj);
         }
 

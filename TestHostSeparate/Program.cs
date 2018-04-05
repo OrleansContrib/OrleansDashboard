@@ -1,17 +1,18 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Threading;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
-using Orleans.Statistics;
 using TestGrains;
 
 // ReSharper disable MethodSupportsCancellation
 
-namespace TestHost
+namespace TestHostSeparate
 {
     public static class Program
     {
@@ -25,8 +26,7 @@ namespace TestHost
                 new SiloHostBuilder()
                     .UseDashboard(options =>
                     {
-                        options.HostSelf = true;
-                        options.HideTrace = false;
+                        options.HostSelf = false;
                     })
                     .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
                     .UseInMemoryReminderService()
@@ -43,6 +43,7 @@ namespace TestHost
 
             var client =
                 new ClientBuilder()
+                    .UseDashboard()
                     .UseStaticClustering(options => options.Gateways.Add((new IPEndPoint(siloAddress, gatewayPort)).ToGatewayUri()))
                     .Configure<ClusterOptions>(options => options.ClusterId = "helloworldcluster")
                     .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
@@ -58,8 +59,29 @@ namespace TestHost
 
             TestCalls.Make(client, cts);
 
-            Console.WriteLine("Press key to exit...");
-            Console.ReadLine();
+            WebHost.CreateDefaultBuilder(args)
+                .ConfigureServices(services =>
+                {
+                    services.AddServicesForSelfHostedDashboard(client, options =>
+                    {
+                        options.HideTrace = true;
+                    });
+                })
+                .ConfigureLogging(builder =>
+                {
+                    builder.AddConsole();
+                })
+                .Configure(app =>
+                {
+                    app.UseOrleansDashboard();
+
+                    app.Map("/dashboard", d =>
+                    {
+                        d.UseOrleansDashboard();
+                    });
+                })
+                .Build()
+                .Run();
 
             cts.Cancel();
 

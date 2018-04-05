@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
@@ -30,12 +31,18 @@ namespace TestHost
                     })
                     .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
                     .UseInMemoryReminderService()
+                    .UsePerfCounterEnvironmentStatistics()
                     .ConfigureEndpoints(siloAddress, siloPort, gatewayPort)
                     .Configure<ClusterOptions>(options => options.ClusterId = "helloworldcluster")
                     .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
                         builder.AddConsole();
+                    })
+                    .ConfigureServices(services =>
+                    {
+                        // Workaround for https://github.com/dotnet/orleans/issues/4129
+                        services.AddSingleton(cp => cp.GetRequiredService<IHostEnvironmentStatistics>() as ILifecycleParticipant<ISiloLifecycle>);
                     })
                     .Build();
 

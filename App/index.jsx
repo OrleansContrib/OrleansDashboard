@@ -45,14 +45,14 @@ http.onError(showError);
 
 // continually poll the dashboard counters
 function loadDashboardCounters(){
-    http.get('/DashboardCounters', function(err, data){
+    http.get('DashboardCounters', function(err, data){
         dashboardCounters = data;
         events.emit('dashboard-counters', data);
     });
 }
 
 function getVersion() {
-    var version = '1.0.0';
+    var version = '2.0.0';
     var renderVersion = function(){
         ReactDom.render(<span id="version">v.{version}</span>, document.getElementById('version-content'));    
     }
@@ -96,7 +96,7 @@ routie('', function(){
 
     var clusterStats = {};
     var loadData = function(cb){
-        http.get('/ClusterStats', function(err, data){
+        http.get('ClusterStats', function(err, data){
             clusterStats = data;
             render();
         });
@@ -160,11 +160,11 @@ routie('/host/:host', function(host){
     var siloData = [];
     var siloStats = [];
     var loadData = function(cb){
-        http.get(`/HistoricalStats/${host}`, (err, data) => {
+        http.get(`HistoricalStats/${host}`, (err, data) => {
             siloData = data;
             render();
         });
-        http.get(`/SiloStats/${host}`, (err, data) => {
+        http.get(`SiloStats/${host}`, (err, data) => {
             siloStats = data;
             render();
         });
@@ -187,7 +187,7 @@ routie('/host/:host', function(host){
     events.on('dashboard-counters', render);
     events.on('refresh', loadData);
 
-    http.get('/SiloProperties/' + host, function(err, data){
+    http.get('SiloProperties/' + host, function(err, data){
         siloProperties = data;
         loadData();
     });
@@ -200,7 +200,7 @@ routie('/host/:host/counters', function(host){
     scroll();
     renderLoading();
 
-    http.get(`/SiloCounters/${host}`, (err, data) => {
+    http.get(`SiloCounters/${host}`, (err, data) => {
 
         var subTitle = <a href={`#/host/${host}`}>Silo Details</a>
         renderPage(<Page title={`Silo ${host}`} subTitle={subTitle}><SiloCounters silo={host} dashboardCounters={dashboardCounters} counters={data}/></Page>, "#/silos")
@@ -216,7 +216,7 @@ routie('/grain/:grainType', function(grainType){
 
     var grainStats = {};
     var loadData = function(cb){
-        http.get('/GrainStats/' + grainType, function(err, data){
+        http.get('GrainStats/' + grainType, function(err, data){
             grainStats = data;
             render();
         });
@@ -257,11 +257,7 @@ routie('/reminders/:page?', function(page){
     }
 
     var loadData = function(cb){
-        http.get(`/Reminders/${page}`, function(err, data){
-            var maxLastPage = Math.ceil(data.count / 25);
-            if (page > maxLastPage)
-                 rerouteToLastPage(maxLastPage)
-            else
+        http.get(`Reminders/${page}`, function(err, data){
             remindersData = data;
             renderReminders();
         });
@@ -276,7 +272,7 @@ routie('/trace', function(){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
-    var xhr = http.stream("/Trace");
+    var xhr = http.stream("Trace");
     renderPage(<LogStream xhr={xhr} />, "#/trace");
 });
 
@@ -289,7 +285,7 @@ routie.reload();
 
 
 function getMenu(){
-    return [
+    var result = [
         {
             name:"Overview",
             path:"#/",
@@ -309,11 +305,16 @@ function getMenu(){
             name:"Reminders",
             path:"#/reminders",
             icon:"fa-circle"
-        },
-        {
+        }
+    ];
+
+    if (!window.hideTrace) {
+        result.push({
             name:"Log Stream",
             path:"#/trace",
             icon:"fa-file-text"
-        }
-    ];
+        });
+    }
+
+    return result;
 }
