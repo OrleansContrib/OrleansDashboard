@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 
@@ -14,9 +13,9 @@ namespace OrleansDashboard
 {
     public class GrainProfiler : IIncomingGrainCallFilter
     {
-        private static readonly Func<IGrainCallContext, string> DefaultFormatter = c => c.Method?.Name ?? "Unknown";
+        private static readonly Func<IIncomingGrainCallContext, string> DefaultFormatter = c => c.Method?.Name ?? "Unknown";
 
-        private readonly Func<IGrainCallContext, string> formatMethodName;
+        private readonly Func<IIncomingGrainCallContext, string> formatMethodName;
         private readonly Timer timer;
         private readonly ILogger<GrainProfiler> logger;
         private readonly ILocalSiloDetails localSiloDetails;
@@ -37,7 +36,7 @@ namespace OrleansDashboard
             this.localSiloDetails = localSiloDetails;
             this.grainFactory = grainFactory;
 
-            formatMethodName = services.GetService<Func<IGrainCallContext, string>>() ?? DefaultFormatter;
+            formatMethodName = services.GetService<Func<IIncomingGrainCallContext, string>>() ?? DefaultFormatter;
 
             // register timer to report every second
             timer = new Timer(ProcessStats, null, 1 * 1000, 1 * 1000);
@@ -48,7 +47,7 @@ namespace OrleansDashboard
             timer.Dispose();
         }
 
-        public async Task Invoke(IGrainCallContext context)
+        public async Task Invoke(IIncomingGrainCallContext context)
         {
             if (siloAddress == null)
             {
@@ -111,7 +110,7 @@ namespace OrleansDashboard
                 }
             }
         }
-        
+
         private void ProcessStats(object state)
         {
             if (dispatcher.CanDispatch())

@@ -52,7 +52,7 @@ function loadDashboardCounters(){
 }
 
 function getVersion() {
-    var version = '1.0.0';
+    var version = '2.0.0';
     var renderVersion = function(){
         ReactDom.render(<span id="version">v.{version}</span>, document.getElementById('version-content'));    
     }

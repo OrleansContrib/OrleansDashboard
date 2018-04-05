@@ -61,6 +61,13 @@ namespace OrleansDashboard
                 return;
             }
 
+            if (request.Path == "/version")
+            {
+                await WriteJson(context, new { version = typeof (DashboardMiddleware).Assembly.GetName().Version.ToString() });
+
+                return;
+            }
+
             if (request.Path == "/DashboardCounters")
             {
                 var grain = grainFactory.GetGrain<IDashboardGrain>(0);
