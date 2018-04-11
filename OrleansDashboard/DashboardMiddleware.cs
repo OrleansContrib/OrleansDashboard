@@ -1,12 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Orleans;
+using System;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
@@ -18,7 +18,7 @@ namespace OrleansDashboard
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
-
+        const int REMINDER_PAGE_SIZE = 50;
         private readonly IExternalDispatcher dispatcher;
         private readonly IOptions<DashboardOptions> options;
         private readonly IGrainFactory grainFactory;
@@ -90,20 +90,36 @@ namespace OrleansDashboard
 
             if (request.Path == "/Reminders")
             {
-                var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.GetReminders(1, 25)).ConfigureAwait(false);
+                try
+                {
+                    var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
+                    var result = await dispatcher.DispatchAsync(() => grain.GetReminders(1, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                    await WriteJson(context, result);
+                }
+                catch
+                {
+                    // if reminders are not configured, the call to the grain will fail
+                    await WriteJson(context, new ReminderResponse { Reminders = new ReminderInfo[0], Count = 0 });
+                }
 
                 return;
             }
 
             if (request.Path.StartsWithSegments("/Reminders", out var pageString1) && int.TryParse(pageString1.ToValue(), out var page))
             {
-                var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.GetReminders(page, 25)).ConfigureAwait(false);
+                try
+                {
+                    var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
+                    var result = await dispatcher.DispatchAsync(() => grain.GetReminders(page, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                    await WriteJson(context, result);
+                }
+                catch
+                {
+                    // if reminders are not configured, the call to the grain will fail
+                    await WriteJson(context, new ReminderResponse { Reminders = new ReminderInfo[0], Count = 0 });
+                }
 
                 return;
             }
