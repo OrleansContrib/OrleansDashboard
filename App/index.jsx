@@ -24,7 +24,9 @@ var dashboardCounters = {};
 var routeIndex = 0;
 
 function scroll(){
-    window.scrollTo(0,0);
+    try{
+        document.getElementsByClassName("wrapper")[0].scrollTo(0,0);
+    } catch(e){}
 }
 
 ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
