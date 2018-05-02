@@ -90,19 +90,17 @@ namespace PerformanceTests
             var now = DateTime.UtcNow;
             foreach (var silo in _silos)
             {
-                var grainTracings = new List<GrainTraceEntry>();
+                var grainTracings = new List<SiloGrainTraceEntry>();
                 foreach (var grainType in _grainTypes)
                 {
                     foreach (var grainMethod in grainMethods)
                     {
-                        grainTracings.Add(new GrainTraceEntry
+                        grainTracings.Add(new SiloGrainTraceEntry
                         {
                             Count = GrainCallsPerActivationCount * GrainActivationPerSiloCount,
                             ElapsedTime = 50,
                             Grain = grainType,
-                            Method = grainMethod,
-                            Period = now,
-                            SiloAddress = silo.SiloAddress.ToParsableString()
+                            Method = grainMethod
                         });
                     }
                 }

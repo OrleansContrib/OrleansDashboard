@@ -95,7 +95,7 @@ namespace OrleansDashboard
 
             if (options.CounterUpdateIntervalMs > 0)
             {
-                timerInterval = TimeSpan.FromHours(options.CounterUpdateIntervalMs);
+                timerInterval = TimeSpan.FromMilliseconds(options.CounterUpdateIntervalMs);
             }
 
             if (timerInterval < DefaultTimerInterval)
