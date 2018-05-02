@@ -200,6 +200,9 @@ namespace OrleansDashboard
             var allGrainTrace = new List<GrainTraceEntry>(grainTrace.Length);
 
             var now = DateTime.UtcNow;
+            var retirementWindow = now.AddSeconds(-100);
+            history.RemoveAll(x => x.Period < retirementWindow);
+
             foreach (var entry in grainTrace)
             {
                 var grainTraceEntry = new GrainTraceEntry
@@ -236,9 +239,7 @@ namespace OrleansDashboard
                 }
             }
 
-            var retirementWindow = DateTime.UtcNow.AddSeconds(-100);
             history.AddRange(allGrainTrace);
-            history.RemoveAll(x => x.Period < retirementWindow);
 
             return Task.CompletedTask;
         }
