@@ -37,7 +37,7 @@ namespace OrleansDashboard
 
         internal static string ToPeriodString(this DateTime value)
         {
-            return value.ToString("o").Split('.').First();
+            return value.ToString("yyyy-MM-ddTHH:mm:ss");
         }
 
         internal static string ToISOString(this DateTime value)
