@@ -63,7 +63,7 @@ namespace OrleansDashboard
 
             counters.Hosts = hosts;
 
-            var aggregatedTotals = history.ToLookup(x => new GrainSiloKey(x.Grain, x.SiloAddress));
+            var aggregatedTotals = history.ToLookup(x => (x.Grain, x.SiloAddress));
 
             counters.SimpleGrainStats = simpleGrainStatistics.Select(x =>
             {
@@ -78,7 +78,7 @@ namespace OrleansDashboard
                     TotalSeconds = elapsedTime
                 };
 
-                foreach (var item in aggregatedTotals[new GrainSiloKey(grainName, siloAddress)])
+                foreach (var item in aggregatedTotals[(grainName, siloAddress)])
                 {
                     result.TotalAwaitTime += item.ElapsedTime;
                     result.TotalCalls += item.Count;
@@ -157,33 +157,19 @@ namespace OrleansDashboard
 
         public Task<Dictionary<string, GrainTraceEntry>> GetClusterTracing()
         {
-            var results = new Dictionary<string, GrainTraceEntry>();
-
-            foreach (var historicValue in history)
-            {
-                var key = historicValue.Period.ToPeriodString();
-
-                if (!results.TryGetValue(key, out var value))
-                {
-                    results[key] = value = new GrainTraceEntry
-                    {
-                        Period = historicValue.Period
-                    };
-                }
-
-                value.Count += historicValue.Count;
-                value.ElapsedTime += historicValue.ElapsedTime;
-                value.ExceptionCount += historicValue.ExceptionCount;
-            }
-
-            return Task.FromResult(results);
+            return GetTracings(history);
         }
 
         public Task<Dictionary<string, GrainTraceEntry>> GetSiloTracing(string address)
         {
+            return GetTracings(history.Where(x => string.Equals(x.SiloAddress, address, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        private Task<Dictionary<string, GrainTraceEntry>> GetTracings(IEnumerable<GrainTraceEntry> traces)
+        {
             var results = new Dictionary<string, GrainTraceEntry>();
 
-            foreach (var historicValue in history.Where(x => x.SiloAddress == address))
+            foreach (var historicValue in traces)
             {
                 var key = historicValue.Period.ToPeriodString();
 
@@ -209,21 +195,34 @@ namespace OrleansDashboard
             return Task.CompletedTask;
         }
 
-        public Task SubmitTracing(string siloIdentity, GrainTraceEntry[] grainTrace)
+        public Task SubmitTracing(string siloAddress, SiloGrainTraceEntry[] grainTrace)
         {
+            var allGrainTrace = new List<GrainTraceEntry>(grainTrace.Length);
+
             var now = DateTime.UtcNow;
             foreach (var entry in grainTrace)
             {
-                // sync clocks
-                entry.Period = now;
+                var grainTraceEntry = new GrainTraceEntry
+                {
+                    Count = entry.Count,
+                    ElapsedTime = entry.ElapsedTime,
+                    ExceptionCount = entry.ExceptionCount,
+                    Grain = entry.Grain,
+                    Method = entry.Method,
+                    Period = now,
+                    SiloAddress = siloAddress
+                };
+
+                allGrainTrace.Add(grainTraceEntry);
             }
 
             // fill in any previously captured methods which aren't in this reporting window
-            var allGrainTrace = new List<GrainTraceEntry>(grainTrace);
-            var values = history.Where(x => x.SiloAddress == siloIdentity).GroupBy(x => x.GrainAndMethod).Select(x => x.First());
+            var values = history.Where(x => string.Equals(x.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase)).GroupBy(x => (x.Grain, x.Method)).Select(x => x.First());
             foreach (var value in values)
             {
-                if (!grainTrace.Any(x => x.GrainAndMethod == value.GrainAndMethod))
+                if (!grainTrace.Any(x => 
+                    string.Equals(x.Grain, value.Grain, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(x.Method, value.Method, StringComparison.OrdinalIgnoreCase)))
                 {
                     allGrainTrace.Add(new GrainTraceEntry
                     {
@@ -232,7 +231,7 @@ namespace OrleansDashboard
                         Grain = value.Grain,
                         Method = value.Method,
                         Period = now,
-                        SiloAddress = siloIdentity
+                        SiloAddress = siloAddress
                     });
                 }
             }

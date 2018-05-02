@@ -21,7 +21,7 @@ namespace OrleansDashboard
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IExternalDispatcher dispatcher;
         private readonly IGrainFactory grainFactory;
-        private ConcurrentDictionary<string, GrainTraceEntry> grainTrace = new ConcurrentDictionary<string, GrainTraceEntry>();
+        private ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new ConcurrentDictionary<string, SiloGrainTraceEntry>();
         private string siloAddress;
 
         public GrainProfiler(
@@ -80,16 +80,16 @@ namespace OrleansDashboard
 
                     var key = string.Format("{0}.{1}", grainName, methodName);
 
+                    var exceptionCount = (isException ? 1 : 0);
+
                     grainTrace.AddOrUpdate(key, _ => 
-                        new GrainTraceEntry
+                        new SiloGrainTraceEntry
                         {
                             Count = 1,
-                            ExceptionCount = (isException ? 1 : 0),
-                            SiloAddress = siloAddress,
+                            ExceptionCount = exceptionCount,
                             ElapsedTime = elapsedMs,
                             Grain = grainName ,
-                            Method = methodName,
-                            Period = DateTime.UtcNow
+                            Method = methodName
                         },
                     (_, last) =>
                     {
@@ -98,7 +98,7 @@ namespace OrleansDashboard
 
                         if (isException)
                         {
-                            last.ExceptionCount += 1;
+                            last.ExceptionCount += exceptionCount;
                         }
 
                         return last;
@@ -115,7 +115,7 @@ namespace OrleansDashboard
         {
             if (dispatcher.CanDispatch())
             {
-                var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, GrainTraceEntry>());
+                var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, SiloGrainTraceEntry>());
 
                 var items = currentTrace.Values.ToArray();
 
