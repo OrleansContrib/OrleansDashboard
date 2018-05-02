@@ -54,33 +54,29 @@ namespace OrleansDashboard
 
             Counters.Hosts = hosts;
 
-            var aggregatedTotals = history
-                .GroupBy(x => new GrainSiloKey(x.Grain, x.SiloAddress))
-                .ToDictionary(g => g.Key, g => new AggregatedGrainTotals
-                {
-                    TotalAwaitTime = g.Sum(x => x.ElapsedTime),
-                    TotalCalls = g.Sum(x => x.Count),
-                    TotalExceptions = g.Sum(x => x.ExceptionCount)
-                });
+            var aggregatedTotals = history.ToLookup(x => new GrainSiloKey(x.Grain, x.SiloAddress));
 
             Counters.SimpleGrainStats = simpleGrainStatistics.Select(x =>
             {
                 var grainName = TypeFormatter.Parse(x.GrainType);
                 var siloAddress = x.SiloAddress.ToParsableString();
-                if (!aggregatedTotals.TryGetValue(new GrainSiloKey(grainName, siloAddress), out var totals))
-                {
-                    totals = new AggregatedGrainTotals();
-                }
-                return new SimpleGrainStatisticCounter
+
+                var result = new SimpleGrainStatisticCounter
                 {
                     ActivationCount = x.ActivationCount,
                     GrainType = grainName,
-                    SiloAddress = x.SiloAddress.ToParsableString(),
-                    TotalAwaitTime = totals.TotalAwaitTime,
-                    TotalCalls = totals.TotalCalls,
-                    TotalExceptions = totals.TotalExceptions,
+                    SiloAddress = siloAddress,
                     TotalSeconds = elapsedTime
                 };
+
+                foreach (var item in aggregatedTotals[new GrainSiloKey(grainName, siloAddress)])
+                {
+                    result.TotalAwaitTime += item.ElapsedTime;
+                    result.TotalCalls += item.Count;
+                    result.TotalExceptions += item.ExceptionCount;
+                }
+
+                return result;
             }).ToArray();
         }
 
@@ -114,20 +110,24 @@ namespace OrleansDashboard
             foreach (var historicValue in history.Where(x => x.Grain == grain))
             {
                 var grainMethodKey = $"{grain}.{historicValue.Method}";
-                if (!results.ContainsKey(grainMethodKey))
+
+                if (!results.TryGetValue(grainMethodKey, out var grainResults))
                 {
-                    results.Add(grainMethodKey, new Dictionary<string, GrainTraceEntry>());
+                    results[grainMethodKey] = grainResults = new Dictionary<string, GrainTraceEntry>();
                 }
-                var grainResults = results[grainMethodKey];
 
                 var key = historicValue.Period.ToPeriodString();
-                if (!grainResults.ContainsKey(key)) grainResults.Add(key, new GrainTraceEntry
+
+                if (!grainResults.TryGetValue(grainMethodKey, out var value))
                 {
-                    Grain = historicValue.Grain,
-                    Method = historicValue.Method,
-                    Period = historicValue.Period
-                });
-                var value = grainResults[key];
+                    grainResults[key] = value = new GrainTraceEntry
+                    {
+                        Grain = historicValue.Grain,
+                        Method = historicValue.Method,
+                        Period = historicValue.Period
+                    };
+                }
+
                 value.Count += historicValue.Count;
                 value.ElapsedTime += historicValue.ElapsedTime;
                 value.ExceptionCount += historicValue.ExceptionCount;
@@ -143,11 +143,15 @@ namespace OrleansDashboard
             foreach (var historicValue in history)
             {
                 var key = historicValue.Period.ToPeriodString();
-                if (!results.ContainsKey(key)) results.Add(key, new GrainTraceEntry
+
+                if (!results.TryGetValue(key, out var value))
                 {
-                    Period = historicValue.Period,
-                });
-                var value = results[key];
+                    results[key] = value = new GrainTraceEntry
+                    {
+                        Period = historicValue.Period
+                    };
+                }
+
                 value.Count += historicValue.Count;
                 value.ElapsedTime += historicValue.ElapsedTime;
                 value.ExceptionCount += historicValue.ExceptionCount;
@@ -163,11 +167,15 @@ namespace OrleansDashboard
             foreach (var historicValue in history.Where(x => x.SiloAddress == address))
             {
                 var key = historicValue.Period.ToPeriodString();
-                if (!results.ContainsKey(key)) results.Add(key, new GrainTraceEntry
+
+                if (!results.TryGetValue(key, out var value))
                 {
-                    Period = historicValue.Period,
-                });
-                var value = results[key];
+                    results[key] = value = new GrainTraceEntry
+                    {
+                        Period = historicValue.Period
+                    };
+                }
+
                 value.Count += historicValue.Count;
                 value.ElapsedTime += historicValue.ElapsedTime;
                 value.ExceptionCount += historicValue.ExceptionCount;
