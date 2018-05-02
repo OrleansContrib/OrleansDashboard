@@ -27,7 +27,16 @@ namespace OrleansDashboard
         public long Count { get; set; }
         public long ExceptionCount { get; set; }
         public double ElapsedTime { get; set; }
-        public string GrainAndMethod => $"{Grain}.{Method}";
+    }
+
+    [Serializable]
+    public class SiloGrainTraceEntry
+    {
+        public string Grain { get; set; }
+        public string Method { get; set; }
+        public long Count { get; set; }
+        public long ExceptionCount { get; set; }
+        public double ElapsedTime { get; set; }
     }
 
     public class SiloDetails
@@ -66,51 +75,6 @@ namespace OrleansDashboard
         public SimpleGrainStatisticCounter[] SimpleGrainStats { get; set; }
         public int TotalActivationCount { get; set; }
         public Queue<int> TotalActivationCountHistory { get; set; }
-    }
-
-    internal class GrainSiloKey
-    {
-        public GrainSiloKey(string grainName, string siloAddress)
-        {
-            GrainName = grainName;
-            SiloAddress = siloAddress;
-        }
-
-        public string GrainName { get; }
-
-        public string SiloAddress { get; }
-
-        protected bool Equals(GrainSiloKey other)
-        {
-            return string.Equals(GrainName, other.GrainName)
-                && string.Equals(SiloAddress, other.SiloAddress);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals((GrainSiloKey)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (GrainName.GetHashCode() * 397) ^ SiloAddress.GetHashCode();
-            }
-        }
-
-        public static bool operator ==(GrainSiloKey left, GrainSiloKey right)
-        {
-            return Equals(left, right);
-        }
-
-        public static bool operator !=(GrainSiloKey left, GrainSiloKey right)
-        {
-            return !Equals(left, right);
-        }
     }
 
     internal class AggregatedGrainTotals
