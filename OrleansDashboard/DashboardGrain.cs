@@ -1,9 +1,11 @@
-﻿using Orleans;
+﻿using Microsoft.Extensions.Options;
+using Orleans;
 using Orleans.Concurrency;
 using Orleans.Placement;
 using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,11 +15,18 @@ namespace OrleansDashboard
     [PreferLocalPlacement]
     public class DashboardGrain : Grain, IDashboardGrain
     {
-        private DashboardCounters Counters { get; set; }
-        private DateTime StartTime { get; set; }
+        private static readonly TimeSpan DefaultTimerInterval = TimeSpan.FromSeconds(1);
+        private readonly DashboardCounters counters = new DashboardCounters();
         private readonly List<GrainTraceEntry> history = new List<GrainTraceEntry>();
+        private readonly DashboardOptions options;
+        private readonly ISiloDetailsProvider siloDetailsProvider;
+        private DateTime startTime = DateTime.UtcNow;
 
-        private ISiloDetailsProvider siloDetailsProvider;
+        public DashboardGrain(IOptions<DashboardOptions> options, ISiloDetailsProvider siloDetailsProvider)
+        {
+            this.options = options.Value;
+            this.siloDetailsProvider = siloDetailsProvider;
+        }
         
         private async Task Callback(object _)
         {
@@ -34,29 +43,29 @@ namespace OrleansDashboard
         internal void RecalculateCounters(int activationCount, SiloDetails[] hosts,
             IList<SimpleGrainStatistic> simpleGrainStatistics)
         {
-            Counters.TotalActivationCount = activationCount;
+            counters.TotalActivationCount = activationCount;
 
-            Counters.TotalActiveHostCount = hosts.Count(x => x.SiloStatus == SiloStatus.Active);
-            Counters.TotalActivationCountHistory.Enqueue(activationCount);
-            Counters.TotalActiveHostCountHistory.Enqueue(Counters.TotalActiveHostCount);
+            counters.TotalActiveHostCount = hosts.Count(x => x.SiloStatus == SiloStatus.Active);
+            counters.TotalActivationCountHistory.Enqueue(activationCount);
+            counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount);
 
-            while (Counters.TotalActivationCountHistory.Count > Dashboard.HistoryLength)
+            while (counters.TotalActivationCountHistory.Count > Dashboard.HistoryLength)
             {
-                Counters.TotalActivationCountHistory.Dequeue();
+                counters.TotalActivationCountHistory.Dequeue();
             }
-            while (Counters.TotalActiveHostCountHistory.Count > Dashboard.HistoryLength)
+            while (counters.TotalActiveHostCountHistory.Count > Dashboard.HistoryLength)
             {
-                Counters.TotalActiveHostCountHistory.Dequeue();
+                counters.TotalActiveHostCountHistory.Dequeue();
             }
 
             // TODO - whatever max elapsed time
-            var elapsedTime = Math.Min((DateTime.UtcNow - StartTime).TotalSeconds, 100);
+            var elapsedTime = Math.Min((DateTime.UtcNow - startTime).TotalSeconds, 100);
 
-            Counters.Hosts = hosts;
+            counters.Hosts = hosts;
 
             var aggregatedTotals = history.ToLookup(x => new GrainSiloKey(x.Grain, x.SiloAddress));
 
-            Counters.SimpleGrainStats = simpleGrainStatistics.Select(x =>
+            counters.SimpleGrainStats = simpleGrainStatistics.Select(x =>
             {
                 var grainName = TypeFormatter.Parse(x.GrainType);
                 var siloAddress = x.SiloAddress.ToParsableString();
@@ -82,25 +91,35 @@ namespace OrleansDashboard
 
         public override Task OnActivateAsync()
         {
-            // note: normally we would use dependency injection
-            // but since we do not have access to the registered services collection 
-            // from within a bootstrapper we do it this way:
-            // first try to resolve from the container, if not present in container
-            // then instantiate the default
-            siloDetailsProvider =
-                (ServiceProvider.GetService(typeof(ISiloDetailsProvider)) as ISiloDetailsProvider)
-                ?? new MembershipTableSiloDetailsProvider(GrainFactory);
+            var timerInterval = DefaultTimerInterval;
 
+            if (options.CounterUpdateIntervalMs > 0)
+            {
+                timerInterval = TimeSpan.FromHours(options.CounterUpdateIntervalMs);
+            }
 
-            Counters = new DashboardCounters();
-            RegisterTimer(Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-            StartTime = DateTime.UtcNow;
+            if (timerInterval < DefaultTimerInterval)
+            {
+                timerInterval = DefaultTimerInterval;
+            }
+
+            try
+            {
+                RegisterTimer(Callback, null, timerInterval, timerInterval);
+            }
+            catch (InvalidOperationException)
+            {
+                Debug.WriteLine("Not running in Orleans runtime");
+            }
+
+            startTime = DateTime.UtcNow;
+
             return base.OnActivateAsync();
         }
 
         public Task<DashboardCounters> GetCounters()
         {
-            return Task.FromResult(Counters);
+            return Task.FromResult(counters);
         }
 
         public Task<Dictionary<string, Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain)

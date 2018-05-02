@@ -13,7 +13,7 @@ namespace OrleansDashboard
 {
     public class GrainProfiler : IIncomingGrainCallFilter
     {
-        private static readonly Func<IIncomingGrainCallContext, string> DefaultFormatter = c => c.Method?.Name ?? "Unknown";
+        private static readonly Func<IIncomingGrainCallContext, string> DefaultFormatter = c => c.ImplementationMethod?.Name ?? "Unknown";
 
         private readonly Func<IIncomingGrainCallContext, string> formatMethodName;
         private readonly Timer timer;
