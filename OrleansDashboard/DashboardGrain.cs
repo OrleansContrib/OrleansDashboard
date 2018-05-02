@@ -5,6 +5,7 @@ using Orleans.Placement;
 using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -106,7 +107,14 @@ namespace OrleansDashboard
                 timerInterval = DefaultTimerInterval;
             }
 
-            RegisterTimer(Callback, null, timerInterval, timerInterval);
+            try
+            {
+                RegisterTimer(Callback, null, timerInterval, timerInterval);
+            }
+            catch (InvalidOperationException)
+            {
+                Debug.WriteLine("Not running in Orleans runtime");
+            }
 
             startTime = DateTime.UtcNow;
 

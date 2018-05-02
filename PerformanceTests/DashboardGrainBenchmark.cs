@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Runtime;
 using OrleansDashboard;
@@ -77,7 +78,7 @@ namespace PerformanceTests
 
             _totalActivationCount = _simpleGrainStatistics.Sum(s => s.ActivationCount);
 
-            _dashboardGrain = new TestDashboardGrain();
+            _dashboardGrain = new TestDashboardGrain(Options.Create(new DashboardOptions()), new MembershipTableSiloDetailsProvider(null));
 
             var grainMethods = new List<string>();
             for (var i = 0; i < GrainMethodCount; i++)
