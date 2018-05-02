@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
+using System;
 
 namespace PerformanceTests
 {
@@ -7,6 +8,8 @@ namespace PerformanceTests
         private static void Main(string[] args)
         {
             BenchmarkRunner.Run<DashboardGrainBenchmark>();
+
+            Console.ReadLine();
         }
     }
 }
