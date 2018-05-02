@@ -182,13 +182,12 @@ You are connected to the Orleans Dashboard log streaming service
 
         private Task Dispatch(Func<Task> func)
         {
-            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None,
-                taskScheduler).Result;
+            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, taskScheduler).Unwrap();
         }
 
         private Task<T> Dispatch<T>(Func<Task<T>> func)
         {
-            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, taskScheduler).Result;
+            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, taskScheduler).Unwrap();
         }
     }
 }
