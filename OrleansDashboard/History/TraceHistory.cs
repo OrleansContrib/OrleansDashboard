@@ -126,14 +126,19 @@ namespace OrleansDashboard.History
 
         public IEnumerable<TraceAggregate> GroupByGrainAndSilo()
         {
-            return this.history.GroupBy(x => (x.Grain, x.SiloAddress)).Select(x => {
-                return new TraceAggregate{
-                    SiloAddress = x.Key.SiloAddress,
-                    Grain = x.Key.Grain,
-                    Count = x.Sum(y => y.Count),
-                    ExceptionCount = x.Sum(y => y.ExceptionCount),
-                    ElapsedTime = x.Sum(y => y.ElapsedTime)    
+            return this.history.GroupBy(x => (x.Grain, x.SiloAddress)).Select(group => {
+                var result = new TraceAggregate
+                {
+                    SiloAddress = group.Key.SiloAddress,
+                    Grain = group.Key.Grain
                 };
+                foreach (var record in group)
+                {
+                    result.Count += record.Count;
+                    result.ExceptionCount += record.ExceptionCount;
+                    result.ElapsedTime += record.ElapsedTime;
+                }
+                return result;
             });
         }
     }
