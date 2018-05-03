@@ -3,6 +3,7 @@ using Orleans;
 using Orleans.Concurrency;
 using Orleans.Placement;
 using Orleans.Runtime;
+using OrleansDashboard.History;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,7 +18,7 @@ namespace OrleansDashboard
     {
         private static readonly TimeSpan DefaultTimerInterval = TimeSpan.FromSeconds(1);
         private readonly DashboardCounters counters = new DashboardCounters();
-        private readonly List<GrainTraceEntry> history = new List<GrainTraceEntry>();
+        private readonly ITraceHistory history = new TraceHistory();
         private readonly DashboardOptions options;
         private readonly ISiloDetailsProvider siloDetailsProvider;
         private DateTime startTime = DateTime.UtcNow;
@@ -63,7 +64,8 @@ namespace OrleansDashboard
 
             counters.Hosts = hosts;
 
-            var aggregatedTotals = history.ToLookup(x => (x.Grain, x.SiloAddress));
+            var aggregatedTotals = history.GroupByGrainAndSilo().ToLookup(x => (x.Grain, x.SiloAddress));
+            //var aggregatedTotals = history.ToLookup(x => (x.Grain, x.SiloAddress));
 
             counters.SimpleGrainStats = simpleGrainStatistics.Select(x =>
             {
@@ -124,71 +126,19 @@ namespace OrleansDashboard
 
         public Task<Dictionary<string, Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain)
         {
-            var results = new Dictionary<string, Dictionary<string, GrainTraceEntry>>();
-
-            foreach (var historicValue in history.Where(x => x.Grain == grain))
-            {
-                var grainMethodKey = $"{grain}.{historicValue.Method}";
-
-                if (!results.TryGetValue(grainMethodKey, out var grainResults))
-                {
-                    results[grainMethodKey] = grainResults = new Dictionary<string, GrainTraceEntry>();
-                }
-
-                var key = historicValue.Period.ToPeriodString();
-
-                if (!grainResults.TryGetValue(grainMethodKey, out var value))
-                {
-                    grainResults[key] = value = new GrainTraceEntry
-                    {
-                        Grain = historicValue.Grain,
-                        Method = historicValue.Method,
-                        Period = historicValue.Period
-                    };
-                }
-
-                value.Count += historicValue.Count;
-                value.ElapsedTime += historicValue.ElapsedTime;
-                value.ExceptionCount += historicValue.ExceptionCount;
-            }
-
-            return Task.FromResult(results);
+            return Task.FromResult(history.QueryGrain(grain));
         }
 
         public Task<Dictionary<string, GrainTraceEntry>> GetClusterTracing()
         {
-            return GetTracings(history);
+            return Task.FromResult(this.history.QueryAll());
         }
 
         public Task<Dictionary<string, GrainTraceEntry>> GetSiloTracing(string address)
         {
-            return GetTracings(history.Where(x => string.Equals(x.SiloAddress, address, StringComparison.OrdinalIgnoreCase)));
+            return Task.FromResult(this.history.QuerySilo(address));
         }
-
-        private Task<Dictionary<string, GrainTraceEntry>> GetTracings(IEnumerable<GrainTraceEntry> traces)
-        {
-            var results = new Dictionary<string, GrainTraceEntry>();
-
-            foreach (var historicValue in traces)
-            {
-                var key = historicValue.Period.ToPeriodString();
-
-                if (!results.TryGetValue(key, out var value))
-                {
-                    results[key] = value = new GrainTraceEntry
-                    {
-                        Period = historicValue.Period
-                    };
-                }
-
-                value.Count += historicValue.Count;
-                value.ElapsedTime += historicValue.ElapsedTime;
-                value.ExceptionCount += historicValue.ExceptionCount;
-            }
-
-            return Task.FromResult(results);
-        }
-
+      
         public Task Init()
         {
             // just used to activate the grain
@@ -197,49 +147,7 @@ namespace OrleansDashboard
 
         public Task SubmitTracing(string siloAddress, SiloGrainTraceEntry[] grainTrace)
         {
-            var allGrainTrace = new List<GrainTraceEntry>(grainTrace.Length);
-
-            var now = DateTime.UtcNow;
-            var retirementWindow = now.AddSeconds(-100);
-            history.RemoveAll(x => x.Period < retirementWindow);
-
-            foreach (var entry in grainTrace)
-            {
-                var grainTraceEntry = new GrainTraceEntry
-                {
-                    Count = entry.Count,
-                    ElapsedTime = entry.ElapsedTime,
-                    ExceptionCount = entry.ExceptionCount,
-                    Grain = entry.Grain,
-                    Method = entry.Method,
-                    Period = now,
-                    SiloAddress = siloAddress
-                };
-
-                allGrainTrace.Add(grainTraceEntry);
-            }
-
-            // fill in any previously captured methods which aren't in this reporting window
-            var values = history.Where(x => string.Equals(x.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase)).GroupBy(x => (x.Grain, x.Method)).Select(x => x.First());
-            foreach (var value in values)
-            {
-                if (!grainTrace.Any(x => 
-                    string.Equals(x.Grain, value.Grain, StringComparison.OrdinalIgnoreCase) &&
-                    string.Equals(x.Method, value.Method, StringComparison.OrdinalIgnoreCase)))
-                {
-                    allGrainTrace.Add(new GrainTraceEntry
-                    {
-                        Count = 0,
-                        ElapsedTime = 0,
-                        Grain = value.Grain,
-                        Method = value.Method,
-                        Period = now,
-                        SiloAddress = siloAddress
-                    });
-                }
-            }
-
-            history.AddRange(allGrainTrace);
+            history.Add(DateTime.UtcNow, siloAddress, grainTrace);
 
             return Task.CompletedTask;
         }
