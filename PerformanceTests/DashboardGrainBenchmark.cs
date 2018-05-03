@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Runtime;
 using OrleansDashboard;
+using OrleansDashboard.History;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,109 +14,95 @@ namespace PerformanceTests
 {
     public class DashboardGrainBenchmark
     {
-        private List<MembershipEntry> _silos;
-        private List<string> _grainTypes;
-        private DashboardGrain _dashboardGrain;
-        private List<SimpleGrainStatistic> _simpleGrainStatistics;
-        private int _totalActivationCount;
-        private SiloDetails[] _siloDetails;
 
-        [Params(3)]
+        [Params(10)]
         public int SiloCount { get; set; }
 
-        [Params(50, 100, 200)]
+        [Params(50)]
         public int GrainTypeCount { get; set; }
 
         [Params(10)]
         public int GrainMethodCount { get; set; }
 
         [Params(100)]
-        public int GrainActivationPerSiloCount { get; set; }
-
-        [Params(1000)]
-        public int GrainCallsPerActivationCount { get; set; }
+        public int HistorySize {get;set;}
 
         [GlobalSetup]
         public void Setup()
         {
-            SetupAsync().Wait();
+            Setup(this.traceHistory);
         }
 
-        private async Task SetupAsync()
+        // multiple implementations of trace history could be tested here
+        ITraceHistory traceHistory = new TraceHistory();
+     
+        /* 
+        [Benchmark]
+        public void Test_Add_TraceHistory()
         {
-            _silos = new List<MembershipEntry>();
-            for (var i = 0; i < SiloCount; ++i)
-            {
-                _silos.Add(new MembershipEntry
-                {
-                    SiloAddress = NewSiloAddress(i)
-                });
-            }
-            _siloDetails = _silos.Select(x => new SiloDetails()
-            {
-                SiloAddress = x.SiloAddress.ToParsableString()
-            }).ToArray();
+            AddTraceData(DateTime.UtcNow, traceHistory);
+        }
+        */
 
-            _grainTypes = new List<string>();
-            for (int i = 0; i < GrainTypeCount; i++)
-            {
-                _grainTypes.Add("Grain" + Guid.NewGuid());
-            }
-
-            _simpleGrainStatistics = new List<SimpleGrainStatistic>();
-            foreach (var silo in _silos)
-            {
-                foreach (var grainType in _grainTypes)
-                {
-                    _simpleGrainStatistics.Add(new SimpleGrainStatistic
-                    {
-                        ActivationCount = GrainActivationPerSiloCount,
-                        GrainType = grainType,
-                        SiloAddress = silo.SiloAddress
-                    });
-                }
-            }
-
-            _totalActivationCount = _simpleGrainStatistics.Sum(s => s.ActivationCount);
-
-            _dashboardGrain = new TestDashboardGrain(Options.Create(new DashboardOptions()), new MembershipTableSiloDetailsProvider(null));
-
-            var grainMethods = new List<string>();
-            for (var i = 0; i < GrainMethodCount; i++)
-            {
-                grainMethods.Add("Method" + Guid.NewGuid());
-            }
-
-            await _dashboardGrain.OnActivateAsync().ConfigureAwait(false);
-            var now = DateTime.UtcNow;
-            foreach (var silo in _silos)
-            {
-                var grainTracings = new List<SiloGrainTraceEntry>();
-                foreach (var grainType in _grainTypes)
-                {
-                    foreach (var grainMethod in grainMethods)
-                    {
-                        grainTracings.Add(new SiloGrainTraceEntry
-                        {
-                            Count = GrainCallsPerActivationCount * GrainActivationPerSiloCount,
-                            ElapsedTime = 50,
-                            Grain = grainType,
-                            Method = grainMethod
-                        });
-                    }
-                }
-                await _dashboardGrain.SubmitTracing(silo.SiloAddress.ToParsableString(), grainTracings.ToArray())
-                    .ConfigureAwait(false);
-            }
+        [Benchmark]
+        public void Test_QueryAll_TraceHistory()
+        {
+            traceHistory.QueryAll();
         }
 
         [Benchmark]
-        public void Recalculate()
+        public void Test_QuerySilo_TraceHistory()
         {
-            _dashboardGrain.RecalculateCounters(_totalActivationCount, _siloDetails, _simpleGrainStatistics);
+            traceHistory.QuerySilo("SILO_0");
         }
 
-        private static SiloAddress NewSiloAddress(int generation) =>
-            SiloAddress.New(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 33333), generation);
+        [Benchmark]
+        public void Test_QueryGrain_TraceHistory()
+        {
+            traceHistory.QueryGrain("GRAIN_0");
+        }
+
+        [Benchmark]
+        public void Test_GroupByGrainAndSilo_TraceHistory()
+        {
+            traceHistory.GroupByGrainAndSilo().ToLookup(x => (x.Grain, x.SiloAddress));
+        }
+
+
+        void Setup(ITraceHistory history)
+        {
+            var start = DateTime.Now.AddSeconds(-this.HistorySize);
+            for (var timeIndex = 0; timeIndex < this.HistorySize; timeIndex++)
+            {
+                var time = start.AddSeconds(timeIndex);
+                AddTraceData(time, history);
+            }
+
+        }
+
+        void AddTraceData(DateTime time, ITraceHistory history)
+        {
+            for (var siloIndex = 0; siloIndex < this.SiloCount; siloIndex++)
+            {
+                var trace = new List<SiloGrainTraceEntry>();
+                for (var grainIndex = 0; grainIndex < this.GrainTypeCount; grainIndex++)
+                {
+                    for (var grainMethodIndex = 0; grainMethodIndex < this.GrainMethodCount; grainMethodIndex++)
+                    {
+                        trace.Add(new SiloGrainTraceEntry{
+                            ElapsedTime = 10,
+                            Count = 100,
+                            Method = $"METHOD_{grainMethodIndex}",
+                            Grain = $"GRAIN_{grainIndex}",
+                            ExceptionCount = 0
+                        });
+                    }
+                }
+                history.Add(time, $"SILO_{siloIndex}", trace.ToArray());
+            }
+        }
+
+
+     
     }
 }
