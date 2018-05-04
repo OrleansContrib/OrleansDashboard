@@ -23,21 +23,19 @@ namespace OrleansDashboard.History
         {
             var results = new Dictionary<string, GrainTraceEntry>();
 
-            foreach (var historicValue in traces)
+            foreach (var group in traces.GroupBy(x => x.PeriodKey))
             {
-                var key = historicValue.Period.ToPeriodString();
+                var entry = new GrainTraceEntry{
+                    Period = group.First().Period
+                };
 
-                if (!results.TryGetValue(key, out var value))
+                foreach (var item in group)
                 {
-                    results[key] = value = new GrainTraceEntry
-                    {
-                        Period = historicValue.Period
-                    };
+                    entry.Count += item.Count;
+                    entry.ElapsedTime += item.ElapsedTime;
+                    entry.ExceptionCount += item.ExceptionCount;
                 }
-
-                value.Count += historicValue.Count;
-                value.ElapsedTime += historicValue.ElapsedTime;
-                value.ExceptionCount += historicValue.ExceptionCount;
+                results.Add(group.Key, entry);
             }
 
             return results;
@@ -51,6 +49,7 @@ namespace OrleansDashboard.History
             var retirementWindow = now.AddSeconds(-100);
             history.RemoveAll(x => x.Period < retirementWindow);
 
+            var periodKey = now.ToPeriodString();
             foreach (var entry in grainTrace)
             {
                 var grainTraceEntry = new GrainTraceEntry
@@ -61,7 +60,8 @@ namespace OrleansDashboard.History
                     Grain = entry.Grain,
                     Method = entry.Method,
                     Period = now,
-                    SiloAddress = siloAddress
+                    SiloAddress = siloAddress,
+                    PeriodKey = periodKey
                 };
 
                 allGrainTrace.Add(grainTraceEntry);
@@ -82,7 +82,8 @@ namespace OrleansDashboard.History
                         Grain = value.Grain,
                         Method = value.Method,
                         Period = now,
-                        SiloAddress = siloAddress
+                        SiloAddress = siloAddress,
+                        PeriodKey = periodKey
                     });
                 }
             }
@@ -96,14 +97,15 @@ namespace OrleansDashboard.History
 
             foreach (var historicValue in history.Where(x => x.Grain == grain))
             {
-                var grainMethodKey = $"{grain}.{historicValue.Method}";
+                const string SEPARATOR = ".";
+                var grainMethodKey = string.Join(SEPARATOR, grain, historicValue.Method);
 
                 if (!results.TryGetValue(grainMethodKey, out var grainResults))
                 {
                     results[grainMethodKey] = grainResults = new Dictionary<string, GrainTraceEntry>();
                 }
 
-                var key = historicValue.Period.ToPeriodString();
+                var key = historicValue.PeriodKey;
 
                 if (!grainResults.TryGetValue(grainMethodKey, out var value))
                 {
