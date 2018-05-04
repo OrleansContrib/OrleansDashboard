@@ -20,6 +20,7 @@ namespace OrleansDashboard
     [Serializable]
     public class GrainTraceEntry
     {
+        public string PeriodKey {get;set;}
         public DateTime Period { get; set; }
         public string SiloAddress { get; set; }
         public string Grain { get; set; }
