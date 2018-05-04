@@ -35,15 +35,17 @@ namespace PerformanceTests
 
         // multiple implementations of trace history could be tested here
         ITraceHistory traceHistory = new TraceHistory();
-     
-        /* 
+        int time = 0;
+        DateTime startTime = DateTime.UtcNow;
+        
+
         [Benchmark]
         public void Test_Add_TraceHistory()
         {
-            AddTraceData(DateTime.UtcNow, traceHistory);
+            var now = startTime.AddSeconds(time++);
+            AddTraceData(now, traceHistory);
         }
-        */
-
+        
         [Benchmark]
         public void Test_QueryAll_TraceHistory()
         {
