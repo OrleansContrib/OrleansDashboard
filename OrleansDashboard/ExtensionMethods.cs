@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Orleans.Providers;
 using Orleans.Runtime.Configuration;
@@ -46,5 +47,11 @@ namespace OrleansDashboard
         {
             return value.ToString("o").Split('.').First();
         }
-    }
+
+
+        internal static string ToISOString(this DateTime value)
+        {
+            return value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
+        }
+}
 }

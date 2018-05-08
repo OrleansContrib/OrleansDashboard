@@ -6,6 +6,8 @@
 *.user
 *.userosscache
 *.sln.docstates
+BenchmarkDotNet.Artifacts/
+.vscode/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
