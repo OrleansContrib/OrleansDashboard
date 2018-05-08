@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Orleans.Runtime;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
@@ -28,6 +28,8 @@ namespace OrleansDashboard
         public long ExceptionCount { get; set; }
         public double ElapsedTime { get; set; }
         public string GrainAndMethod => $"{this.Grain}.{this.Method}";
+
+        public string PeriodKey { get; set; }
     }
 
     public class SiloDetails
@@ -44,6 +46,17 @@ namespace OrleansDashboard
         public int UpdateZone { get; set; }
         public SiloStatus SiloStatus { get; set; }
     }
+
+    [Serializable]
+    public class SiloGrainTraceEntry
+    {
+        public string Grain { get; set; }
+        public string Method { get; set; }
+        public long Count { get; set; }
+        public long ExceptionCount { get; set; }
+        public double ElapsedTime { get; set; }
+    }
+
 
     public class DashboardCounters
     {

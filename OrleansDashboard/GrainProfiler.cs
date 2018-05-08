@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Orleans;
+using Orleans.CodeGeneration;
+using Orleans.Providers;
+using Orleans.Runtime;
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Orleans;
-using Orleans.CodeGeneration;
-using Orleans.Providers;
-using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
@@ -90,15 +90,13 @@ namespace OrleansDashboard
 
                     grainTrace.AddOrUpdate(key, _ =>
                     {
-                        return new GrainTraceEntry
+                        return new SiloGrainTraceEntry
                         {
                             Count = 1,
                             ExceptionCount = (isException ? 1 : 0),
-                            SiloAddress = siloAddress,
                             ElapsedTime = elapsedMs,
                             Grain = grainName ,
                             Method = formatMethodName(targetMethod, request, grain),
-                            Period = DateTime.UtcNow
                         };
                     },
                     (_, last) =>
@@ -119,7 +117,7 @@ namespace OrleansDashboard
         }
 
         Timer timer = null;
-        ConcurrentDictionary<string, GrainTraceEntry> grainTrace = new ConcurrentDictionary<string, GrainTraceEntry>();
+        ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new ConcurrentDictionary<string, SiloGrainTraceEntry>();
 
         // publish stats to a grain
         void ProcessStats(object state)
@@ -128,7 +126,7 @@ namespace OrleansDashboard
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
 
             // flush the dictionary
-            GrainTraceEntry[] data;
+            SiloGrainTraceEntry[] data;
             lock (sync)
             {
                 data = this.grainTrace.Values.ToArray();

@@ -15,6 +15,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <AssemblyVersion>1.5.6.0</AssemblyVersion>
     <FileVersion>1.5.6.0</FileVersion>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
