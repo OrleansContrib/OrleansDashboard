@@ -26,10 +26,6 @@ namespace OrleansDashboard
                 stats.Enqueue(null);
             }
 
-            timer = this.RegisterTimer(this.Callback, true, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-
-            await Callback(false);
-
             await base.OnActivateAsync();
         }
 
@@ -61,10 +57,15 @@ namespace OrleansDashboard
             return Task.FromResult(this.stats.ToArray());
         }
 
-        public Task SetOrleansVersion(string version)
+        public async Task Init(SiloGrainSettings settings)
         {
-            this.Version = version;
-            return Task.CompletedTask;
+            if (null == settings) throw new ArgumentNullException(nameof(settings));
+
+            this.Version = settings.OrleansVersion;
+
+            if (null != timer) timer.Dispose();
+            timer = this.RegisterTimer(this.Callback, true, TimeSpan.FromMilliseconds(1000), TimeSpan.FromMilliseconds(settings.SiloSampleFrequncyMs));
+            await Callback(false);
         }
 
         public Task<Dictionary<string, string>> GetExtendedProperties()

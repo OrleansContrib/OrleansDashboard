@@ -18,6 +18,7 @@ namespace OrleansDashboard
         private DateTime StartTime { get; set; }
         private ITraceHistory history = new TraceHistory();
         private ISiloDetailsProvider siloDetailsProvider;
+        private IDisposable timer;
 
         private async Task Callback(object _)
         {
@@ -93,7 +94,6 @@ namespace OrleansDashboard
 
 
             this.Counters = new DashboardCounters();
-            this.RegisterTimer(this.Callback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
             this.StartTime = DateTime.UtcNow;
             return base.OnActivateAsync();
         }
@@ -118,9 +118,16 @@ namespace OrleansDashboard
             return Task.FromResult(this.history.QuerySilo(address));
         }
 
-        public Task Init()
+        public Task Init(DashboardGrainSettings settings)
         {
+            if (null == settings) throw new ArgumentNullException(nameof(settings));
+
             // just used to activate the grain
+            if (null == this.timer)
+            {
+                this.timer = this.RegisterTimer(this.Callback, null, TimeSpan.FromMilliseconds(1000), TimeSpan.FromMilliseconds(settings.GrainSampleFrequncyMs));
+            }
+
             return Task.CompletedTask;
         }
 

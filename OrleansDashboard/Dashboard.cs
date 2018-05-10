@@ -1,12 +1,12 @@
-﻿using System;
-using System.Diagnostics;
-using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Providers;
 using Orleans.Runtime;
+using System;
+using System.Diagnostics;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
@@ -62,7 +62,12 @@ namespace OrleansDashboard
 
             var username = config.Properties.ContainsKey("Username") ? config.Properties["Username"] : null;
             var password = config.Properties.ContainsKey("Password") ? config.Properties["Password"] : null;
-            
+
+            var disableTrace = config.Properties.ContainsKey("DisableTrace") ? bool.Parse(config.Properties["DisableTrace"]) : false;
+            var disableProfiling = config.Properties.ContainsKey("DisableProfiling") ? bool.Parse(config.Properties["DisableProfiling"]) : false;
+            var siloSampleFrequency = config.Properties.ContainsKey("SiloSampleFrequency") ? int.Parse(config.Properties["SiloSampleFrequency"]) : 1000;
+            var grainSampleFrequency = config.Properties.ContainsKey("GrainSampleFrequency") ? int.Parse(config.Properties["GrainSampleFrequency"]) : 1000;
+
             var credentials = new UserCredentials(username, password);
 
 
@@ -104,14 +109,27 @@ namespace OrleansDashboard
 
             this.logger.Verbose($"Dashboard listening on {port}");
 
-            this.profiler = new GrainProfiler(TaskScheduler.Current, providerRuntime);
+            if (!disableProfiling)
+            {
+                this.profiler = new GrainProfiler(TaskScheduler.Current, providerRuntime);
+            }
 
             var dashboardGrain = providerRuntime.GrainFactory.GetGrain<IDashboardGrain>(0);
-            await dashboardGrain.Init();
+            await dashboardGrain.Init(new DashboardGrainSettings {
+                GrainSampleFrequncyMs = grainSampleFrequency
+            });
 
             var siloGrain = providerRuntime.GrainFactory.GetGrain<ISiloGrain>(providerRuntime.ToSiloAddress());
-            await siloGrain.SetOrleansVersion(typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString());
-            Trace.Listeners.Add(dashboardTraceListener);
+            await siloGrain.Init(new SiloGrainSettings
+            {
+                OrleansVersion = typeof(SiloAddress).GetTypeInfo().Assembly.GetName().Version.ToString(),
+                SiloSampleFrequncyMs = siloSampleFrequency
+            });
+
+            if (!disableTrace)
+            {
+                Trace.Listeners.Add(dashboardTraceListener);
+            }
 
             // horrible hack to grab the scheduler
             // to allow the stats publisher to push

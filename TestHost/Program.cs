@@ -1,15 +1,13 @@
-﻿using System;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Microsoft.Extensions.DependencyInjection;
-
+﻿using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Orleans.CodeGeneration;
 using Orleans.Runtime.Configuration;
 using Orleans.TestingHost;
 using OrleansDashboard;
+using System;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using TestGrains;
 
 namespace TestHost
@@ -24,7 +22,7 @@ namespace TestHost
             // Deploy 3 silos
             var options = new TestClusterOptions(3);
             options.ClusterConfiguration.UseStartupType<Startup>();
-            options.ClusterConfiguration.Globals.RegisterDashboard();
+            options.ClusterConfiguration.Globals.RegisterDashboard(siloSampleFrequency : 10000, grainSampleFrequency : 10000);
             var cluster = new TestCluster(options);
             cluster.Deploy();
 

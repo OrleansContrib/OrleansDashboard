@@ -1,15 +1,18 @@
 ﻿using Orleans;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
+
+    public class DashboardGrainSettings
+    {
+        public int GrainSampleFrequncyMs { get; set; }
+    }
+
     public interface IDashboardGrain : IGrain, IGrainWithIntegerKey
     {
-        Task Init();
+        Task Init(DashboardGrainSettings settings);
 
         Task<DashboardCounters> GetCounters();
 
