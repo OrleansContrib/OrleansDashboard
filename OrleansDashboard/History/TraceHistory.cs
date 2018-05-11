@@ -47,7 +47,7 @@ namespace OrleansDashboard.History
             var allGrainTrace = new List<GrainTraceEntry>(grainTrace.Length);
 
             var retirementWindow = now.AddSeconds(-100);
-            history.RemoveAll(x => x.Period < retirementWindow);
+            history.RemoveAll(x => x.Period <= retirementWindow);
 
             var periodKey = now.ToPeriodString();
             foreach (var entry in grainTrace)
