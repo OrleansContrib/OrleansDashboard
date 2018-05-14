@@ -48,7 +48,7 @@ new SiloHostBuilder()
     options.Host = "*";
     options.Port = 8080;
     options.HostSelf = true;
-	options.CounterUpdateIntervalMs = 1000;
+    options.CounterUpdateIntervalMs = 1000;
   })
   .Build();
 ```
