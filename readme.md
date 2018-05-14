@@ -38,6 +38,7 @@ The dashboard supports the following properties for the configuration:
 * `Host` : Host name to bind the web server to (default is *).
 * `Port` : Set the the number for the dashboard to listen on (default is 8080).
 * `HostSelf` : Set the dashboard to host it's own http server (default is true).
+* `CounterUpdateIntervalMs` : The update interval in milliseconds between sampling counters (default is 1000).
 
 ```c#
 new SiloHostBuilder()
@@ -47,9 +48,12 @@ new SiloHostBuilder()
     options.Host = "*";
     options.Port = 8080;
     options.HostSelf = true;
+	options.CounterUpdateIntervalMs = 1000;
   })
   .Build();
 ```
+
+Note that some users have noticed performance degredation when using the dashboard. In this case it is recommended that you try increasing the `CounterUpdateIntervalMS` to 10000 to see if that helps.
 
 ## Using the Dashboard
 

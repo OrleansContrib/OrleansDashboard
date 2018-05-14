@@ -16,6 +16,7 @@ namespace OrleansDashboard
     [PreferLocalPlacement]
     public class DashboardGrain : Grain, IDashboardGrain
     {
+        const int DefaultTimerIntervalMs = 1000; // 1 second
         private static readonly TimeSpan DefaultTimerInterval = TimeSpan.FromSeconds(1);
         private readonly DashboardCounters counters = new DashboardCounters();
         private readonly ITraceHistory history = new TraceHistory();
@@ -93,21 +94,11 @@ namespace OrleansDashboard
 
         public override Task OnActivateAsync()
         {
-            var timerInterval = DefaultTimerInterval;
-
-            if (options.CounterUpdateIntervalMs > 0)
-            {
-                timerInterval = TimeSpan.FromMilliseconds(options.CounterUpdateIntervalMs);
-            }
-
-            if (timerInterval < DefaultTimerInterval)
-            {
-                timerInterval = DefaultTimerInterval;
-            }
-
+            var updateInterval =  TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
+       
             try
             {
-                RegisterTimer(Callback, null, timerInterval, timerInterval);
+                RegisterTimer(Callback, null, updateInterval, updateInterval);
             }
             catch (InvalidOperationException)
             {
