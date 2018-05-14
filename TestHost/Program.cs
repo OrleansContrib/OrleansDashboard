@@ -30,7 +30,11 @@ namespace TestHost
                     .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
                     .UseInMemoryReminderService()
                     .ConfigureEndpoints(siloAddress, siloPort, gatewayPort)
-                    .Configure<ClusterOptions>(options => options.ClusterId = "helloworldcluster")
+                    .Configure<ClusterOptions>(options => 
+                    {
+                        options.ClusterId = "helloworldcluster";
+                        options.ServiceId = "1";
+                    })
                     .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
@@ -43,7 +47,11 @@ namespace TestHost
             var client =
                 new ClientBuilder()
                     .UseStaticClustering(options => options.Gateways.Add((new IPEndPoint(siloAddress, gatewayPort)).ToGatewayUri()))
-                    .Configure<ClusterOptions>(options => options.ClusterId = "helloworldcluster")
+                    .Configure<ClusterOptions>(options => 
+                    {
+                        options.ClusterId = "helloworldcluster";
+                        options.ServiceId = "1";
+                    })
                     .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
