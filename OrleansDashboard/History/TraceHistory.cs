@@ -7,6 +7,7 @@ namespace OrleansDashboard.History
     public class TraceHistory : ITraceHistory
     {
 
+        const int HistoryLength = 100;
         private readonly List<GrainTraceEntry> history = new List<GrainTraceEntry>();
 
         public Dictionary<string, GrainTraceEntry> QueryAll()
@@ -46,7 +47,7 @@ namespace OrleansDashboard.History
         {
             var allGrainTrace = new List<GrainTraceEntry>(grainTrace.Length);
 
-            var retirementWindow = now.AddSeconds(-100);
+            var retirementWindow = now.AddSeconds(-HistoryLength);
             history.RemoveAll(x => x.Period <= retirementWindow);
 
             var periodKey = now.ToPeriodString();
@@ -142,6 +143,29 @@ namespace OrleansDashboard.History
                 }
                 return result;
             });
+        }
+
+        public IEnumerable<GrainMethodAggregate> AggregateByGrainMethod()
+        {
+            return history
+                .GroupBy(x => (x.Grain, x.Method))
+                .Select(x => {
+                    var aggregate = new GrainMethodAggregate 
+                    {
+                        Grain = x.Key.Grain,
+                        Method = x.Key.Method,
+                        NumberOfSamples = HistoryLength // this will give the wrong answer during the first 100 seconds
+                    };
+                    foreach (var value in x)
+                    {
+                        aggregate.Count += value.Count;
+                        aggregate.ElapsedTime += value.ElapsedTime;
+                        aggregate.ExceptionCount += value.ExceptionCount;
+                    }
+                    return aggregate;
+                });
+
+            
         }
     }
 }

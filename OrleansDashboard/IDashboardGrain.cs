@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Orleans;
+using OrleansDashboard.History;
 
 namespace OrleansDashboard
 {
@@ -17,5 +18,7 @@ namespace OrleansDashboard
         Task<Dictionary<string, GrainTraceEntry>> GetClusterTracing();
 
         Task<Dictionary<string, GrainTraceEntry>> GetSiloTracing(string address);
+
+        Task<Dictionary<string, GrainMethodAggregate[]>> TopGrainMethods();
     }
 }

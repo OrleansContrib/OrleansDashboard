@@ -174,6 +174,16 @@ namespace OrleansDashboard
                 return;
             }
 
+            if (request.Path == "/TopGrainMethods")
+            {
+                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
+                var result = await dispatcher.DispatchAsync(() => grain.TopGrainMethods()).ConfigureAwait(false);
+
+                await WriteJson(context, result);
+
+                return;
+            }
+
             if (request.Path == "/Trace")
             {
                 await TraceAsync(context);

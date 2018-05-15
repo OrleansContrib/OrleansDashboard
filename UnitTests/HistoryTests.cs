@@ -73,7 +73,7 @@ namespace UnitTests
             Add(history, 100);
 
             var grainDictionary = history.QueryGrain("GRAIN1");
-            Assert.Equal(1, grainDictionary.Keys.Count);
+            Assert.Single(grainDictionary.Keys);
             Assert.Equal("GRAIN1.METHOD1", grainDictionary.Keys.First());
             Assert.Equal(100, grainDictionary["GRAIN1.METHOD1"].Keys.Count);
         }
@@ -103,6 +103,23 @@ namespace UnitTests
             Assert.Equal(200 * 100, silo2Aggregate.ElapsedTime);
         }
 
+
+        [Fact]
+        public void TestTraceHistoryTopGrainMethods()
+        {
+            var history = new TraceHistory() as ITraceHistory;
+
+            Add(history, 100);
+
+            var results = history.AggregateByGrainMethod().ToList();
+
+            Assert.Single(results);
+            Assert.Equal(100 + (100 * 100), results.First().Count);
+            Assert.Equal(10 * 100, results.First().ExceptionCount);
+            Assert.Equal(1000 + (200 * 100), results.First().ElapsedTime);
+
+
+        }
 
 
     }
