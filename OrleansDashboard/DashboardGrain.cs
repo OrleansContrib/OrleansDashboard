@@ -129,6 +129,21 @@ namespace OrleansDashboard
         {
             return Task.FromResult(this.history.QuerySilo(address));
         }
+
+        public Task<Dictionary<string, GrainMethodAggregate[]>> TopGrainMethods()
+        {
+            const int numberOfResultsToReturn = 5;
+            
+            var values = history.AggregateByGrainMethod().ToList();
+            
+            return Task.FromResult(new Dictionary<string, GrainMethodAggregate[]>{
+                { "calls", values.OrderByDescending(x => x.Count).Take(numberOfResultsToReturn).ToArray() },
+                { "latency", values.OrderByDescending(x => x.ElapsedTime / (double) x.Count).Take(numberOfResultsToReturn).ToArray() },
+                { "errors", values.Where(x => x.ExceptionCount > 0 && x.Count > 0).OrderByDescending(x => x.ExceptionCount / x.Count).Take(numberOfResultsToReturn).ToArray() },
+            });
+
+        }
+
       
         public Task Init()
         {

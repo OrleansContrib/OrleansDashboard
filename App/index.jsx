@@ -97,16 +97,20 @@ routie('', function(){
     renderLoading();
 
     var clusterStats = {};
+    var grainMethodStats = [];
     var loadData = function(cb){
         http.get('ClusterStats', function(err, data){
             clusterStats = data;
-            render();
+            http.get('TopGrainMethods', function(err, grainMethodsData){
+                grainMethodStats = grainMethodsData
+                render();
+            })
         });
     }
 
     render = function(){
         if (routeIndex != thisRouteIndex) return;
-        renderPage(<Page title="Dashboard"><Overview dashboardCounters={dashboardCounters} clusterStats={clusterStats} /></Page>, "#/");
+        renderPage(<Page title="Dashboard"><Overview dashboardCounters={dashboardCounters} clusterStats={clusterStats} grainMethodStats={grainMethodStats} /></Page>, "#/");
     }
 
     events.on('dashboard-counters', render);
