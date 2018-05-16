@@ -70,6 +70,13 @@ namespace PerformanceTests
             traceHistory.GroupByGrainAndSilo().ToLookup(x => (x.Grain, x.SiloAddress));
         }
 
+        
+        [Benchmark]
+        public void Test_AggregateByGrainMethod_TraceHistory()
+        {
+            traceHistory.AggregateByGrainMethod().ToList();
+        }
+
 
         void Setup(ITraceHistory history)
         {

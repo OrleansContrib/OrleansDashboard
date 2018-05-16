@@ -292,6 +292,39 @@ Returns the current values for the Silo's counters.
 ]
 ```
 
+### Top Grain Methods
+
+```
+GET /TopGrainMethods
+```
+
+Returns the top 5 grain methods in terms of requests/sec, error rate and latency
+
+```js
+{
+  "calls": [
+    {
+      "grain": "TestGrains.TestGrain",
+      "method": "ExampleMethod2",
+      "count": 1621,
+      "exceptionCount": 783,
+      "elapsedTime": 343.75,
+      "numberOfSamples": 100
+    },
+    {
+      "grain": "TestGrains.TestGrain",
+      "method": "ExampleMethod1",
+      "count": 1621,
+      "exceptionCount": 0,
+      "elapsedTime": 91026.73,
+      "numberOfSamples": 100
+    }
+    ...
+  ],
+  "latency": [ ... ],
+  "errors": [ ... ],
+}
+```
 
 ### Reminders
 
