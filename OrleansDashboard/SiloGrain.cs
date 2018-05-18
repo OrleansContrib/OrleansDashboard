@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Orleans;
+using Orleans.Concurrency;
 using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
@@ -73,9 +74,9 @@ namespace OrleansDashboard
             }
         }
 
-        public Task<SiloRuntimeStatistics[]> GetRuntimeStatistics()
+        public Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics()
         {
-            return Task.FromResult(stats.ToArray());
+            return Task.FromResult(stats.ToArray().AsImmutable());
         }
 
         public Task SetVersion(string orleans, string host)
@@ -86,7 +87,7 @@ namespace OrleansDashboard
             return Task.CompletedTask;
         }
 
-        public Task<Dictionary<string, string>> GetExtendedProperties()
+        public Task<Immutable<Dictionary<string, string>>> GetExtendedProperties()
         {
             var results = new Dictionary<string, string>
             {
@@ -94,12 +95,12 @@ namespace OrleansDashboard
                 ["OrleansVersion"] = versionOrleans
             };
 
-            return Task.FromResult(results);
+            return Task.FromResult(results.AsImmutable());
         }
 
-        public Task ReportCounters(StatCounter[] counters)
+        public Task ReportCounters(Immutable<StatCounter[]> counters)
         {
-            foreach (var counter in counters)
+            foreach (var counter in counters.Value)
             {
                 this.counters[counter.Name] = counter;
             }
@@ -107,9 +108,9 @@ namespace OrleansDashboard
             return Task.CompletedTask;
         }
 
-        public Task<StatCounter[]> GetCounters()
+        public Task<Immutable<StatCounter[]>> GetCounters()
         {
-            return Task.FromResult(counters.Values.OrderBy(x => x.Name).ToArray());
+            return Task.FromResult(counters.Values.OrderBy(x => x.Name).ToArray().AsImmutable());
         }
     }
 }

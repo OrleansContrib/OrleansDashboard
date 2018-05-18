@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using Orleans.Concurrency;
 using Orleans.Runtime;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,12 +19,12 @@ namespace OrleansDashboard
     {
         Task SetVersion(string orleans, string host);
 
-        Task ReportCounters(StatCounter[] stats);
+        Task ReportCounters(Immutable<StatCounter[]> stats);
 
-        Task<Dictionary<string,string>> GetExtendedProperties();
+        Task<Immutable<Dictionary<string,string>>> GetExtendedProperties();
 
-        Task<SiloRuntimeStatistics[]> GetRuntimeStatistics();
+        Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics();
 
-        Task<StatCounter[]> GetCounters();
+        Task<Immutable<StatCounter[]>> GetCounters();
     }
 }

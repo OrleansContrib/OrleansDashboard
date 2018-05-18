@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using Orleans.Concurrency;
 using Orleans.Runtime;
 using System;
 using System.Collections.Concurrent;
@@ -110,7 +111,7 @@ namespace OrleansDashboard
                 {
                     var countersArray = counters.ToArray();
 
-                    dispatcher.DispatchAsync(() => grain.ReportCounters(countersArray));
+                    dispatcher.DispatchAsync(() => grain.ReportCounters(countersArray.AsImmutable()));
                 }
             }
         }
