@@ -112,7 +112,7 @@ namespace OrleansDashboard
 
         public Task<DashboardCounters> GetCounters()
         {
-            return Task.FromResult(counters.AsImmutable());
+            return Task.FromResult(counters);
         }
 
         public Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(string grain)
