@@ -73,7 +73,7 @@ namespace OrleansDashboard
                 var grain = grainFactory.GetGrain<IDashboardGrain>(0);
                 var result = await dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                await WriteJson(context, result.Value);
 
                 return;
             }

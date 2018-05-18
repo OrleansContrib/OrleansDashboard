@@ -8,12 +8,13 @@ namespace OrleansDashboard
 {
     public interface IDashboardGrain : IGrainWithIntegerKey
     {
+        [OneWay]
         Task Init();
-
-        Task<DashboardCounters> GetCounters();
 
         [OneWay]
         Task SubmitTracing(string siloAddress, Immutable<SiloGrainTraceEntry[]> grainCallTime);
+
+        Task<Immutable<DashboardCounters>> GetCounters();
 
         Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(string grain);
 

@@ -48,17 +48,8 @@ namespace OrleansDashboard
             counters.TotalActivationCount = activationCount;
 
             counters.TotalActiveHostCount = hosts.Count(x => x.SiloStatus == SiloStatus.Active);
-            counters.TotalActivationCountHistory.Enqueue(activationCount);
-            counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount);
-
-            while (counters.TotalActivationCountHistory.Count > Dashboard.HistoryLength)
-            {
-                counters.TotalActivationCountHistory.Dequeue();
-            }
-            while (counters.TotalActiveHostCountHistory.Count > Dashboard.HistoryLength)
-            {
-                counters.TotalActiveHostCountHistory.Dequeue();
-            }
+            counters.TotalActivationCountHistory = counters.TotalActivationCountHistory.Enqueue(activationCount).Dequeue();
+            counters.TotalActiveHostCountHistory = counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount).Dequeue();
 
             // TODO - whatever max elapsed time
             var elapsedTime = Math.Min((DateTime.UtcNow - startTime).TotalSeconds, 100);
@@ -110,9 +101,9 @@ namespace OrleansDashboard
             return base.OnActivateAsync();
         }
 
-        public Task<DashboardCounters> GetCounters()
+        public Task<Immutable<DashboardCounters>> GetCounters()
         {
-            return Task.FromResult(counters);
+            return Task.FromResult(counters.AsImmutable());
         }
 
         public Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(string grain)
