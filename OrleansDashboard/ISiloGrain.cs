@@ -17,8 +17,10 @@ namespace OrleansDashboard
 
     public interface ISiloGrain : IGrainWithStringKey
     {
+        [OneWay]
         Task SetVersion(string orleans, string host);
 
+        [OneWay]
         Task ReportCounters(Immutable<StatCounter[]> stats);
 
         Task<Immutable<Dictionary<string,string>>> GetExtendedProperties();
