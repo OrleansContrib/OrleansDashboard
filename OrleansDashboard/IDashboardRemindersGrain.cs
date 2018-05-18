@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Orleans;
+using Orleans.Concurrency;
 
 namespace OrleansDashboard
 {
@@ -12,6 +13,6 @@ namespace OrleansDashboard
 
     public interface IDashboardRemindersGrain : IGrainWithIntegerKey
     {
-        Task<ReminderResponse> GetReminders(int pageNumber, int pageSize);
+        Task<Immutable<ReminderResponse>> GetReminders(int pageNumber, int pageSize);
     }
 }

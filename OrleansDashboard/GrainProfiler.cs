@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using Orleans.Concurrency;
 
 namespace OrleansDashboard
 {
@@ -130,7 +131,7 @@ namespace OrleansDashboard
                     {
                         var dashboardGrain = grainFactory.GetGrain<IDashboardGrain>(0);
 
-                        await dashboardGrain.SubmitTracing(siloAddress, items).ConfigureAwait(false);
+                        await dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable()).ConfigureAwait(false);
                     }).Wait(30000);
                 }
                 catch (Exception ex)

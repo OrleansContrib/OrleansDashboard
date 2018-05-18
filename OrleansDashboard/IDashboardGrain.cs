@@ -1,24 +1,27 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Orleans;
+using Orleans.Concurrency;
 using OrleansDashboard.History;
 
 namespace OrleansDashboard
 {
     public interface IDashboardGrain : IGrainWithIntegerKey
     {
+        [OneWay]
         Task Init();
 
-        Task<DashboardCounters> GetCounters();
+        [OneWay]
+        Task SubmitTracing(string siloAddress, Immutable<SiloGrainTraceEntry[]> grainCallTime);
 
-        Task SubmitTracing(string siloAddress, SiloGrainTraceEntry[] grainCallTime);
+        Task<Immutable<DashboardCounters>> GetCounters();
 
-        Task<Dictionary<string, Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain);
+        Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(string grain);
 
-        Task<Dictionary<string, GrainTraceEntry>> GetClusterTracing();
+        Task<Immutable<Dictionary<string, GrainTraceEntry>>> GetClusterTracing();
 
-        Task<Dictionary<string, GrainTraceEntry>> GetSiloTracing(string address);
+        Task<Immutable<Dictionary<string, GrainTraceEntry>>> GetSiloTracing(string address);
 
-        Task<Dictionary<string, GrainMethodAggregate[]>> TopGrainMethods();
+        Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods();
     }
 }
