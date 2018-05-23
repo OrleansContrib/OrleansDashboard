@@ -24,6 +24,7 @@ namespace OrleansDashboard
         private readonly IGrainFactory grainFactory;
         private ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new ConcurrentDictionary<string, SiloGrainTraceEntry>();
         private string siloAddress;
+        private IDashboardGrain dashboardGrain;
 
         public GrainProfiler(
             ILogger<GrainProfiler> logger,
@@ -127,12 +128,12 @@ namespace OrleansDashboard
 
                 try
                 {
-                    dispatcher.DispatchAsync(async () =>
+                    dispatcher.DispatchAsync(() =>
                     {
-                        var dashboardGrain = grainFactory.GetGrain<IDashboardGrain>(0);
+                        this.dashboardGrain = this.dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
 
-                        await dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable()).ConfigureAwait(false);
-                    }).Wait(30000);
+                        return dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable());
+                    }).Ignore();
                 }
                 catch (Exception ex)
                 {
