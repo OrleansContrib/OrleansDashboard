@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
 using OrleansDashboard;
@@ -33,7 +32,8 @@ namespace Orleans
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-            services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
+            services.AddSingleton<SiloDispatcher>();
+            services.AddSingleton<IExternalDispatcher>(sp => sp.GetRequiredService<SiloDispatcher>());
             services.AddSingleton<ITelemetryProducer, DashboardTelemetryProducer>();
             services.AddSingleton<ISiloDetailsProvider>(c =>
             {
@@ -83,12 +83,12 @@ namespace Orleans
             return services;
         }
 
-        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory, DashboardOptions options)
+        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory, IExternalDispatcher dispatcher, DashboardOptions options)
         {
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton(Options.Create(options));
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-            services.AddSingleton<IExternalDispatcher, SiloDispatcher>();
+            services.AddSingleton(dispatcher);
             services.AddSingleton(grainFactory);
 
             return services;

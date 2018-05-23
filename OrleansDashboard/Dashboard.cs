@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Orleans;
@@ -18,6 +17,7 @@ namespace OrleansDashboard
         private readonly ILogger<Dashboard> logger;
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IGrainFactory grainFactory;
+        private readonly SiloDispatcher siloDispatcher;
         private readonly DashboardOptions dashboardOptions;
 
         public static int HistoryLength => 100;
@@ -26,10 +26,12 @@ namespace OrleansDashboard
             ILogger<Dashboard> logger,
             ILocalSiloDetails localSiloDetails,
             IGrainFactory grainFactory,
-            IOptions<DashboardOptions> dashboardOptions)
+            IOptions<DashboardOptions> dashboardOptions,
+            SiloDispatcher siloDispatcher)
         {
             this.logger = logger;
             this.grainFactory = grainFactory;
+            this.siloDispatcher = siloDispatcher;
             this.localSiloDetails = localSiloDetails;
             this.dashboardOptions = dashboardOptions.Value;
         }
@@ -44,7 +46,7 @@ namespace OrleansDashboard
                         new WebHostBuilder()
                             .ConfigureServices(services =>
                             {
-                                services.AddServicesForHostedDashboard(grainFactory, dashboardOptions);
+                                services.AddServicesForHostedDashboard(grainFactory, siloDispatcher, dashboardOptions);
                             })
                             .Configure(app =>
                             {
@@ -74,7 +76,7 @@ namespace OrleansDashboard
             // horrible hack to grab the scheduler
             // to allow the stats publisher to push
             // counters to grains
-            SiloDispatcher.Setup();
+            this.siloDispatcher.Setup();
 
             return Task.WhenAll(
                 ActivateDashboardGrainAsync(),
@@ -109,7 +111,7 @@ namespace OrleansDashboard
             try
             {
                 // Teardown the silo dispatcher to prevent deadlocks.
-                SiloDispatcher.Teardown();
+                this.siloDispatcher.Dispose();
             }
             catch
             {
