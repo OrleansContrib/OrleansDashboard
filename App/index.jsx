@@ -60,7 +60,7 @@ function getVersion() {
     }
 
     var loadData = function(cb){
-        http.get('/version', function(err, data){
+        http.get('version', function(err, data){
             version = data.version;
             renderVersion();
         });
