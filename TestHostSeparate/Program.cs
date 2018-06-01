@@ -37,7 +37,8 @@ namespace TestHostSeparate
                     {
                         options.ClusterId = "helloworldcluster";
                         options.ServiceId = "1";
-                    })                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
+                    })
+                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
                         builder.AddConsole();
@@ -54,7 +55,8 @@ namespace TestHostSeparate
                     {
                         options.ClusterId = "helloworldcluster";
                         options.ServiceId = "1";
-                    })                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
+                    })
+                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
                         builder.AddConsole();
