@@ -8,13 +8,13 @@
     <PackageTags>orleans dashboard metrics monitor</PackageTags>
     <Description>An admin dashboard for Microsoft Orleans</Description>
     <Company>OrleansContrib</Company>
-    <Version>2.0.5</Version>
+    <Version>2.0.6</Version>
     <Copyright>Copyright © 2018</Copyright>
     <Authors>OrleansContrib</Authors>
     <PackageIconUrl>http://dotnet.github.io/orleans/assets/logo.png</PackageIconUrl>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <AssemblyVersion>2.0.5</AssemblyVersion>
-    <FileVersion>2.0.5</FileVersion>
+    <AssemblyVersion>2.0.6</AssemblyVersion>
+    <FileVersion>2.0.6</FileVersion>
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 

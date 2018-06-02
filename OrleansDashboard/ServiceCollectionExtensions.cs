@@ -59,10 +59,19 @@ namespace Orleans
             return builder;
         }
 
-        public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app)
+        public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)
         {
-            app.UseMiddleware<DashboardMiddleware>();
-
+            if (options == null || string.IsNullOrEmpty(options.BasePath) || options.BasePath == "/")
+            {
+                app.UseMiddleware<DashboardMiddleware>();
+            }
+            else
+            {
+                //Make sure there is a leading slash
+                var basePath = options.BasePath.StartsWith("/") ? options.BasePath : "/" + options.BasePath;
+                app.Map(basePath, a => a.UseMiddleware<DashboardMiddleware>());
+            }
+                        
             return app;
         }
 

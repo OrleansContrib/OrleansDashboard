@@ -16,6 +16,8 @@
 
         public int Port { get; set; } = 8080;
 
+        public string BasePath { get; set; } = "/";
+
         public bool HasUsernameAndPassword()
         {
             return !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password);
