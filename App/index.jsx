@@ -1,23 +1,23 @@
-var http = require('./lib/http');
-var React = require('react');
-var ReactDom = require('react-dom');
-var routie = require('./lib/routie');
-var Silo = require('./silos/silo.jsx');
-var target = document.getElementById('content');
-var events = require('eventthing');
-var ThemeButtons = require('./components/theme-buttons.jsx');
-var Grain = require('./grains/grain.jsx');
-var Page = require('./components/page.jsx');
-var Loading = require('./components/loading.jsx');
-var Menu = require('./components/menu.jsx');
-var Grains = require('./grains/grains.jsx');
-var Silos = require('./silos/silos.jsx');
-var Overview = require('./overview/overview.jsx');
-var SiloState = require('./silos/silo-state-label.jsx');
-var Alert = require('./components/alert.jsx');
-var LogStream = require('./logstream/log-stream.jsx');
-var SiloCounters = require('./silos/silo-counters.jsx');
-var Reminders = require('./reminders/reminders.jsx');
+const http = require('./lib/http');
+const React = require('react');
+const ReactDom = require('react-dom');
+const routie = require('./lib/routie');
+const Silo = require('./silos/silo.jsx');
+const target = document.getElementById('content');
+const events = require('eventthing');
+const ThemeButtons = require('./components/theme-buttons.jsx');
+const Grain = require('./grains/grain.jsx');
+const Page = require('./components/page.jsx');
+const Loading = require('./components/loading.jsx');
+const Menu = require('./components/menu.jsx');
+const Grains = require('./grains/grains.jsx');
+const Silos = require('./silos/silos.jsx');
+const Overview = require('./overview/overview.jsx');
+const SiloState = require('./silos/silo-state-label.jsx');
+const Alert = require('./components/alert.jsx');
+const LogStream = require('./logstream/log-stream.jsx');
+const SiloCounters = require('./silos/silo-counters.jsx');
+const Reminders = require('./reminders/reminders.jsx');
 var timer;
 
 var dashboardCounters = {};
@@ -53,10 +53,16 @@ function loadDashboardCounters(){
     });
 }
 
+
+
 function getVersion() {
-    var version = '2.0.0';
+    var version = '2';
     var renderVersion = function(){
-        ReactDom.render(<span id="version">v.{version}</span>, document.getElementById('version-content'));    
+        ReactDom.render(<span id="version">
+            v.{version} 
+            <i style={{marginLeft:"12px", marginRight:"5px"}} className="fa fa-github"></i>
+            <a style={{color:"white", textDecoration:"underline"}} href="https://github.com/OrleansContrib/OrleansDashboard/">Source</a>
+        </span>, document.getElementById('version-content'));    
     }
 
     var loadData = function(cb){
