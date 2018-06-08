@@ -57,7 +57,7 @@ namespace OrleansDashboard
                                     app.UseMiddleware<BasicAuthMiddleware>();
                                 }
 
-                                app.UseOrleansDashboard();
+                                app.UseOrleansDashboard(dashboardOptions);
                             })
                             .UseKestrel()
                             .UseUrls($"http://{dashboardOptions.Host}:{dashboardOptions.Port}")
