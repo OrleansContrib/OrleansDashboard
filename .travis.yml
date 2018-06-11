@@ -1,6 +1,6 @@
 language: node_js
 install:
-  - npm install mocha eslint browserify -g
+  - npm install mocha eslint browserify eslint-plugin-react eslint-plugin-react -g
 before_script: cd App
 script:
   - npm install
