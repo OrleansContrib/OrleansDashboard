@@ -70,27 +70,17 @@ This is only required if you want to modify the user interface.
 The user interface is react.js, using browserify to compose the javascript delivered to the browser.
 The HTML and JS files are embedded resources within the dashboard DLL.
 
-To build the UI, you must have [node.js installed](https://nodejs.org/en/), and [browserify](http://browserify.org/):
+To build the UI, you must have [node.js](https://nodejs.org/en/) and npm installed. 
 
-```
-$ npm install browserify -g
-```
-
-To build `index.min.js`, which contains the UI components and dependencies (), follow these steps.
+To build `index.min.js`, which contains the UI components and dependencies, install the dependencies and run the build script using npm:
 
 ```
 $ cd App
 $ npm install
-$ browserify  -t babelify index.jsx  -g [ envify --NODE_ENV production ] -g uglifyify  | uglifyjs --compress warnings=false --mangle > ../OrleansDashboard/index.min.js
-```
-
-Alternatively you use npm:
-
-```
 $ npm run build
 ```
 
-Either command will copy the bundled, minified javascript file into the correct place, for it to be picked up as an embedded resource in the .NET OrleansDashboard project.
+This will copy the bundled, minified javascript file into the correct place for it to be picked up as an embedded resource in the .NET OrleansDashboard project.
 
 You will need to rebuild the OrleansDashboard project to see any changes.
 
