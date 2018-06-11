@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "scripts": {
+    "build": "npm run lint && npm run test && npm run browserify",
+    "lint": "eslint . --ext .js --ext .jsx",
+    "test": "mocha",
+    "browserify": "browserify  -t babelify index.jsx  -g [ envify --NODE_ENV production ] -g uglifyify  | uglifyjs --compress warnings=false --mangle > ../OrleansDashboard/index.min.js"
+  },  
   "dependencies": {
     "chart.js": "2.2.2",
     "eventthing": "^1.0.7",
@@ -18,9 +24,6 @@
     "envify": "^4.1.0",
     "uglify-js": "^3.1.3",
     "uglifyify": "^4.0.4"
-  },
-  "scripts": {
-    "test": "mocha"
   },
   "author": "Richard Astbury",
   "license": "MIT"

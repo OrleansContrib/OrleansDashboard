@@ -84,10 +84,10 @@ $ npm install
 $ browserify  -t babelify index.jsx  -g [ envify --NODE_ENV production ] -g uglifyify  | uglifyjs --compress warnings=false --mangle > ../OrleansDashboard/index.min.js
 ```
 
-Alternativelty you can call make (if you have it installed):
+Alternatively you use npm:
 
 ```
-$ make
+$ npm run build
 ```
 
 Either command will copy the bundled, minified javascript file into the correct place, for it to be picked up as an embedded resource in the .NET OrleansDashboard project.
