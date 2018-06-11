@@ -2,5 +2,8 @@ language: node_js
 install:
   - npm install mocha -g
 before_script: cd App
+script:
+  - npm install
+  - npm run build
 node_js:
   - "node"
