@@ -2,8 +2,6 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/ukphl1c0s9cuf4jl?svg=true)](https://ci.appveyor.com/project/richorama/orleansdashboard)
 
-> This project is alpha quality, and is published to collect community feedback.
-
 An admin dashboard for Microsoft Orleans.
 
 ![](screenshots/dashboard.png)
