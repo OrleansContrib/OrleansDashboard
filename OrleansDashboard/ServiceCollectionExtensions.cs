@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
 using OrleansDashboard;
@@ -34,7 +35,7 @@ namespace Orleans
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<SiloDispatcher>();
             services.AddSingleton<IExternalDispatcher>(sp => sp.GetRequiredService<SiloDispatcher>());
-            services.AddSingleton<ITelemetryProducer, DashboardTelemetryProducer>();
+            services.Configure<TelemetryOptions>(options => options.AddConsumer<DashboardTelemetryConsumer>());
             services.AddSingleton<ISiloDetailsProvider>(c =>
             {
                 var membershipTable = c.GetService<IMembershipTable>();
