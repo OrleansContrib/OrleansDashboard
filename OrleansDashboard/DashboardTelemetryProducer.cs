@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace OrleansDashboard
 {
-    public sealed class DashboardTelemetryProducer : ITelemetryProducer, IDisposable
+    public sealed class DashboardTelemetryConsumer : ITelemetryConsumer, IMetricTelemetryConsumer
     {
         public class Value<T>
         {
@@ -43,7 +43,7 @@ namespace OrleansDashboard
         private readonly Timer timer;
         private bool isClosed;
 
-        public DashboardTelemetryProducer(ILocalSiloDetails localSiloDetails, IGrainFactory grainFactory, IExternalDispatcher dispatcher)
+        public DashboardTelemetryConsumer(ILocalSiloDetails localSiloDetails, IGrainFactory grainFactory, IExternalDispatcher dispatcher)
         {
             this.localSiloDetails = localSiloDetails;
             this.grainFactory = grainFactory;
@@ -130,29 +130,5 @@ namespace OrleansDashboard
         {
             Close();
         }
-
-        [Obsolete]
-        public void TrackDependency(string name, string commandName, DateTimeOffset startTime, TimeSpan duration, bool success) { }
-
-        [Obsolete]
-        public void TrackEvent(string name, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null) { }
-
-        [Obsolete]
-        public void TrackRequest(string name, DateTimeOffset startTime, TimeSpan duration, string responseCode, bool success) { }
-
-        [Obsolete]
-        public void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null) { }
-
-        [Obsolete]
-        public void TrackTrace(string message) { }
-
-        [Obsolete]
-        public void TrackTrace(string message, Severity severityLevel) { }
-
-        [Obsolete]
-        public void TrackTrace(string message, Severity severityLevel, IDictionary<string, string> properties) { }
-
-        [Obsolete]
-        public void TrackTrace(string message, IDictionary<string, string> properties) { }
     }
 }
