@@ -7,6 +7,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Core" Version="$(OrleansPackageVersion)" />
     <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="$(OrleansPackageVersion)" />
-    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="$(OrleansPackageVersion)" />
+    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="2.0.4" />
   </ItemGroup>
 </Project>
