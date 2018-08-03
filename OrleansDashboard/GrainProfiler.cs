@@ -108,7 +108,7 @@ namespace OrleansDashboard
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(100002, "error recording results for grain", ex);
+                    logger.LogError(100002, ex, "error recording results for grain");
                 }
             }
         }
@@ -137,7 +137,7 @@ namespace OrleansDashboard
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(100001, "Exception thrown sending tracing to dashboard grain", ex);
+                    logger.LogWarning(100001, ex, "Exception thrown sending tracing to dashboard grain");
                 }
             }
         }
