@@ -24,7 +24,7 @@ new SiloHostBuilder()
 
 Start the silo, and open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
 
-Please note, the CPU and Memory metrics are only enabled on Windows when you add the [Microsoft.Orleans.OrleansTelemetryConsumers.Counters](https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Counters/) package.
+Please note, the CPU and Memory metrics are only enabled on Windows when you add the [Microsoft.Orleans.OrleansTelemetryConsumers.Counters](https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Counters/) package (not supported for .Net Core now).
 You also have to wait some time before you see the data.
 
 ## Configuring the Dashboard
