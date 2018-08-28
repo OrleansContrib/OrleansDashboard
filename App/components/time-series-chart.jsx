@@ -1,100 +1,127 @@
-var React = require('react');
+var React = require("react");
 var Chart = require("react-chartjs").Line;
 
-var colours = [
-    [120, 57, 136],
-    [236, 151, 31],
-    [236, 31, 31]
-];
 // this control is a bit of a temporary hack, until I have a multi-series chart widget
-module.exports = React.createClass({
-	getInitialState:function(){
-		return {width:0};
-	},
+module.exports = class TimeSeriesChart extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            width: 0
+        };
+        this.getWidth = this.getWidth.bind(this);
+    }
 
-    getWidth:function(){
-        if (!this.refs.container) return;
-		this.setState({width: this.refs.container.offsetWidth});
-	},
+    getWidth() {
+        if (!this.refs.container) {
+            return;
+        }
 
-    renderChart: function() {
-        if (this.state.width === 0) return setTimeout(this.getWidth,0)
+        this.setState({ width: this.refs.container.offsetWidth });
+    }
 
-		var data = {
-			labels: this.props.series[0].map(function(x){ return "" }),
-            datasets : [
+    renderChart() {
+        if (this.state.width === 0) {
+            return setTimeout(this.getWidth, 0);
+        }
+
+        var data = {
+            labels: this.props.timepoints.map(timepoint => {
+                if (timepoint) {
+                    try {
+                        if (new Date(timepoint).getSeconds() % 30 == 0) {
+                            return new Date(timepoint).toLocaleTimeString();
+                        }
+                    } catch (e) {
+                        // not a valid date string
+                    }
+                }
+
+                return "";
+            }),
+            datasets: [
                 {
                     label: "y2",
                     backgroundColor: `rgba(236,151,31,0)`,
                     borderColor: `rgba(236,151,31,0.8)`,
                     data: this.props.series[2],
-                    pointRadius:0,
-                    yAxisID:"y2"
+                    pointRadius: 0,
+                    yAxisID: "y2"
                 },
                 {
-                label: "y1",
-                backgroundColor: `rgba(246,31,31,0.8)`,
-				borderColor: `rgba(246,31,31,0)`,
-				data: this.props.series[0],
-                pointRadius:0,
-                yAxisID:"y1"
+                    label: "y1",
+                    backgroundColor: `rgba(246,31,31,0.8)`,
+                    borderColor: `rgba(246,31,31,0)`,
+                    data: this.props.series[0],
+                    pointRadius: 0,
+                    yAxisID: "y1"
                 },
                 {
                     label: "y1",
                     backgroundColor: `rgba(120,57,136,0.8)`,
                     borderColor: `rgba(120,57,136,0)`,
                     data: this.props.series[1],
-                    pointRadius:0,
-                    yAxisID:"y1"
+                    pointRadius: 0,
+                    yAxisID: "y1"
                 }
-
-            ]
-    	};
+            ],
+        };
 
         var options = {
-            legend:{display:false},
-            maintainAspectRatio:false,
-            animation:false,
-            showTooltips:false,
+            legend: { display: false },
+            maintainAspectRatio: false,
+            animation: false,
+            showTooltips: false,
             responsive: true,
-            hoverMode: 'label',
+            hoverMode: "label",
             stacked: false,
-            scales:
-            {
+            scales: {
                 xAxes: [
                     {
-                        display:true,
+                        display: true,
                         gridLines: {
                             offsetGridLines: false,
                             drawOnChartArea: false
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 0,
+                            minRotation: 0,
+                            fontSize: 9
                         }
                     }
                 ],
-                yAxes:[
+                yAxes: [
                     {
                         type: "linear",
                         display: true,
                         position: "left",
                         id: "y1",
-                        gridLines: { drawOnChartArea: false},
-                        ticks: { beginAtZero:true }
+                        gridLines: { drawOnChartArea: false },
+                        ticks: { beginAtZero: true }
                     },
                     {
                         type: "linear",
                         display: true,
                         position: "right",
                         id: "y2",
-                        gridLines: { drawOnChartArea: false},
-                        ticks: { beginAtZero:true }
+                        gridLines: { drawOnChartArea: false },
+                        ticks: { beginAtZero: true }
                     }
                 ]
             }
-        }
+        };
 
-        return <Chart data={data} options={options} width={this.state.width} height={180} />
-	},
-
-    render:function(){
-        return <div ref="container">{this.renderChart()}</div>
+        return (
+            <Chart
+                data={data}
+                options={options}
+                width={this.state.width}
+                height={180}
+            />
+        );
     }
-});
+
+    render() {
+        return <div ref="container">{this.renderChart()}</div>;
+    }
+};

@@ -4,24 +4,36 @@ var Panel = require('../components/panel.jsx');
 var Chart = require('../components/time-series-chart.jsx');
 var GrainMethodTable = require('../components/grain-method-table.jsx');
 
-var ClusterGraph = React.createClass({
-    render:function(){
-        var values = Object.keys(this.props.stats).map(key => this.props.stats[key]);
+const ClusterGraph = props => {
+    const values = [];
+    const timepoints = [];
+    Object.keys(props.stats).forEach(key => {
+        values.push(props.stats[key]);
+        timepoints.push(props.stats[key].period);
+    });
 
-        if (!values.length) return null;
-
-        while (values.length < 100){
-            values.unshift({count:0, elapsedTime :0, period:0, exceptionCount:0})
-        }
-
-        return <div>
-            <Chart series={[values.map(z => z.exceptionCount), values.map(z => z.count), values.map(z => z.count === 0 ? 0 : z.elapsedTime / z.count)]} />
-        </div>
+    if (!values.length) {
+        return null;
     }
-});
 
-module.exports = React.createClass({
-    render:function(){
+    while (values.length < 100) {
+        values.unshift({ count: 0, elapsedTime: 0, period: 0, exceptionCount: 0 });
+        timepoints.unshift("");
+    }
+
+    return <div>
+        <Chart
+            timepoints={timepoints}
+            series={[
+                values.map(z => z.exceptionCount),
+                values.map(z => z.count),
+                values.map(z => (z.count === 0 ? 0 : z.elapsedTime / z.count))
+            ]} />
+    </div>;
+};
+
+module.exports = class Overview extends React.Component {
+    render() {
         var stats = {
             activationCount: 0,
             totalSeconds: 0,
@@ -82,4 +94,4 @@ module.exports = React.createClass({
             </div>
         </div>
     }
-});
+}
