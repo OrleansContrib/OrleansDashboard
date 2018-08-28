@@ -83,11 +83,8 @@ module.exports = React.createClass({
     },
 
     render:function(){
-        var renderMethod = this.renderGraphs;
-
-        if (Object.keys(this.props.grainStats).length === 0) renderMethod = this.renderEmpty;
-
-        return renderMethod()
+        if (Object.keys(this.props.grainStats).length === 0) return this.renderEmpty();
+        return this.renderGraphs()
     }
 });
 
