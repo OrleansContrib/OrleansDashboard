@@ -7,7 +7,8 @@
     "build": "npm run lint && npm run test && npm run browserify",
     "lint": "eslint . --ext .js --ext .jsx",
     "test": "mocha",
-    "browserify": "browserify -t babelify index.jsx  -g [ envify --NODE_ENV production ] -g uglifyify  | uglifyjs --compress warnings=false --mangle > ../OrleansDashboard/index.min.js"
+    "browserify": "browserify -t babelify index.jsx  -g [ envify --NODE_ENV production ] -g uglifyify  | uglifyjs --compress warnings=false --mangle > ../OrleansDashboard/index.min.js",
+    "dev": "browserify -t babelify index.jsx  -g [ envify --NODE_ENV development ] > ../TestHost/index.min.js"
   },
   "dependencies": {
     "chart.js": "2.2.2",
