@@ -91,14 +91,11 @@ module.exports = class Grain extends React.Component {
 
             </div>
         </Page>
-    }
+    },
 
-    render() {
-        if (Object.keys(this.props.grainStats).length === 0) {
-            return this.renderEmpty();
-        }
-
-        return this.renderGraphs();
+    render:function(){
+        if (Object.keys(this.props.grainStats).length === 0) return this.renderEmpty();
+        return this.renderGraphs()
     }
 };
 

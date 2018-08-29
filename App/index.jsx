@@ -18,7 +18,6 @@ const Alert = require('./components/alert.jsx');
 const LogStream = require('./logstream/log-stream.jsx');
 const SiloCounters = require('./silos/silo-counters.jsx');
 const Reminders = require('./reminders/reminders.jsx');
-var timer;
 
 var dashboardCounters = {};
 var routeIndex = 0;
@@ -213,7 +212,7 @@ routie('/host/:host/counters', function(host){
     renderLoading();
 
     http.get(`SiloCounters/${host}`, (err, data) => {
-
+        if (routeIndex != thisRouteIndex) return;
         var subTitle = <a href={`#/host/${host}`}>Silo Details</a>
         renderPage(<Page title={`Silo ${host}`} subTitle={subTitle}><SiloCounters silo={host} dashboardCounters={dashboardCounters} counters={data}/></Page>, "#/silos")
     });
