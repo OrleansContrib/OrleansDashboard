@@ -91,9 +91,9 @@ module.exports = class Grain extends React.Component {
 
             </div>
         </Page>
-    },
+    }
 
-    render:function(){
+    render(){
         if (Object.keys(this.props.grainStats).length === 0) return this.renderEmpty();
         return this.renderGraphs()
     }
