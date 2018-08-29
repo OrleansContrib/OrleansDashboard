@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
@@ -14,9 +13,11 @@ namespace OrleansDashboard
 {
     public class GrainProfiler : IIncomingGrainCallFilter
     {
-        private static readonly Func<IIncomingGrainCallContext, string> DefaultFormatter = c => c.ImplementationMethod?.Name ?? "Unknown";
+        public delegate string GrainMethodFormatterDelegate(IIncomingGrainCallContext callContext);
 
-        private readonly Func<IIncomingGrainCallContext, string> formatMethodName;
+        public static readonly GrainMethodFormatterDelegate DefaultGrainMethodFormatter = c => c.ImplementationMethod?.Name ?? "Unknown";
+
+        private readonly GrainMethodFormatterDelegate formatMethodName;
         private readonly Timer timer;
         private readonly ILogger<GrainProfiler> logger;
         private readonly ILocalSiloDetails localSiloDetails;
@@ -30,7 +31,7 @@ namespace OrleansDashboard
             ILogger<GrainProfiler> logger,
             ILocalSiloDetails localSiloDetails,
             IExternalDispatcher dispatcher,
-            IServiceProvider services,
+            GrainMethodFormatterDelegate formatMethodName,
             IGrainFactory grainFactory)
         {
             this.dispatcher = dispatcher;
@@ -38,7 +39,7 @@ namespace OrleansDashboard
             this.localSiloDetails = localSiloDetails;
             this.grainFactory = grainFactory;
 
-            formatMethodName = services.GetService<Func<IIncomingGrainCallContext, string>>() ?? DefaultFormatter;
+            this.formatMethodName = formatMethodName;
 
             // register timer to report every second
             timer = new Timer(ProcessStats, null, 1 * 1000, 1 * 1000);
