@@ -1,12 +1,12 @@
 var React = require('react');
+var storage = require('../lib/storage');
 
 module.exports = React.createClass({
     getInitialState:function(){
+
         var style = document.getElementById("dark-theme-style");
-        var theme = "light"
-        if (localStorage){
-            theme = localStorage.getItem("theme") || "light";
-        }
+        let theme = storage.get("theme") || "light"
+        
         if (theme === "light"){
             style.setAttribute("media", "none");
         } else {
@@ -16,8 +16,7 @@ module.exports = React.createClass({
         return {light:(theme === "light")};
     },
     saveTheme:function(){
-        if (!localStorage) return;
-        localStorage.setItem("theme", this.state.light ? "light" : "dark");
+        storage.put("theme", this.state.light ? "light" : "dark")
     },
     pickLight:function(){
         var style = document.getElementById("dark-theme-style");

@@ -28,7 +28,7 @@ function scroll(){
     } catch(e){}
 }
 
-ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
+ReactDom.render(<ThemeButtons />, document.getElementById('button-toggles-content'));
 var errorTimer;
 function showError(message){
     ReactDom.render(<Alert onClose={closeError}>{message}</Alert>, document.getElementById('error-message-content'));
