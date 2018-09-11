@@ -6,7 +6,7 @@ module.exports = class GrainTable extends React.Component {
         this.state = {
             sortBy: "activationCount",
             sortByAsc: false
-        };
+            };
         this.handleChangeSort = this.handleChangeSort.bind(this)
     }
 
@@ -136,6 +136,7 @@ module.exports = class GrainTable extends React.Component {
             x.grainType = key;
             return x;
         });
+        
         values.sort(this.getSorter());
 
         return (
@@ -152,7 +153,7 @@ module.exports = class GrainTable extends React.Component {
                                     )
                             ) : null}
                         </th>
-                        <th />
+                        <th/>
                         <th
                             data-column="activationCount"
                             onClick={this.handleChangeSort}

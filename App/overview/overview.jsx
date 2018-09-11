@@ -11,7 +11,6 @@ const ClusterGraph = props => {
         values.push(props.stats[key]);
         timepoints.push(props.stats[key].period);
     });
-
     if (!values.length) {
         return null;
     }
@@ -20,29 +19,30 @@ const ClusterGraph = props => {
         values.unshift({ count: 0, elapsedTime: 0, period: 0, exceptionCount: 0 });
         timepoints.unshift("");
     }
-
+    var series0  = []
+    var series1 = []
+    var series2 = []
+    values.map(z => {
+        series0.push(z.exceptionCount),
+        series1.push(z.count),
+        series2.push((z.count === 0 ? 0 : z.elapsedTime / z.count))
+    });
     return <div>
         <Chart
             timepoints={timepoints}
             series={[
-                values.map(z => z.exceptionCount),
-                values.map(z => z.count),
-                values.map(z => (z.count === 0 ? 0 : z.elapsedTime / z.count))
+                series0,
+                series1,
+                series2
             ]} />
     </div>;
 };
 
 module.exports = class Overview extends React.Component {
     render() {
-        var stats = {
-            activationCount: 0,
-            totalSeconds: 0,
-            totalAwaitTime : 0,
-            totalCalls : 0,
-            totalExceptions : 0
-        };
+        var stats = { totalActivationCount: 0, totalSeconds: 0, totalAwaitTime: 0, totalCalls: 0, totalExceptions: 0 };
         this.props.dashboardCounters.simpleGrainStats.forEach(stat => {
-            stats.activationCount += stat.activationCount;
+            stats.totalActivationCount += stat.activationCount;
             stats.totalSeconds += stat.totalSeconds;
             stats.totalAwaitTime += stat.totalAwaitTime;
             stats.totalCalls += stat.totalCalls;
@@ -52,7 +52,7 @@ module.exports = class Overview extends React.Component {
         return <div>
             <div className="row">
                 <div className="col-md-6">
-                    <CounterWidget icon="cubes" counter={this.props.dashboardCounters.totalActivationCount} title="Total Activations" link="#/grains" />
+                    <CounterWidget icon="cubes" counter={stats.totalActivationCount} title="Total Activations" link="#/grains" />
                 </div>
                 <div className="col-md-6">
                     <CounterWidget icon="database" counter={this.props.dashboardCounters.totalActiveHostCount} title="Active Silos" link="#/silos" />
