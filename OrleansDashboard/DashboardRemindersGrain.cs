@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Concurrency;
+using OrleansDashboard.Client.Interfaces;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {

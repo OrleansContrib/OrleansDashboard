@@ -2,45 +2,45 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Client.Dispatchers
 {
     public class SiloDispatcher : IExternalDispatcher, IDisposable
     {
-        private TaskScheduler scheduler;
+        private TaskScheduler _scheduler;
 
         public Task DispatchAsync(Func<Task> action)
         {
-            if (scheduler == null)
+            if (_scheduler == null)
             {
                 throw new InvalidOperationException("The dispatcher has already been closed.");
             }
 
-            return Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, scheduler).Unwrap();
+            return Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, _scheduler).Unwrap();
         }
 
         public Task<T> DispatchAsync<T>(Func<Task<T>> action)
         {
-            if (scheduler == null)
+            if (_scheduler == null)
             {
                 throw new InvalidOperationException("The dispatcher has already been closed.");
             }
 
-            return Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, scheduler).Unwrap();
+            return Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, _scheduler).Unwrap();
         }
 
         public bool CanDispatch()
         {
-            return scheduler != null;
+            return _scheduler != null;
         }
 
         public void Setup()
         {
-            scheduler = TaskScheduler.Current;
+            _scheduler = TaskScheduler.Current;
         }
 
         public void Dispose()
         {
-            scheduler = null;
+            _scheduler = null;
         }
     }
 }

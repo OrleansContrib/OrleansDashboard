@@ -7,6 +7,7 @@ using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
 using OrleansDashboard;
+using OrleansDashboard.Client.Dispatchers;
 
 // ReSharper disable CheckNamespace
 
@@ -63,7 +64,7 @@ namespace Orleans
 
         public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)
         {
-            if (options == null || string.IsNullOrEmpty(options.BasePath) || options.BasePath == "/")
+            if (string.IsNullOrEmpty(options?.BasePath) || options.BasePath == "/")
             {
                 app.UseMiddleware<DashboardMiddleware>();
             }

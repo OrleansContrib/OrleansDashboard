@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestHostWindows", "TestHostWindows\TestHostWindows.csproj", "{2ED36673-6848-4F23-B664-295025B59819}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrleansDashboard.Client", "OrleansDashboard.Client\OrleansDashboard.Client.csproj", "{EE20CDCA-A0AF-49FC-83F4-C428E39E2C9D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{2ED36673-6848-4F23-B664-295025B59819}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2ED36673-6848-4F23-B664-295025B59819}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2ED36673-6848-4F23-B664-295025B59819}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE20CDCA-A0AF-49FC-83F4-C428E39E2C9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE20CDCA-A0AF-49FC-83F4-C428E39E2C9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE20CDCA-A0AF-49FC-83F4-C428E39E2C9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE20CDCA-A0AF-49FC-83F4-C428E39E2C9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

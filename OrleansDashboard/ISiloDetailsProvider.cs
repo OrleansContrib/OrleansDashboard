@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Runtime;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {
@@ -68,7 +69,7 @@ namespace OrleansDashboard
             {
                 FaultZone = x.FaultZone,
                 HostName = x.HostName,
-                IAmAliveTime = x.IAmAliveTime.ToISOString(),
+                AmAliveTime = x.IAmAliveTime.ToISOString(),
                 ProxyPort = x.ProxyPort,
                 RoleName = x.RoleName,
                 SiloAddress = x.SiloAddress.ToParsableString(),

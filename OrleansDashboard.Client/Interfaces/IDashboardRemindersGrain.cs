@@ -1,16 +1,10 @@
 ﻿using System.Threading.Tasks;
 using Orleans;
 using Orleans.Concurrency;
+using OrleansDashboard.Client.Model;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Client.Interfaces
 {
-    public sealed class ReminderResponse
-    {
-        public int Count { get; set; }
-
-        public ReminderInfo[] Reminders { get; set; }
-    }
-
     public interface IDashboardRemindersGrain : IGrainWithIntegerKey
     {
         Task<Immutable<ReminderResponse>> GetReminders(int pageNumber, int pageSize);
