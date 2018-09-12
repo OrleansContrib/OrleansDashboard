@@ -7,6 +7,9 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using OrleansDashboard.Client;
+using OrleansDashboard.Client.Dispatchers;
+using OrleansDashboard.Client.Model;
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
@@ -18,12 +21,15 @@ namespace OrleansDashboard
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
+
         const int REMINDER_PAGE_SIZE = 50;
         private readonly IExternalDispatcher dispatcher;
         private readonly IOptions<DashboardOptions> options;
         private readonly IGrainFactory grainFactory;
         private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
+
+        private readonly DashboardSiloClient _client;
 
         public DashboardMiddleware(RequestDelegate next, 
             IGrainFactory grainFactory, 
@@ -36,6 +42,8 @@ namespace OrleansDashboard
             this.options = options;
             this.logger = logger;
             this.next = next;
+
+            _client = new DashboardSiloClient(grainFactory,dispatcher);
         }
 
         public async Task Invoke(HttpContext context)
@@ -70,20 +78,14 @@ namespace OrleansDashboard
 
             if (request.Path == "/DashboardCounters")
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
-
-                await WriteJson(context, result.Value);
+                await WriteJson(context, await _client.DashboardCounters());
 
                 return;
             }
 
             if (request.Path == "/ClusterStats")
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(grain.GetClusterTracing).ConfigureAwait(false);
-
-                await WriteJson(context, result.Value);
+                await WriteJson(context, await _client.ClusterStats());
 
                 return;
             }
@@ -92,10 +94,7 @@ namespace OrleansDashboard
             {
                 try
                 {
-                    var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
-                    var result = await dispatcher.DispatchAsync(() => grain.GetReminders(1, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
-
-                    await WriteJson(context, result.Value);
+                    await WriteJson(context, await _client.Reminders(1, REMINDER_PAGE_SIZE));
                 }
                 catch
                 {
@@ -110,10 +109,7 @@ namespace OrleansDashboard
             {
                 try
                 {
-                    var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
-                    var result = await dispatcher.DispatchAsync(() => grain.GetReminders(page, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
-
-                    await WriteJson(context, result.Value);
+                    await WriteJson(context, await _client.Reminders(page, REMINDER_PAGE_SIZE));
                 }
                 catch
                 {
@@ -126,60 +122,42 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/HistoricalStats", out var remaining))
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(remaining.ToValue());
-                var result = await dispatcher.DispatchAsync(grain.GetRuntimeStatistics).ConfigureAwait(false);
-
-                await WriteJson(context, result.Value);
+                await WriteJson(context, await _client.HistoricalStats(remaining.ToValue()));
 
                 return;
             }
 
             if (request.Path.StartsWithSegments("/SiloProperties", out var address1))
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(address1.ToValue());
-                var result = await dispatcher.DispatchAsync(grain.GetExtendedProperties).ConfigureAwait(false);
-
-                await WriteJson(context, result.Value);
+                await WriteJson(context, await _client.SiloProperties(address1.ToValue()));
 
                 return;
             }
 
             if (request.Path.StartsWithSegments("/SiloStats", out var address2))
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.GetSiloTracing(address2.ToValue())).ConfigureAwait(false);
-
-                await WriteJson(context, result.Value);
+                await WriteJson(context, await _client.SiloStats(address2.ToValue()));
 
                 return;
             }
 
             if (request.Path.StartsWithSegments("/SiloCounters", out var address3))
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(address3.ToValue());
-                var result = await dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
-
-                await WriteJson(context, result.Value);
+                await WriteJson(context, await _client.SiloCounters(address3.ToValue()));
 
                 return;
             }
 
             if (request.Path.StartsWithSegments("/GrainStats", out var grainName1))
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.GetGrainTracing(grainName1.ToValue())).ConfigureAwait(false);
-
-                await WriteJson(context, result.Value);
+                await WriteJson(context, await _client.GrainStats(grainName1));
 
                 return;
             }
 
             if (request.Path == "/TopGrainMethods")
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.TopGrainMethods()).ConfigureAwait(false);
-
-                await WriteJson(context, result.Value);
+                await WriteJson(context, await _client.TopGrainMethods());
 
                 return;
             }

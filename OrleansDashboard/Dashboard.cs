@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Runtime;
 using System.Threading;
+using OrleansDashboard.Client.Dispatchers;
+using OrleansDashboard.Client.Interfaces;
 
 namespace OrleansDashboard
 {

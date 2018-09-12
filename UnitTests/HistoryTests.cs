@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using OrleansDashboard;
+using OrleansDashboard.Client.Model;
 using OrleansDashboard.History;
 using Xunit;
 

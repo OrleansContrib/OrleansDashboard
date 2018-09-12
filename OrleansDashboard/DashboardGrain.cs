@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using OrleansDashboard.Client.Interfaces;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {

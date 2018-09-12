@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard.History
 {
@@ -11,17 +12,6 @@ namespace OrleansDashboard.History
         public long Count { get; set; }
         public long ExceptionCount { get; set; }
         public double ElapsedTime { get; set; }
-    }
-
-    public struct GrainMethodAggregate
-    {
-        public string Grain { get; set; }
-        public string Method { get; set; }
-        public long Count { get; set; }
-        public long ExceptionCount { get; set; }
-        public double ElapsedTime { get; set; }
-        public long NumberOfSamples { get; set; }
-
     }
 
 
