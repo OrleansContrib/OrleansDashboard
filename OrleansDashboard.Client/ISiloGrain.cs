@@ -1,20 +1,12 @@
-﻿using Orleans;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using OrleansDashboard.Client.Model;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Client
 {
-    public class StatCounter
-    {
-        public string Name { get; set; }
-
-        public string Value { get; set; }
-
-        public string Delta { get; set; }
-    }
-
     public interface ISiloGrain : IGrainWithStringKey
     {
         [OneWay]
