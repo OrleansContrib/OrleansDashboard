@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Threading;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
+using OrleansDashboard.Dispatchers;
 
 namespace OrleansDashboard
 {

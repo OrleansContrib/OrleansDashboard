@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using OrleansDashboard.Client;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Dispatchers
 {
     public sealed class ClientDispatcher : IExternalDispatcher
     {

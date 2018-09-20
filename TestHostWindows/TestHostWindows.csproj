@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OrleansDashboard.Hosting\OrleansDashboard.Hosting.csproj" />
     <ProjectReference Include="..\OrleansDashboard\OrleansDashboard.csproj" />
     <ProjectReference Include="..\TestGrains\TestGrains.csproj" />
   </ItemGroup>

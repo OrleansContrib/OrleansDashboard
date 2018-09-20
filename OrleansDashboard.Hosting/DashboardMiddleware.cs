@@ -1,43 +1,46 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Orleans;
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
+using OrleansDashboard.Dispatchers;
+using IGrainFactory = Orleans.IGrainFactory;
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Hosting
 {
     public sealed class DashboardMiddleware
     {
+        private const int ReminderPageSize = 50;
+
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
-        const int REMINDER_PAGE_SIZE = 50;
-        private readonly IExternalDispatcher dispatcher;
-        private readonly IOptions<DashboardOptions> options;
-        private readonly IGrainFactory grainFactory;
-        private readonly DashboardLogger logger;
-        private readonly RequestDelegate next;
 
-        public DashboardMiddleware(RequestDelegate next, 
-            IGrainFactory grainFactory, 
+        private readonly IExternalDispatcher _dispatcher;
+        private readonly IGrainFactory _grainFactory;
+        private readonly DashboardLogger _logger;
+        private readonly RequestDelegate _next;
+        private readonly IOptions<HostingOptions> _options;
+
+        public DashboardMiddleware(RequestDelegate next,
+            IGrainFactory grainFactory,
             IExternalDispatcher dispatcher,
-            IOptions<DashboardOptions> options,
+            IOptions<HostingOptions> options,
             DashboardLogger logger)
         {
-            this.grainFactory = grainFactory;
-            this.dispatcher = dispatcher;
-            this.options = options;
-            this.logger = logger;
-            this.next = next;
+            _grainFactory = grainFactory;
+            _dispatcher = dispatcher;
+            _options = options;
+            _logger = logger;
+            _next = next;
         }
 
         public async Task Invoke(HttpContext context)
@@ -50,12 +53,14 @@ namespace OrleansDashboard
 
                 return;
             }
+
             if (request.Path == "/favicon.ico")
             {
                 await WriteFileAsync(context, "favicon.ico", "image/x-icon");
 
                 return;
             }
+
             if (request.Path == "/index.min.js")
             {
                 await WriteFileAsync(context, "index.min.js", "application/javascript");
@@ -65,15 +70,16 @@ namespace OrleansDashboard
 
             if (request.Path == "/version")
             {
-                await WriteJson(context, new { version = typeof (DashboardMiddleware).Assembly.GetName().Version.ToString() });
+                await WriteJson(context,
+                    new {version = typeof(DashboardMiddleware).Assembly.GetName().Version.ToString()});
 
                 return;
             }
 
             if (request.Path == "/DashboardCounters")
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
+                var grain = _grainFactory.GetGrain<IDashboardGrain>(0);
+                var result = await _dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
 
                 await WriteJson(context, result.Value);
 
@@ -82,8 +88,8 @@ namespace OrleansDashboard
 
             if (request.Path == "/ClusterStats")
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(grain.GetClusterTracing).ConfigureAwait(false);
+                var grain = _grainFactory.GetGrain<IDashboardGrain>(0);
+                var result = await _dispatcher.DispatchAsync(grain.GetClusterTracing).ConfigureAwait(false);
 
                 await WriteJson(context, result.Value);
 
@@ -94,33 +100,36 @@ namespace OrleansDashboard
             {
                 try
                 {
-                    var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
-                    var result = await dispatcher.DispatchAsync(() => grain.GetReminders(1, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
+                    var grain = _grainFactory.GetGrain<IDashboardRemindersGrain>(0);
+                    var result = await _dispatcher.DispatchAsync(() => grain.GetReminders(1, ReminderPageSize))
+                        .ConfigureAwait(false);
 
                     await WriteJson(context, result.Value);
                 }
                 catch
                 {
                     // if reminders are not configured, the call to the grain will fail
-                    await WriteJson(context, new ReminderResponse { Reminders = new ReminderInfo[0], Count = 0 });
+                    await WriteJson(context, new ReminderResponse {Reminders = new ReminderInfo[0], Count = 0});
                 }
 
                 return;
             }
 
-            if (request.Path.StartsWithSegments("/Reminders", out var pageString1) && int.TryParse(pageString1.ToValue(), out var page))
+            if (request.Path.StartsWithSegments("/Reminders", out var pageString1) &&
+                int.TryParse(pageString1.ToValue(), out var page))
             {
                 try
                 {
-                    var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
-                    var result = await dispatcher.DispatchAsync(() => grain.GetReminders(page, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
+                    var grain = _grainFactory.GetGrain<IDashboardRemindersGrain>(0);
+                    var result = await _dispatcher.DispatchAsync(() => grain.GetReminders(page, ReminderPageSize))
+                        .ConfigureAwait(false);
 
                     await WriteJson(context, result.Value);
                 }
                 catch
                 {
                     // if reminders are not configured, the call to the grain will fail
-                    await WriteJson(context, new ReminderResponse { Reminders = new ReminderInfo[0], Count = 0 });
+                    await WriteJson(context, new ReminderResponse {Reminders = new ReminderInfo[0], Count = 0});
                 }
 
                 return;
@@ -128,8 +137,8 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/HistoricalStats", out var remaining))
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(remaining.ToValue());
-                var result = await dispatcher.DispatchAsync(grain.GetRuntimeStatistics).ConfigureAwait(false);
+                var grain = _grainFactory.GetGrain<ISiloGrain>(remaining.ToValue());
+                var result = await _dispatcher.DispatchAsync(grain.GetRuntimeStatistics).ConfigureAwait(false);
 
                 await WriteJson(context, result.Value);
 
@@ -138,8 +147,8 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/SiloProperties", out var address1))
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(address1.ToValue());
-                var result = await dispatcher.DispatchAsync(grain.GetExtendedProperties).ConfigureAwait(false);
+                var grain = _grainFactory.GetGrain<ISiloGrain>(address1.ToValue());
+                var result = await _dispatcher.DispatchAsync(grain.GetExtendedProperties).ConfigureAwait(false);
 
                 await WriteJson(context, result.Value);
 
@@ -148,8 +157,9 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/SiloStats", out var address2))
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.GetSiloTracing(address2.ToValue())).ConfigureAwait(false);
+                var grain = _grainFactory.GetGrain<IDashboardGrain>(0);
+                var result = await _dispatcher.DispatchAsync(() => grain.GetSiloTracing(address2.ToValue()))
+                    .ConfigureAwait(false);
 
                 await WriteJson(context, result.Value);
 
@@ -158,8 +168,8 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/SiloCounters", out var address3))
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(address3.ToValue());
-                var result = await dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
+                var grain = _grainFactory.GetGrain<ISiloGrain>(address3.ToValue());
+                var result = await _dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
 
                 await WriteJson(context, result.Value);
 
@@ -168,8 +178,9 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/GrainStats", out var grainName1))
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.GetGrainTracing(grainName1.ToValue())).ConfigureAwait(false);
+                var grain = _grainFactory.GetGrain<IDashboardGrain>(0);
+                var result = await _dispatcher.DispatchAsync(() => grain.GetGrainTracing(grainName1.ToValue()))
+                    .ConfigureAwait(false);
 
                 await WriteJson(context, result.Value);
 
@@ -178,8 +189,8 @@ namespace OrleansDashboard
 
             if (request.Path == "/TopGrainMethods")
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.TopGrainMethods()).ConfigureAwait(false);
+                var grain = _grainFactory.GetGrain<IDashboardGrain>(0);
+                var result = await _dispatcher.DispatchAsync(() => grain.TopGrainMethods()).ConfigureAwait(false);
 
                 await WriteJson(context, result.Value);
 
@@ -193,7 +204,7 @@ namespace OrleansDashboard
                 return;
             }
 
-            await next(context);
+            await _next(context);
         }
 
         private static async Task WriteJson(HttpContext context, object content)
@@ -236,13 +247,10 @@ namespace OrleansDashboard
 
                 var basePath = context.Request.PathBase;
 
-                if (basePath != "/")
-                {
-                    basePath = basePath + "/";
-                }
+                if (basePath != "/") basePath = basePath + "/";
 
                 content = content.Replace("{{BASE}}", basePath);
-                content = content.Replace("{{HIDE_TRACE}}", options.Value.HideTrace.ToString().ToLowerInvariant());
+                content = content.Replace("{{HIDE_TRACE}}", _options.Value.HideTrace.ToString().ToLowerInvariant());
 
                 await context.Response.WriteAsync(content);
             }
@@ -250,7 +258,7 @@ namespace OrleansDashboard
 
         private async Task TraceAsync(HttpContext context)
         {
-            if (options.Value.HideTrace)
+            if (_options.Value.HideTrace)
             {
                 context.Response.StatusCode = 403;
                 return;
@@ -258,7 +266,7 @@ namespace OrleansDashboard
 
             var token = context.RequestAborted;
 
-            using (var writer = new TraceWriter(logger, context))
+            using (var writer = new TraceWriter(_logger, context))
             {
                 await writer.WriteAsync(@"
    ____       _                        _____            _     _                         _
@@ -280,14 +288,9 @@ You are connected to the Orleans Dashboard log streaming service
         {
             var file = new FileInfo(name);
 
-            if (file.Exists)
-            {
-                return file.OpenRead();
-            }
-            else
-            {
-                return assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
-            }
+            if (file.Exists) return file.OpenRead();
+
+            return assembly.GetManifestResourceStream($"OrleansDashboard.Hosting.{name}");
         }
     }
 }
