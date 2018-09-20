@@ -8,6 +8,8 @@ using Orleans;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using Orleans.Concurrency;
+using OrleansDashboard.Client;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {

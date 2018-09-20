@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OrleansDashboard.Client.Model;
+using OrleansDashboard.Client.Model.History;
 
 namespace OrleansDashboard.History
 {

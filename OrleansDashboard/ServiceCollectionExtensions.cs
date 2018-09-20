@@ -17,7 +17,7 @@ namespace Orleans
         public static ISiloHostBuilder UseDashboard(this ISiloHostBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.ConfigureApplicationParts(appParts => appParts.AddFrameworkPart(typeof(Dashboard).Assembly));
+            builder.ConfigureApplicationParts(appParts => appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences().WithCodeGeneration());
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
             builder.AddIncomingGrainCallFilter<GrainProfiler>();
@@ -56,7 +56,7 @@ namespace Orleans
 
         public static IClientBuilder UseDashboard(this IClientBuilder builder)
         {
-            builder.ConfigureApplicationParts(appParts => appParts.AddFrameworkPart(typeof(Dashboard).Assembly));
+            builder.ConfigureApplicationParts(appParts => appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences().WithCodeGeneration());
 
             return builder;
         }

@@ -7,6 +7,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using OrleansDashboard.Client;
+using OrleansDashboard.Client.Model;
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 

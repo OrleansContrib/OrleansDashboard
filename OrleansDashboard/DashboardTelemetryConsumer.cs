@@ -6,6 +6,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
+using OrleansDashboard.Client;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {

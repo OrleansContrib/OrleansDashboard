@@ -2,9 +2,10 @@
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Concurrency;
-using OrleansDashboard.History;
+using OrleansDashboard.Client.Model;
+using OrleansDashboard.Client.Model.History;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Client
 {
     public interface IDashboardGrain : IGrainWithIntegerKey
     {
