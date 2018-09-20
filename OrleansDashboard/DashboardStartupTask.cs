@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Runtime;
 using System.Threading;
 using OrleansDashboard.Client;
+using OrleansDashboard.Dispatchers;
 
 namespace OrleansDashboard
 {
-    public sealed class Dashboard : IStartupTask, IDisposable
+    public sealed class DashboardStartupTask : IStartupTask, IDisposable
     {
-        private IWebHost host;
-        private readonly ILogger<Dashboard> logger;
+        private readonly ILogger<DashboardStartupTask> logger;
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IGrainFactory grainFactory;
         private readonly SiloDispatcher siloDispatcher;
@@ -23,8 +21,8 @@ namespace OrleansDashboard
 
         public static int HistoryLength => 100;
 
-        public Dashboard(
-            ILogger<Dashboard> logger,
+        public DashboardStartupTask(
+            ILogger<DashboardStartupTask> logger,
             ILocalSiloDetails localSiloDetails,
             IGrainFactory grainFactory,
             IOptions<DashboardOptions> dashboardOptions,
@@ -39,41 +37,6 @@ namespace OrleansDashboard
 
         public Task Execute(CancellationToken cancellationToken)
         {
-            if (dashboardOptions.HostSelf)
-            {
-                try
-                {
-                    host =
-                        new WebHostBuilder()
-                            .ConfigureServices(services =>
-                            {
-                                services.AddServicesForHostedDashboard(grainFactory, siloDispatcher, dashboardOptions);
-                            })
-                            .Configure(app =>
-                            {
-                                if (dashboardOptions.HasUsernameAndPassword())
-                                {
-                                    // only when usename and password are configured
-                                    // do we inject basicauth middleware in the pipeline
-                                    app.UseMiddleware<BasicAuthMiddleware>();
-                                }
-
-                                app.UseOrleansDashboard(dashboardOptions);
-                            })
-                            .UseKestrel()
-                            .UseUrls($"http://{dashboardOptions.Host}:{dashboardOptions.Port}")
-                            .Build();
-
-                    host.Start();
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(10001, ex.ToString());
-                }
-
-                logger.LogInformation($"Dashboard listening on {dashboardOptions.Port}");
-            }
-
             // horrible hack to grab the scheduler
             // to allow the stats publisher to push
             // counters to grains
@@ -100,15 +63,6 @@ namespace OrleansDashboard
 
         public void Dispose()
         {
-            try
-            {
-                host?.Dispose();
-            }
-            catch
-            {
-                /* NOOP */
-            }
-
             try
             {
                 // Teardown the silo dispatcher to prevent deadlocks.

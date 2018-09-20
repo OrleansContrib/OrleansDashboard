@@ -26,16 +26,13 @@
 
   <ItemGroup>
     <EmbeddedResource Include="favicon.ico" />
-    <EmbeddedResource Include="Index.html" />
-    <EmbeddedResource Include="index.min.js" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.0.1" />
     <PackageReference Include="Microsoft.Orleans.Core" Version="$(OrleansPackageVersion)" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="$(OrleansPackageVersion)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.0.5" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="2.0.4" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
   </ItemGroup>
 
   <ItemGroup>

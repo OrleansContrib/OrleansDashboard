@@ -10,6 +10,7 @@ using Orleans.Runtime;
 using Orleans.Concurrency;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
+using OrleansDashboard.Dispatchers;
 
 namespace OrleansDashboard
 {

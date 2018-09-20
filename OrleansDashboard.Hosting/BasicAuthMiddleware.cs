@@ -1,21 +1,21 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using System;
+﻿using System;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Hosting
 {
     internal class BasicAuthMiddleware
     {
-        private readonly RequestDelegate next;
-        private readonly DashboardOptions options;
+        private readonly RequestDelegate _next;
+        private readonly HostingOptions _options;
 
-        public BasicAuthMiddleware(RequestDelegate next, IOptions<DashboardOptions> options)
+        public BasicAuthMiddleware(RequestDelegate next, IOptions<HostingOptions> options)
         {
-            this.next = next;
-            this.options = options.Value;
+            _next = next;
+            _options = options.Value;
         }
 
         public Task Invoke(HttpContext context)
@@ -29,15 +29,13 @@ namespace OrleansDashboard
 
                 var parts = decodedString.Split(':');
 
-                if (parts.Length == 2 && parts[0] == options.Username && parts[1] == options.Password)
-                {
-                    return next(context);
-                }
+                if (parts.Length == 2 && parts[0] == _options.Username && parts[1] == _options.Password)
+                    return _next(context);
             }
 
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = "Unauthorized";
-            context.Response.Headers.Add("WWW-Authenticate", new[] { "Basic realm=\"OrleansDashboard\"" });
+            context.Response.Headers.Add("WWW-Authenticate", new[] {"Basic realm=\"OrleansDashboard\""});
 
             return Task.CompletedTask;
         }

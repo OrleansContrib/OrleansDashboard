@@ -1,19 +1,19 @@
-﻿using Microsoft.Extensions.Options;
-using Orleans;
-using Orleans.Concurrency;
-using Orleans.Placement;
-using Orleans.Runtime;
-using OrleansDashboard.History;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Orleans;
+using Orleans.Concurrency;
+using Orleans.Placement;
+using Orleans.Runtime;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
 using OrleansDashboard.Client.Model.History;
+using OrleansDashboard.History;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Grains
 {
     [Reentrant]
     [PreferLocalPlacement]

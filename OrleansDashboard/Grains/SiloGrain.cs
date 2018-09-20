@@ -1,16 +1,16 @@
-﻿using Microsoft.Extensions.Options;
-using Orleans;
-using Orleans.Concurrency;
-using Orleans.Runtime;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Orleans;
+using Orleans.Concurrency;
+using Orleans.Runtime;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Grains
 {
     public class SiloGrain : Grain, ISiloGrain
     {
@@ -29,7 +29,7 @@ namespace OrleansDashboard
 
         public override async Task OnActivateAsync()
         {
-            foreach (var x in Enumerable.Range(1, Dashboard.HistoryLength))
+            foreach (var x in Enumerable.Range(1, DashboardStartupTask.HistoryLength))
             {
                 stats.Enqueue(null);
             }
@@ -58,7 +58,7 @@ namespace OrleansDashboard
 
                 stats.Enqueue(results);
 
-                while (stats.Count > Dashboard.HistoryLength)
+                while (stats.Count > DashboardStartupTask.HistoryLength)
                 {
                     stats.Dequeue();
                 }

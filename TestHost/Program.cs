@@ -6,6 +6,7 @@ using Orleans.Runtime;
 using System;
 using System.Net;
 using System.Threading;
+using OrleansDashboard.Hosting;
 using TestGrains;
 
 // ReSharper disable MethodSupportsCancellation
@@ -22,9 +23,10 @@ namespace TestHost
 
             var silo =
                 new SiloHostBuilder()
-                    .UseDashboard(options =>
+                    .UseDashboard()
+                    .UseDashboardSelfHosting(options =>
                     {
-                        options.HostSelf = true;
+                        options.Port = 8000;
                         options.HideTrace = false;
                     })
                     .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
