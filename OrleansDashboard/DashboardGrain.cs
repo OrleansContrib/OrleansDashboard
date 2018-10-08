@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using OrleansDashboard.Client;
+using OrleansDashboard.Client.Model;
+using OrleansDashboard.Client.Model.History;
 
 namespace OrleansDashboard
 {
@@ -16,11 +19,12 @@ namespace OrleansDashboard
     [PreferLocalPlacement]
     public class DashboardGrain : Grain, IDashboardGrain
     {
+        const int DefaultTimerIntervalMs = 1000; // 1 second
         private static readonly TimeSpan DefaultTimerInterval = TimeSpan.FromSeconds(1);
-        private readonly DashboardCounters counters = new DashboardCounters();
         private readonly ITraceHistory history = new TraceHistory();
         private readonly DashboardOptions options;
         private readonly ISiloDetailsProvider siloDetailsProvider;
+        private DashboardCounters counters = new DashboardCounters();
         private DateTime startTime = DateTime.UtcNow;
 
         public DashboardGrain(IOptions<DashboardOptions> options, ISiloDetailsProvider siloDetailsProvider)
@@ -47,17 +51,8 @@ namespace OrleansDashboard
             counters.TotalActivationCount = activationCount;
 
             counters.TotalActiveHostCount = hosts.Count(x => x.SiloStatus == SiloStatus.Active);
-            counters.TotalActivationCountHistory.Enqueue(activationCount);
-            counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount);
-
-            while (counters.TotalActivationCountHistory.Count > Dashboard.HistoryLength)
-            {
-                counters.TotalActivationCountHistory.Dequeue();
-            }
-            while (counters.TotalActiveHostCountHistory.Count > Dashboard.HistoryLength)
-            {
-                counters.TotalActiveHostCountHistory.Dequeue();
-            }
+            counters.TotalActivationCountHistory = counters.TotalActivationCountHistory.Enqueue(activationCount).Dequeue();
+            counters.TotalActiveHostCountHistory = counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount).Dequeue();
 
             // TODO - whatever max elapsed time
             var elapsedTime = Math.Min((DateTime.UtcNow - startTime).TotalSeconds, 100);
@@ -93,21 +88,11 @@ namespace OrleansDashboard
 
         public override Task OnActivateAsync()
         {
-            var timerInterval = DefaultTimerInterval;
-
-            if (options.CounterUpdateIntervalMs > 0)
-            {
-                timerInterval = TimeSpan.FromMilliseconds(options.CounterUpdateIntervalMs);
-            }
-
-            if (timerInterval < DefaultTimerInterval)
-            {
-                timerInterval = DefaultTimerInterval;
-            }
-
+            var updateInterval =  TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
+       
             try
             {
-                RegisterTimer(Callback, null, timerInterval, timerInterval);
+                RegisterTimer(Callback, null, updateInterval, updateInterval);
             }
             catch (InvalidOperationException)
             {
@@ -119,25 +104,39 @@ namespace OrleansDashboard
             return base.OnActivateAsync();
         }
 
-        public Task<DashboardCounters> GetCounters()
+        public Task<Immutable<DashboardCounters>> GetCounters()
         {
-            return Task.FromResult(counters);
+            return Task.FromResult(counters.AsImmutable());
         }
 
-        public Task<Dictionary<string, Dictionary<string, GrainTraceEntry>>> GetGrainTracing(string grain)
+        public Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(string grain)
         {
-            return Task.FromResult(history.QueryGrain(grain));
+            return Task.FromResult(history.QueryGrain(grain).AsImmutable());
         }
 
-        public Task<Dictionary<string, GrainTraceEntry>> GetClusterTracing()
+        public Task<Immutable<Dictionary<string, GrainTraceEntry>>> GetClusterTracing()
         {
-            return Task.FromResult(this.history.QueryAll());
+            return Task.FromResult(this.history.QueryAll().AsImmutable());
         }
 
-        public Task<Dictionary<string, GrainTraceEntry>> GetSiloTracing(string address)
+        public Task<Immutable<Dictionary<string, GrainTraceEntry>>> GetSiloTracing(string address)
         {
-            return Task.FromResult(this.history.QuerySilo(address));
+            return Task.FromResult(this.history.QuerySilo(address).AsImmutable());
         }
+
+        public Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods()
+        {
+            const int numberOfResultsToReturn = 5;
+            
+            var values = history.AggregateByGrainMethod().ToList();
+            
+            return Task.FromResult(new Dictionary<string, GrainMethodAggregate[]>{
+                { "calls", values.OrderByDescending(x => x.Count).Take(numberOfResultsToReturn).ToArray() },
+                { "latency", values.OrderByDescending(x => x.ElapsedTime / (double) x.Count).Take(numberOfResultsToReturn).ToArray() },
+                { "errors", values.Where(x => x.ExceptionCount > 0 && x.Count > 0).OrderByDescending(x => x.ExceptionCount / x.Count).Take(numberOfResultsToReturn).ToArray() },
+            }.AsImmutable());
+        }
+
       
         public Task Init()
         {
@@ -145,9 +144,9 @@ namespace OrleansDashboard
             return Task.CompletedTask;
         }
 
-        public Task SubmitTracing(string siloAddress, SiloGrainTraceEntry[] grainTrace)
+        public Task SubmitTracing(string siloAddress, Immutable<SiloGrainTraceEntry[]> grainTrace)
         {
-            history.Add(DateTime.UtcNow, siloAddress, grainTrace);
+            history.Add(DateTime.UtcNow, siloAddress, grainTrace.Value);
 
             return Task.CompletedTask;
         }

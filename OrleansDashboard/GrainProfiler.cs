@@ -4,18 +4,22 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using Orleans.Concurrency;
+using OrleansDashboard.Client;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {
     public class GrainProfiler : IIncomingGrainCallFilter
     {
-        private static readonly Func<IIncomingGrainCallContext, string> DefaultFormatter = c => c.ImplementationMethod?.Name ?? "Unknown";
+        public delegate string GrainMethodFormatterDelegate(IIncomingGrainCallContext callContext);
 
-        private readonly Func<IIncomingGrainCallContext, string> formatMethodName;
+        public static readonly GrainMethodFormatterDelegate DefaultGrainMethodFormatter = c => c.ImplementationMethod?.Name ?? "Unknown";
+
+        private readonly GrainMethodFormatterDelegate formatMethodName;
         private readonly Timer timer;
         private readonly ILogger<GrainProfiler> logger;
         private readonly ILocalSiloDetails localSiloDetails;
@@ -23,12 +27,13 @@ namespace OrleansDashboard
         private readonly IGrainFactory grainFactory;
         private ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new ConcurrentDictionary<string, SiloGrainTraceEntry>();
         private string siloAddress;
+        private IDashboardGrain dashboardGrain;
 
         public GrainProfiler(
             ILogger<GrainProfiler> logger,
             ILocalSiloDetails localSiloDetails,
             IExternalDispatcher dispatcher,
-            IServiceProvider services,
+            GrainMethodFormatterDelegate formatMethodName,
             IGrainFactory grainFactory)
         {
             this.dispatcher = dispatcher;
@@ -36,7 +41,7 @@ namespace OrleansDashboard
             this.localSiloDetails = localSiloDetails;
             this.grainFactory = grainFactory;
 
-            formatMethodName = services.GetService<Func<IIncomingGrainCallContext, string>>() ?? DefaultFormatter;
+            this.formatMethodName = formatMethodName;
 
             // register timer to report every second
             timer = new Timer(ProcessStats, null, 1 * 1000, 1 * 1000);
@@ -106,7 +111,7 @@ namespace OrleansDashboard
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(100002, "error recording results for grain", ex);
+                    logger.LogError(100002, ex, "error recording results for grain");
                 }
             }
         }
@@ -126,16 +131,16 @@ namespace OrleansDashboard
 
                 try
                 {
-                    dispatcher.DispatchAsync(async () =>
+                    dispatcher.DispatchAsync(() =>
                     {
-                        var dashboardGrain = grainFactory.GetGrain<IDashboardGrain>(0);
+                        this.dashboardGrain = this.dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
 
-                        await dashboardGrain.SubmitTracing(siloAddress, items).ConfigureAwait(false);
-                    }).Wait(30000);
+                        return dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable());
+                    }).Ignore();
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(100001, "Exception thrown sending tracing to dashboard grain", ex);
+                    logger.LogWarning(100001, ex, "Exception thrown sending tracing to dashboard grain");
                 }
             }
         }

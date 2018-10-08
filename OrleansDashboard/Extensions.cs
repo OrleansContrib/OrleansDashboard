@@ -2,8 +2,8 @@
 using Orleans.Runtime;
 using System;
 using System.Globalization;
-using System.Linq;
 using Microsoft.AspNetCore.Http;
+using System.Net;
 
 namespace OrleansDashboard
 {
@@ -32,7 +32,7 @@ namespace OrleansDashboard
 
         internal static string ToValue(this PathString path)
         {
-            return path.ToString().Substring(1);
+            return WebUtility.UrlDecode(path.ToString().Substring(1));
         }
 
         internal static string ToPeriodString(this DateTime value)

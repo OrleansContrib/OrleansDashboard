@@ -7,6 +7,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using OrleansDashboard.Client;
+using OrleansDashboard.Client.Model;
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
@@ -73,7 +75,7 @@ namespace OrleansDashboard
                 var grain = grainFactory.GetGrain<IDashboardGrain>(0);
                 var result = await dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                await WriteJson(context, result.Value);
 
                 return;
             }
@@ -83,7 +85,7 @@ namespace OrleansDashboard
                 var grain = grainFactory.GetGrain<IDashboardGrain>(0);
                 var result = await dispatcher.DispatchAsync(grain.GetClusterTracing).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                await WriteJson(context, result.Value);
 
                 return;
             }
@@ -95,7 +97,7 @@ namespace OrleansDashboard
                     var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
                     var result = await dispatcher.DispatchAsync(() => grain.GetReminders(1, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
 
-                    await WriteJson(context, result);
+                    await WriteJson(context, result.Value);
                 }
                 catch
                 {
@@ -113,7 +115,7 @@ namespace OrleansDashboard
                     var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
                     var result = await dispatcher.DispatchAsync(() => grain.GetReminders(page, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
 
-                    await WriteJson(context, result);
+                    await WriteJson(context, result.Value);
                 }
                 catch
                 {
@@ -129,7 +131,7 @@ namespace OrleansDashboard
                 var grain = grainFactory.GetGrain<ISiloGrain>(remaining.ToValue());
                 var result = await dispatcher.DispatchAsync(grain.GetRuntimeStatistics).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                await WriteJson(context, result.Value);
 
                 return;
             }
@@ -139,7 +141,7 @@ namespace OrleansDashboard
                 var grain = grainFactory.GetGrain<ISiloGrain>(address1.ToValue());
                 var result = await dispatcher.DispatchAsync(grain.GetExtendedProperties).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                await WriteJson(context, result.Value);
 
                 return;
             }
@@ -149,7 +151,7 @@ namespace OrleansDashboard
                 var grain = grainFactory.GetGrain<IDashboardGrain>(0);
                 var result = await dispatcher.DispatchAsync(() => grain.GetSiloTracing(address2.ToValue())).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                await WriteJson(context, result.Value);
 
                 return;
             }
@@ -159,7 +161,7 @@ namespace OrleansDashboard
                 var grain = grainFactory.GetGrain<ISiloGrain>(address3.ToValue());
                 var result = await dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                await WriteJson(context, result.Value);
 
                 return;
             }
@@ -169,7 +171,17 @@ namespace OrleansDashboard
                 var grain = grainFactory.GetGrain<IDashboardGrain>(0);
                 var result = await dispatcher.DispatchAsync(() => grain.GetGrainTracing(grainName1.ToValue())).ConfigureAwait(false);
 
-                await WriteJson(context, result);
+                await WriteJson(context, result.Value);
+
+                return;
+            }
+
+            if (request.Path == "/TopGrainMethods")
+            {
+                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
+                var result = await dispatcher.DispatchAsync(() => grain.TopGrainMethods()).ConfigureAwait(false);
+
+                await WriteJson(context, result.Value);
 
                 return;
             }

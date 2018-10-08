@@ -1,6 +1,9 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Orleans;
+using Orleans.Concurrency;
+using OrleansDashboard.Client;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {
@@ -13,22 +16,22 @@ namespace OrleansDashboard
             _reminderTable = reminderTable;
         }
 
-        public async Task<ReminderResponse> GetReminders(int pageNumber, int pageSize)
+        public async Task<Immutable<ReminderResponse>> GetReminders(int pageNumber, int pageSize)
         {
             var reminderData = await _reminderTable.ReadRows(0, 0xffffffff);
 
-            return new ReminderResponse {
-
+            return new ReminderResponse
+            {
                 Reminders = reminderData
                     .Reminders
                     .OrderBy(x => x.StartAt)
-                    .Skip((pageNumber -1) * pageSize)
+                    .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .Select(ToReminderInfo)
                     .ToArray(),
 
                 Count = reminderData.Reminders.Count
-            }; 
+            }.AsImmutable();
         }
 
         private static ReminderInfo ToReminderInfo(ReminderEntry entry)

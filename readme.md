@@ -2,8 +2,6 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/ukphl1c0s9cuf4jl?svg=true)](https://ci.appveyor.com/project/richorama/orleansdashboard)
 
-> This project is alpha quality, and is published to collect community feedback.
-
 An admin dashboard for Microsoft Orleans.
 
 ![](screenshots/dashboard.png)
@@ -26,7 +24,7 @@ new SiloHostBuilder()
 
 Start the silo, and open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
 
-Please note, the CPU and Memory metrics are only enabled on Windows when you add the [Microsoft.Orleans.OrleansTelemetryConsumers.Counters](https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Counters/) package.
+Please note, the CPU and Memory metrics are only enabled on Windows when you add the [Microsoft.Orleans.OrleansTelemetryConsumers.Counters](https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Counters/) package (not supported for .Net Core now).
 You also have to wait some time before you see the data.
 
 ## Configuring the Dashboard
@@ -38,6 +36,7 @@ The dashboard supports the following properties for the configuration:
 * `Host` : Host name to bind the web server to (default is *).
 * `Port` : Set the the number for the dashboard to listen on (default is 8080).
 * `HostSelf` : Set the dashboard to host it's own http server (default is true).
+* `CounterUpdateIntervalMs` : The update interval in milliseconds between sampling counters (default is 1000).
 
 ```c#
 new SiloHostBuilder()
@@ -47,9 +46,12 @@ new SiloHostBuilder()
     options.Host = "*";
     options.Port = 8080;
     options.HostSelf = true;
+    options.CounterUpdateIntervalMs = 1000;
   })
   .Build();
 ```
+
+Note that some users have noticed performance degredation when using the dashboard. In this case it is recommended that you try increasing the `CounterUpdateIntervalMS` to 10000 to see if that helps.
 
 ## Using the Dashboard
 
@@ -66,27 +68,17 @@ This is only required if you want to modify the user interface.
 The user interface is react.js, using browserify to compose the javascript delivered to the browser.
 The HTML and JS files are embedded resources within the dashboard DLL.
 
-To build the UI, you must have [node.js installed](https://nodejs.org/en/), and [browserify](http://browserify.org/):
+To build the UI, you must have [node.js](https://nodejs.org/en/) and npm installed. 
 
-```
-$ npm install browserify -g
-```
-
-To build `index.min.js`, which contains the UI components and dependencies (), follow these steps.
+To build `index.min.js`, which contains the UI components and dependencies, install the dependencies and run the build script using npm:
 
 ```
 $ cd App
 $ npm install
-$ browserify  -t babelify index.jsx  -g [ envify --NODE_ENV production ] -g uglifyify  | uglifyjs --compress warnings=false --mangle > ../OrleansDashboard/index.min.js
+$ npm run build
 ```
 
-Alternativelty you can call make (if you have it installed):
-
-```
-$ make
-```
-
-Either command will copy the bundled, minified javascript file into the correct place, for it to be picked up as an embedded resource in the .NET OrleansDashboard project.
+This will copy the bundled, minified javascript file into the correct place for it to be picked up as an embedded resource in the .NET OrleansDashboard project.
 
 You will need to rebuild the OrleansDashboard project to see any changes.
 
@@ -288,6 +280,39 @@ Returns the current values for the Silo's counters.
 ]
 ```
 
+### Top Grain Methods
+
+```
+GET /TopGrainMethods
+```
+
+Returns the top 5 grain methods in terms of requests/sec, error rate and latency
+
+```js
+{
+  "calls": [
+    {
+      "grain": "TestGrains.TestGrain",
+      "method": "ExampleMethod2",
+      "count": 1621,
+      "exceptionCount": 783,
+      "elapsedTime": 343.75,
+      "numberOfSamples": 100
+    },
+    {
+      "grain": "TestGrains.TestGrain",
+      "method": "ExampleMethod1",
+      "count": 1621,
+      "exceptionCount": 0,
+      "elapsedTime": 91026.73,
+      "numberOfSamples": 100
+    }
+    ...
+  ],
+  "latency": [ ... ],
+  "errors": [ ... ],
+}
+```
 
 ### Reminders
 

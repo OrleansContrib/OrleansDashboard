@@ -16,6 +16,8 @@ namespace TestHostSeparate
 {
     public static class Program
     {
+        // by default this will start the dashboard on http://localhost:5000/dashboard
+     
         public static void Main(string[] args)
         {
             var siloPort = 11111;
@@ -31,7 +33,11 @@ namespace TestHostSeparate
                     .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
                     .UseInMemoryReminderService()
                     .ConfigureEndpoints(siloAddress, siloPort, gatewayPort)
-                    .Configure<ClusterOptions>(options => options.ClusterId = "helloworldcluster")
+                    .Configure<ClusterOptions>(options => 
+                    {
+                        options.ClusterId = "helloworldcluster";
+                        options.ServiceId = "1";
+                    })
                     .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
@@ -45,7 +51,11 @@ namespace TestHostSeparate
                 new ClientBuilder()
                     .UseDashboard()
                     .UseStaticClustering(options => options.Gateways.Add((new IPEndPoint(siloAddress, gatewayPort)).ToGatewayUri()))
-                    .Configure<ClusterOptions>(options => options.ClusterId = "helloworldcluster")
+                    .Configure<ClusterOptions>(options => 
+                    {
+                        options.ClusterId = "helloworldcluster";
+                        options.ServiceId = "1";
+                    })
                     .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {

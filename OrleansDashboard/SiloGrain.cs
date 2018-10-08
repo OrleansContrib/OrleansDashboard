@@ -1,19 +1,31 @@
-﻿using Orleans;
+﻿using Microsoft.Extensions.Options;
+using Orleans;
+using Orleans.Concurrency;
 using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using OrleansDashboard.Client;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {
     public class SiloGrain : Grain, ISiloGrain
     {
+        const int DefaultTimerIntervalMs = 1000; // 1 second
         private readonly Queue<SiloRuntimeStatistics> stats = new Queue<SiloRuntimeStatistics>();
         private readonly Dictionary<string, StatCounter> counters = new Dictionary<string, StatCounter>();
         private IDisposable timer;
         private string versionOrleans;
         private string versionHost;
+        private DashboardOptions options;
+
+        public SiloGrain(IOptions<DashboardOptions> options)
+        {
+            this.options = options.Value;
+        }
 
         public override async Task OnActivateAsync()
         {
@@ -21,10 +33,17 @@ namespace OrleansDashboard
             {
                 stats.Enqueue(null);
             }
-
-            timer = RegisterTimer(x => CollectStatistics((bool)x), true, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-
-            await CollectStatistics(false);
+            var updateInterval =  TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
+            
+            try
+            {
+                timer = RegisterTimer(x => CollectStatistics((bool)x), true, updateInterval, updateInterval);
+                await CollectStatistics(false);
+            }
+            catch (InvalidOperationException)
+            {
+                Debug.WriteLine("Not running in Orleans runtime");
+            }
 
             await base.OnActivateAsync();
         }
@@ -57,9 +76,9 @@ namespace OrleansDashboard
             }
         }
 
-        public Task<SiloRuntimeStatistics[]> GetRuntimeStatistics()
+        public Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics()
         {
-            return Task.FromResult(stats.ToArray());
+            return Task.FromResult(stats.ToArray().AsImmutable());
         }
 
         public Task SetVersion(string orleans, string host)
@@ -70,7 +89,7 @@ namespace OrleansDashboard
             return Task.CompletedTask;
         }
 
-        public Task<Dictionary<string, string>> GetExtendedProperties()
+        public Task<Immutable<Dictionary<string, string>>> GetExtendedProperties()
         {
             var results = new Dictionary<string, string>
             {
@@ -78,12 +97,12 @@ namespace OrleansDashboard
                 ["OrleansVersion"] = versionOrleans
             };
 
-            return Task.FromResult(results);
+            return Task.FromResult(results.AsImmutable());
         }
 
-        public Task ReportCounters(StatCounter[] counters)
+        public Task ReportCounters(Immutable<StatCounter[]> counters)
         {
-            foreach (var counter in counters)
+            foreach (var counter in counters.Value)
             {
                 this.counters[counter.Name] = counter;
             }
@@ -91,9 +110,9 @@ namespace OrleansDashboard
             return Task.CompletedTask;
         }
 
-        public Task<StatCounter[]> GetCounters()
+        public Task<Immutable<StatCounter[]>> GetCounters()
         {
-            return Task.FromResult(counters.Values.OrderBy(x => x.Name).ToArray());
+            return Task.FromResult(counters.Values.OrderBy(x => x.Name).ToArray().AsImmutable());
         }
     }
 }

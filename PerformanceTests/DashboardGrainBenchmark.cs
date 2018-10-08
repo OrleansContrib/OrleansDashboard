@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using OrleansDashboard.Client.Model;
 
 namespace PerformanceTests
 {
@@ -68,6 +69,13 @@ namespace PerformanceTests
         public void Test_GroupByGrainAndSilo_TraceHistory()
         {
             traceHistory.GroupByGrainAndSilo().ToLookup(x => (x.Grain, x.SiloAddress));
+        }
+
+        
+        [Benchmark]
+        public void Test_AggregateByGrainMethod_TraceHistory()
+        {
+            traceHistory.AggregateByGrainMethod().ToList();
         }
 
 

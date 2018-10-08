@@ -7,39 +7,51 @@ var SiloState = require('./silo-state-label.jsx');
 var Panel = require('../components/panel.jsx');
 var Chart = require('../components/time-series-chart.jsx');
 
-var SiloGraph = React.createClass({
-    render:function(){
-        var values = Object.keys(this.props.stats).map(key => this.props.stats[key]);
+const SiloGraph = props => {
+    const values = [];
+    const timepoints = [];
+    Object.keys(props.stats).forEach(key => {
+        values.push(props.stats[key]);
+        timepoints.push(props.stats[key].period);
+    });
 
-        if (!values.length) return null;
-
-        while (values.length < 100){
-            values.unshift({count:0, elapsedTime :0, period:0, exceptionCount:0})
-        }
-
-        return <div>
-            <Chart series={[values.map(z => z.exceptionCount), values.map(z => z.count), values.map(z => z.count === 0 ? 0 : z.elapsedTime / z.count)]} />
-        </div>
+    if (!values.length) {
+        return null;
     }
-});
 
-module.exports = React.createClass({
-    hasData:function(value){
+    while (values.length < 100) {
+        values.unshift({ count: 0, elapsedTime: 0, period: 0, exceptionCount: 0 });
+        timepoints.unshift("");
+    }
+
+    return <div>
+        <Chart
+            timepoints={timepoints}
+            series={[
+                values.map(z => z.exceptionCount),
+                values.map(z => z.count),
+                values.map(z => (z.count === 0 ? 0 : z.elapsedTime / z.count))
+            ]}
+        />
+    </div>;
+};
+
+module.exports = class Silo extends React.Component {
+    hasData(value) {
         for (var i = 0; i < value.length; i++){
             if (value[i] !== null) return true;
         }
         return false;
-    },
+    }
 
-
-    querySeries:function(lambda){
+    querySeries(lambda) {
         return this.props.data.map(function(x){
             if (!x) return 0;
             return lambda(x);
         });
-    },
-    
-    hasSeries:function(lambda){
+    }
+
+    hasSeries(lambda) {
         var hasValue = false;
 
         for (var key in this.props.data) {
@@ -50,9 +62,9 @@ module.exports = React.createClass({
         }
 
         return hasValue;
-    },
+    }
 
-    render:function(){
+    render() {
         if (!this.hasData(this.props.data)){
             return <Panel title="Error">
                 <div>
@@ -170,9 +182,8 @@ module.exports = React.createClass({
                     <GrainBreakdown data={grainStats} silo={this.props.silo}/>
                 </Panel>
             </div>
-
     }
-});
+}
 /*
 
 dateTime: "2015-12-30T17:02:32.6695724Z"
