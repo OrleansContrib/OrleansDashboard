@@ -349,26 +349,31 @@ function getMenu(){
     var result = [
         {
             name:"Overview",
-            path:"#/"
+            path:"#/",
+            icon:"fa fa-tachometer"
         },
         {
             name:"Grains",
-            path:"#/grains"
+            path:"#/grains",
+            icon:"fa fa-cubes"
         },
         {
             name:"Silos",
-            path:"#/silos"
+            path:"#/silos",
+            icon:"fa fa-database"
         },
         {
             name:"Reminders",
-            path:"#/reminders"
+            path:"#/reminders",
+            icon:"fa fa-calendar"
         }
     ];
 
     if (!window.hideTrace) {
         result.push({
             name:"Log Stream",
-            path:"#/trace"
+            path:"#/trace",
+            icon:"fa fa-bars"
         });
     }
 
