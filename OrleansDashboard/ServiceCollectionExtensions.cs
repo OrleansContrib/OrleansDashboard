@@ -21,6 +21,7 @@ namespace Orleans
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
             builder.AddIncomingGrainCallFilter<GrainProfiler>();
+            builder.EnableDirectClient();
 
             return builder;
         }
@@ -33,8 +34,6 @@ namespace Orleans
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-            services.AddSingleton<SiloDispatcher>();
-            services.AddSingleton<IExternalDispatcher>(sp => sp.GetRequiredService<SiloDispatcher>());
             services.Configure<TelemetryOptions>(options => options.AddConsumer<DashboardTelemetryConsumer>());
             services.AddSingleton<ISiloDetailsProvider>(c =>
             {
@@ -88,18 +87,16 @@ namespace Orleans
             services.Configure(configurator ?? (x => { }));
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-            services.AddSingleton<IExternalDispatcher, ClientDispatcher>();
             services.AddSingleton<IGrainFactory>(c => c.GetRequiredService<IClusterClient>());
 
             return services;
         }
 
-        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory, IExternalDispatcher dispatcher, DashboardOptions options)
+        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory, DashboardOptions options)
         {
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton(Options.Create(options));
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-            services.AddSingleton(dispatcher);
             services.AddSingleton(grainFactory);
 
             return services;
