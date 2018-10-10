@@ -23,7 +23,6 @@ namespace OrleansDashboard
         private readonly Timer timer;
         private readonly ILogger<GrainProfiler> logger;
         private readonly ILocalSiloDetails localSiloDetails;
-        private readonly IExternalDispatcher dispatcher;
         private readonly IGrainFactory grainFactory;
         private ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new ConcurrentDictionary<string, SiloGrainTraceEntry>();
         private string siloAddress;
@@ -32,11 +31,9 @@ namespace OrleansDashboard
         public GrainProfiler(
             ILogger<GrainProfiler> logger,
             ILocalSiloDetails localSiloDetails,
-            IExternalDispatcher dispatcher,
             GrainMethodFormatterDelegate formatMethodName,
             IGrainFactory grainFactory)
         {
-            this.dispatcher = dispatcher;
             this.logger = logger;
             this.localSiloDetails = localSiloDetails;
             this.grainFactory = grainFactory;
@@ -118,30 +115,24 @@ namespace OrleansDashboard
 
         private void ProcessStats(object state)
         {
-            if (dispatcher.CanDispatch())
+            var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, SiloGrainTraceEntry>());
+
+            var items = currentTrace.Values.ToArray();
+
+            foreach (var item in items)
             {
-                var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, SiloGrainTraceEntry>());
+                item.Grain = TypeFormatter.Parse(item.Grain);
+            }
 
-                var items = currentTrace.Values.ToArray();
+            try
+            {
+                this.dashboardGrain = this.dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
 
-                foreach (var item in items)
-                {
-                    item.Grain = TypeFormatter.Parse(item.Grain);
-                }
-
-                try
-                {
-                    dispatcher.DispatchAsync(() =>
-                    {
-                        this.dashboardGrain = this.dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
-
-                        return dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable());
-                    }).Ignore();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(100001, ex, "Exception thrown sending tracing to dashboard grain");
-                }
+                dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable()).Ignore();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(100001, ex, "Exception thrown sending tracing to dashboard grain");
             }
         }
     }
