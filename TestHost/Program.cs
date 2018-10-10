@@ -1,9 +1,11 @@
-﻿using System;
-using System.Threading;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans;
+using Orleans.Configuration;
 using Orleans.Hosting;
-using Orleans.Runtime.Configuration;
+using Orleans.Runtime;
+using System;
+using System.Net;
+using System.Threading;
 using TestGrains;
 
 // ReSharper disable MethodSupportsCancellation
@@ -14,19 +16,26 @@ namespace TestHost
     {
         public static void Main(string[] args)
         {
-            var configuration =
-                ClusterConfiguration.LocalhostPrimarySilo(33333)
-                    .RegisterDashboard();
+            var siloPort = 11111;
+            int gatewayPort = 30000;
+            var siloAddress = IPAddress.Loopback;
 
             var silo =
                 new SiloHostBuilder()
-                    .UseConfiguration(configuration)
                     .UseDashboard(options =>
                     {
                         options.HostSelf = true;
                         options.HideTrace = false;
                     })
-                    .AddApplicationPartsFromReferences(typeof(TestCalls).Assembly)
+                    .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
+                    .UseInMemoryReminderService()
+                    .ConfigureEndpoints(siloAddress, siloPort, gatewayPort)
+                    .Configure<ClusterOptions>(options => 
+                    {
+                        options.ClusterId = "helloworldcluster";
+                        options.ServiceId = "1";
+                    })
+                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
                         builder.AddConsole();
@@ -37,8 +46,13 @@ namespace TestHost
 
             var client =
                 new ClientBuilder()
-                    .UseConfiguration(ClientConfiguration.LocalhostSilo())
-                    .AddApplicationPartsFromReferences(typeof(TestCalls).Assembly)
+                    .UseStaticClustering(options => options.Gateways.Add((new IPEndPoint(siloAddress, gatewayPort)).ToGatewayUri()))
+                    .Configure<ClusterOptions>(options => 
+                    {
+                        options.ClusterId = "helloworldcluster";
+                        options.ServiceId = "1";
+                    })
+                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
                     .ConfigureLogging(builder =>
                     {
                         builder.AddConsole();

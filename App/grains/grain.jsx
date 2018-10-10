@@ -1,43 +1,54 @@
-var React = require('react');
-var Chart = require('../components/time-series-chart.jsx');
-var CounterWidget = require('../components/counter-widget.jsx');
-var SiloBreakdown = require('./silo-table.jsx');
-var Panel = require('../components/panel.jsx');
-var Page = require('../components/page.jsx');
+var React = require("react");
+var Chart = require("../components/time-series-chart.jsx");
+var CounterWidget = require("../components/counter-widget.jsx");
+var SiloBreakdown = require("./silo-table.jsx");
+var Panel = require("../components/panel.jsx");
+var Page = require("../components/page.jsx");
 
-var GrainGraph = React.createClass({
-    render:function(){
-        var values = Object.keys(this.props.stats).map(key => this.props.stats[key]);
+const GrainGraph = props => {
+    const values = [];
+    const timepoints = [];
+    Object.keys(props.stats).forEach(key => {
+        values.push(props.stats[key]);
+        timepoints.push(props.stats[key].period);
+    });
 
-        if (!values.length) return null;
-
-
-        while (values.length < 100){
-            values.unshift({count:0, elapsedTime :0, period:0, exceptionCount:0})
-        }
-
-        return <div>
-            <h4>{this.props.grainMethod}</h4>
-            <Chart series={[values.map(z => z.exceptionCount), values.map(z => z.count), values.map(z => z.count === 0 ? 0 : z.elapsedTime / z.count)]} />
-        </div>
+    if (!values.length) {
+        return null;
     }
-});
+
+    while (values.length < 100) {
+        values.unshift({ count: 0, elapsedTime: 0, period: 0, exceptionCount: 0 });
+        timepoints.unshift("");
+    }
+
+    return <div>
+        <h4>{props.grainMethod}</h4>
+        <Chart
+            timepoints={timepoints}
+            series={[
+                values.map(z => z.exceptionCount),
+                values.map(z => z.count),
+                values.map(z => (z.count === 0 ? 0 : z.elapsedTime / z.count))
+            ]}
+        />
+    </div>;
+};
 
 // add multiple axis to the chart
 // https://jsfiddle.net/devonuto/pa7k6xn9/
-
-module.exports = React.createClass({
-    renderEmpty:function(){
+module.exports = class Grain extends React.Component {
+    renderEmpty() {
         return <span>No messages recorded</span>;
-    },
+    }
 
-    renderGraphs:function(){
+    renderGraphs() {
         var stats = {
             activationCount: 0,
             totalSeconds: 0,
-            totalAwaitTime : 0,
-            totalCalls : 0,
-            totalExceptions : 0
+            totalAwaitTime: 0,
+            totalCalls: 0,
+            totalExceptions: 0
         };
         this.props.dashboardCounters.simpleGrainStats.forEach(stat => {
             if (stat.grainType !== this.props.grainType) return;
@@ -80,18 +91,15 @@ module.exports = React.createClass({
 
             </div>
         </Page>
-    },
-
-    render:function(){
-        var renderMethod = this.renderGraphs;
-
-        if (Object.keys(this.props.grainStats).length === 0) renderMethod = this.renderEmpty;
-
-        return renderMethod()
     }
-});
 
-function getName(value){
-    var parts = value.split('.');
+    render(){
+        if (Object.keys(this.props.grainStats).length === 0) return this.renderEmpty();
+        return this.renderGraphs()
+    }
+};
+
+function getName(value) {
+    var parts = value.split(".");
     return parts[parts.length - 1];
 }

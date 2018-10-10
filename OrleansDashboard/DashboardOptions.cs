@@ -12,7 +12,11 @@
 
         public bool HostSelf { get; set; } = true;
 
+        public int CounterUpdateIntervalMs { get; set; } = 1000;
+
         public int Port { get; set; } = 8080;
+
+        public string BasePath { get; set; } = "/";
 
         public bool HasUsernameAndPassword()
         {

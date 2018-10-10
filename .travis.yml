@@ -1,0 +1,7 @@
+language: node_js
+before_script: cd App
+script:
+  - npm install
+  - npm run build
+node_js:
+  - "node"

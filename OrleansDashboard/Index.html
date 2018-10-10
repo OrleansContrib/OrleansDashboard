@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <base href="{{BASE}}" />
     <title>Orleans Dashboard</title>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -10,8 +11,8 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.3.11/css/AdminLTE.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.3.11/css/skins/skin-purple.min.css">
 
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -42,6 +43,17 @@
             left: 100%;
             margin-left: -420px;
         }
+
+        .log {
+            position: absolute;
+            top: 50px;
+            left: 230px;
+            right: 0;
+            border: 0;
+            bottom: 0;
+            margin: 0;
+        }
+
     </style>
 
     <style id="dark-theme-style" media="">
@@ -49,6 +61,11 @@
             background: #1e282c;
             border: 1px solid #333;
             color: silver;
+        }
+
+        .form-control {
+            background: #222D32;
+            border: 1px solid #333;
         }
 
         .log-filter {
@@ -94,11 +111,6 @@
             border: 1px solid #333;
         }
 
-        .form-control {
-            background: #1e282c;
-            border: 1px solid #333;
-            color: silver;
-        }
     </style>
 
 </head>
@@ -120,15 +132,8 @@
             <nav class="navbar navbar-static-top">
 
                 <nav class="navbar navbar-static-top">
-                    <!-- Sidebar toggle button-->
-
                     <div class="_navbar-custom-menu">
-                        <ul class="nav navbar-nav pull-right">    
-                            <li class="dropdown messages-menu">     
-                                <span id="button-toggles-content"></span>
-                            </li>
-                        </ul>
-                        <div class="nav navbar-nav pull-right" id="version-content" style="color:white; margin-top:20px; margin-right: 10px;"></div>                        
+                        <div class="nav navbar-nav pull-right" id="version-content" style="color:white; margin-top:15px; margin-right: 10px;"></div>
                     </div>
                 </nav>
 
@@ -164,10 +169,13 @@
         <div class="control-sidebar-bg"></div>
 
     </div>
-
+    
+    <script>
+        var hideTrace = {{HIDE_TRACE}};
+    </script>
 
     <!-- ./wrapper -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js"></script>
-    <script src="/index.min.js"></script>
+    <script src="{{BASE}}index.min.js"></script>
 </body>
 </html>

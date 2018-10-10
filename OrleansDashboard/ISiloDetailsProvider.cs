@@ -1,9 +1,9 @@
-﻿using System.Linq;
+﻿using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Orleans;
-using Orleans.CodeGeneration;
 using Orleans.Runtime;
+using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {
@@ -30,7 +30,7 @@ namespace OrleansDashboard
             // todo this could be improved by using a ISiloStatusListener
             // and caching / projecting the changes instead of polling
             // should reduce allocations of array's etc
-        
+
             return Task.FromResult(siloStatusOracle.GetApproximateSiloStatuses(true)
                 .Select(x => new SiloDetails()
                 {
@@ -69,12 +69,12 @@ namespace OrleansDashboard
             {
                 FaultZone = x.FaultZone,
                 HostName = x.HostName,
-                IAmAliveTime = x.IAmAliveTime.ToString("o"),
+                IAmAliveTime = x.IAmAliveTime.ToISOString(),
                 ProxyPort = x.ProxyPort,
                 RoleName = x.RoleName,
                 SiloAddress = x.SiloAddress.ToParsableString(),
                 SiloName = x.SiloName,
-                StartTime = x.StartTime.ToString("o"),
+                StartTime = x.StartTime.ToISOString(),
                 Status = x.Status.ToString(),
                 SiloStatus = x.Status,
                 UpdateZone = x.UpdateZone

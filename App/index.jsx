@@ -1,33 +1,47 @@
-var http = require('./lib/http');
-var React = require('react');
-var ReactDom = require('react-dom');
-var routie = require('./lib/routie');
-var Silo = require('./silos/silo.jsx');
-var target = document.getElementById('content');
-var events = require('eventthing');
-var ThemeButtons = require('./components/theme-buttons.jsx');
-var Grain = require('./grains/grain.jsx');
-var Page = require('./components/page.jsx');
-var Loading = require('./components/loading.jsx');
-var Menu = require('./components/menu.jsx');
-var Grains = require('./grains/grains.jsx');
-var Silos = require('./silos/silos.jsx');
-var Overview = require('./overview/overview.jsx');
-var SiloState = require('./silos/silo-state-label.jsx');
-var Alert = require('./components/alert.jsx');
-var LogStream = require('./logstream/log-stream.jsx');
-var SiloCounters = require('./silos/silo-counters.jsx');
-var Reminders = require('./reminders/reminders.jsx');
-var timer;
+const http = require('./lib/http');
+const React = require('react');
+const ReactDom = require('react-dom');
+const routie = require('./lib/routie');
+const Silo = require('./silos/silo.jsx');
+const events = require('eventthing');
+const Grain = require('./grains/grain.jsx');
+const Page = require('./components/page.jsx');
+const Loading = require('./components/loading.jsx');
+const Menu = require('./components/menu.jsx');
+const Grains = require('./grains/grains.jsx');
+const Silos = require('./silos/silos.jsx');
+const Overview = require('./overview/overview.jsx');
+const SiloState = require('./silos/silo-state-label.jsx');
+const Alert = require('./components/alert.jsx');
+const LogStream = require('./logstream/log-stream.jsx');
+const SiloCounters = require('./silos/silo-counters.jsx');
+const Reminders = require('./reminders/reminders.jsx');
+const Preferences = require('./components/preferences.jsx');
+const storage = require("./lib/storage");
 
+const target = document.getElementById("content");
+
+// Restore theme preference.
+const defaultTheme = storage.get("theme");
+defaultTheme === "dark" ? dark() : light();
+
+// Restore grain visibility preferences.
+let settings = {
+  dashboardGrainsHidden: storage.get("dashboardGrains") === "hidden",
+  systemGrainsHidden: storage.get("systemGrains") === "hidden"
+};
+
+// Global state.
 var dashboardCounters = {};
+var unfilteredDashboardCounters = {};
 var routeIndex = 0;
 
 function scroll(){
-    window.scrollTo(0,0);
+    try{
+        document.getElementsByClassName("wrapper")[0].scrollTo(0,0);
+    } catch(e){}
 }
 
-ReactDom.render(<ThemeButtons/>, document.getElementById('button-toggles-content'));
 var errorTimer;
 function showError(message){
     ReactDom.render(<Alert onClose={closeError}>{message}</Alert>, document.getElementById('error-message-content'));
@@ -45,20 +59,26 @@ http.onError(showError);
 
 // continually poll the dashboard counters
 function loadDashboardCounters(){
-    http.get('/DashboardCounters', function(err, data){
+    http.get('DashboardCounters', function(err, data){
         dashboardCounters = data;
-        events.emit('dashboard-counters', data);
+        unfilteredDashboardCounters = data;
+        dashboardCounters.simpleGrainStats = unfilteredDashboardCounters.simpleGrainStats.filter(getFilter(settings));
+        events.emit("dashboard-counters", dashboardCounters);
     });
 }
 
 function getVersion() {
-    var version = '1.0.0';
+    var version = '2';
     var renderVersion = function(){
-        ReactDom.render(<span id="version">v.{version}</span>, document.getElementById('version-content'));    
+        ReactDom.render(<span id="version">
+            v.{version} 
+            <i style={{marginLeft:"12px", marginRight:"5px"}} className="fa fa-github"></i>
+            <a style={{color:"white", textDecoration:"underline"}} href="https://github.com/OrleansContrib/OrleansDashboard/">Source</a>
+        </span>, document.getElementById('version-content'));    
     }
 
     var loadData = function(cb){
-        http.get('/version', function(err, data){
+        http.get('version', function(err, data){
             version = data.version;
             renderVersion();
         });
@@ -95,16 +115,25 @@ routie('', function(){
     renderLoading();
 
     var clusterStats = {};
+    var grainMethodStats = [];
+    var unfiltedMethodStats = [];
     var loadData = function(cb){
-        http.get('/ClusterStats', function(err, data){
+        http.get('ClusterStats', function(err, data){
             clusterStats = data;
-            render();
+            http.get('TopGrainMethods', function(err, grainMethodsData){
+                grainMethodStats = grainMethodsData
+                unfiltedMethodStats = grainMethodsData;
+                grainMethodStats.calls = unfiltedMethodStats.calls.filter(getFilter(settings));
+                grainMethodStats.errors = unfiltedMethodStats.errors.filter(getFilter(settings));                
+                grainMethodStats.latency = unfiltedMethodStats.latency.filter(getFilter(settings));                
+                render();
+            })
         });
     }
 
     render = function(){
         if (routeIndex != thisRouteIndex) return;
-        renderPage(<Page title="Dashboard"><Overview dashboardCounters={dashboardCounters} clusterStats={clusterStats} /></Page>, "#/");
+        renderPage(<Page title="Dashboard"><Overview dashboardCounters={dashboardCounters} clusterStats={clusterStats} grainMethodStats={grainMethodStats} /></Page>, "#/");
     }
 
     events.on('dashboard-counters', render);
@@ -147,8 +176,6 @@ routie('/silos', function(){
     loadDashboardCounters();
 });
 
-
-
 routie('/host/:host', function(host){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
@@ -160,11 +187,11 @@ routie('/host/:host', function(host){
     var siloData = [];
     var siloStats = [];
     var loadData = function(cb){
-        http.get(`/HistoricalStats/${host}`, (err, data) => {
+        http.get(`HistoricalStats/${host}`, (err, data) => {
             siloData = data;
             render();
         });
-        http.get(`/SiloStats/${host}`, (err, data) => {
+        http.get(`SiloStats/${host}`, (err, data) => {
             siloStats = data;
             render();
         });
@@ -187,7 +214,7 @@ routie('/host/:host', function(host){
     events.on('dashboard-counters', render);
     events.on('refresh', loadData);
 
-    http.get('/SiloProperties/' + host, function(err, data){
+    http.get('SiloProperties/' + host, function(err, data){
         siloProperties = data;
         loadData();
     });
@@ -200,13 +227,12 @@ routie('/host/:host/counters', function(host){
     scroll();
     renderLoading();
 
-    http.get(`/SiloCounters/${host}`, (err, data) => {
-
+    http.get(`SiloCounters/${host}`, (err, data) => {
+        if (routeIndex != thisRouteIndex) return;
         var subTitle = <a href={`#/host/${host}`}>Silo Details</a>
         renderPage(<Page title={`Silo ${host}`} subTitle={subTitle}><SiloCounters silo={host} dashboardCounters={dashboardCounters} counters={data}/></Page>, "#/silos")
     });
 });
-
 
 routie('/grain/:grainType', function(grainType){
     var thisRouteIndex = ++routeIndex;
@@ -216,7 +242,7 @@ routie('/grain/:grainType', function(grainType){
 
     var grainStats = {};
     var loadData = function(cb){
-        http.get('/GrainStats/' + grainType, function(err, data){
+        http.get('GrainStats/' + grainType, function(err, data){
             grainStats = data;
             render();
         });
@@ -257,11 +283,7 @@ routie('/reminders/:page?', function(page){
     }
 
     var loadData = function(cb){
-        http.get(`/Reminders/${page}`, function(err, data){
-            var maxLastPage = Math.ceil(data.count / 25);
-            if (page > maxLastPage)
-                 rerouteToLastPage(maxLastPage)
-            else
+        http.get(`Reminders/${page}`, function(err, data){
             remindersData = data;
             renderReminders();
         });
@@ -276,10 +298,45 @@ routie('/trace', function(){
     var thisRouteIndex = ++routeIndex;
     events.clearAll();
     scroll();
-    var xhr = http.stream("/Trace");
+    var xhr = http.stream("Trace");
     renderPage(<LogStream xhr={xhr} />, "#/trace");
 });
 
+routie("/preferences", function() {
+  var thisRouteIndex = ++routeIndex;
+  events.clearAll();
+  scroll();
+  renderLoading();
+
+  var changeSettings = newSettings => {
+    settings = {
+      ...settings,
+    }
+
+    if (newSettings.hasOwnProperty('dashboardGrainsHidden')) {
+      storage.put("dashboardGrains", newSettings.dashboardGrainsHidden ? "hidden" : "visible")
+      settings.dashboardGrainsHidden = newSettings.dashboardGrainsHidden
+    }
+
+    if (newSettings.hasOwnProperty('systemGrainsHidden')) {
+      storage.put("systemGrains", newSettings.systemGrainsHidden ? "hidden" : "visible");
+      settings.systemGrainsHidden = newSettings.systemGrainsHidden;
+    }
+
+    dashboardCounters.simpleGrainStats = unfilteredDashboardCounters.simpleGrainStats.filter(getFilter(settings));
+    events.emit("dashboard-counters", dashboardCounters);
+  };
+
+  render = function() {
+    if (routeIndex != thisRouteIndex) return;
+      renderPage(<Page title="Preferences">
+          <Preferences changeSettings={changeSettings} settings={settings} defaultTheme={defaultTheme} light={light} dark={dark} />
+        </Page>, "#/preferences");
+  };
+  loadDashboardCounters();
+
+  render();
+});
 
 setInterval(() => events.emit('refresh'), 1000);
 setInterval(() => events.emit('long-refresh'), 10000);
@@ -289,31 +346,109 @@ routie.reload();
 
 
 function getMenu(){
-    return [
+    var result = [
         {
             name:"Overview",
             path:"#/",
-            icon:"fa-circle"
+            icon:"fa fa-tachometer"
         },
         {
             name:"Grains",
             path:"#/grains",
-            icon:"fa-circle"
+            icon:"fa fa-cubes"
         },
         {
             name:"Silos",
             path:"#/silos",
-            icon:"fa-circle"
+            icon:"fa fa-database"
         },
         {
             name:"Reminders",
             path:"#/reminders",
-            icon:"fa-circle"
-        },
-        {
-            name:"Log Stream",
-            path:"#/trace",
-            icon:"fa-file-text"
+            icon:"fa fa-calendar"
         }
     ];
+
+    if (!window.hideTrace) {
+        result.push({
+            name:"Log Stream",
+            path:"#/trace",
+            icon:"fa fa-bars"
+        });
+    }
+
+    result.push({
+      name: "Preferences",
+      path: "#/preferences",
+      icon: "fa fa-gear",
+      style: {position:"absolute", bottom:0, left:0, right:0}
+    });
+
+    return result;
+}
+
+function getFilter(settings) {
+    let filter
+    if (settings.dashboardGrainsHidden && settings.systemGrainsHidden) {
+      filter = filterByBothDashSys;
+    } else if (settings.dashboardGrainsHidden) {
+      filter = filterByDashboard;
+    } else if (settings.systemGrainsHidden) {
+      filter = filterBySystem;
+    } else {
+      filter = () => true;
+    }
+    return filter
+}
+
+function filterByDashboard(x) {
+    if (x.grainType == undefined) {
+        var dashboardGrain = x.grain.startsWith("OrleansDashboard.");
+        return !dashboardGrain;
+    } else {
+        var dashboardGrain = x.grainType.startsWith("OrleansDashboard.");
+        return !dashboardGrain;
+    }
+}
+
+function filterBySystem(x) {
+    if (x.grainType == undefined) {
+        var systemGrain = x.grain.startsWith("Orleans.");
+        return !systemGrain;
+    } else {
+        var systemGrain = x.grainType.startsWith("Orleans.");
+        return !systemGrain;
+    }
+
+}
+
+function filterByBothDashSys(x) {
+    if (x.grainType == undefined) {
+        var systemGrain = x.grain.startsWith("Orleans.");
+        var dashboardGrain = x.grain.startsWith("OrleansDashboard.");
+        return !systemGrain && !dashboardGrain;
+    }
+    else {
+        var systemGrain = x.grainType.startsWith("Orleans.");
+        var dashboardGrain = x.grainType.startsWith("OrleansDashboard.");
+        return !systemGrain && !dashboardGrain;
+    }
+}
+
+function light() {
+    // Save preference to localStorage.
+    storage.put("theme", "light");
+
+    // Disable dark theme (which falls back to light theme).
+    const style = document.getElementById("dark-theme-style");
+    style.setAttribute("media", "none");
+}
+
+function dark() {
+    // Save preference to localStorage.
+    storage.put("theme", "dark");
+
+    // Enable dark theme.
+    const style = document.getElementById("dark-theme-style");
+    style.setAttribute("media", "");
 }

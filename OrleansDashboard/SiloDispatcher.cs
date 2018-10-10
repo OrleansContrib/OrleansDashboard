@@ -4,10 +4,9 @@ using System.Threading.Tasks;
 
 namespace OrleansDashboard
 {
-    public class SiloDispatcher : IExternalDispatcher
+    public class SiloDispatcher : IExternalDispatcher, IDisposable
     {
-        private static readonly CancellationTokenSource cts = new CancellationTokenSource();
-        private static TaskScheduler scheduler;
+        private TaskScheduler scheduler;
 
         public Task DispatchAsync(Func<Task> action)
         {
@@ -16,7 +15,7 @@ namespace OrleansDashboard
                 throw new InvalidOperationException("The dispatcher has already been closed.");
             }
 
-            return Task<Task>.Factory.StartNew(action, cts.Token, TaskCreationOptions.None, scheduler).Unwrap();
+            return Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, scheduler).Unwrap();
         }
 
         public Task<T> DispatchAsync<T>(Func<Task<T>> action)
@@ -26,7 +25,7 @@ namespace OrleansDashboard
                 throw new InvalidOperationException("The dispatcher has already been closed.");
             }
 
-            return Task<Task<T>>.Factory.StartNew(action, cts.Token, TaskCreationOptions.DenyChildAttach, scheduler).Unwrap();
+            return Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.DenyChildAttach, scheduler).Unwrap();
         }
 
         public bool CanDispatch()
@@ -34,15 +33,13 @@ namespace OrleansDashboard
             return scheduler != null;
         }
 
-        public static void Setup()
+        public void Setup()
         {
             scheduler = TaskScheduler.Current;
         }
 
-        public static void Teardown()
+        public void Dispose()
         {
-            cts.Cancel();
-
             scheduler = null;
         }
     }
