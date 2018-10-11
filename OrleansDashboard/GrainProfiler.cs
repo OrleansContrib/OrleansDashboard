@@ -80,7 +80,7 @@ namespace OrleansDashboard
                     var grainName = context.Grain.GetType().FullName;
                     var methodName = formatMethodName(context);
 
-                    var key = string.Format("{0}.{1}", grainName, methodName);
+                    var key = $"{grainName}.{methodName}";
 
                     var exceptionCount = (isException ? 1 : 0);
 

@@ -12,7 +12,7 @@ using TestGrains;
 
 // ReSharper disable MethodSupportsCancellation
 
-namespace TestHost
+namespace TestHostWindows
 {
     public static class Program
     {

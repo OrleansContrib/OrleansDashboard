@@ -20,7 +20,8 @@ namespace OrleansDashboard
         private IDisposable timer;
         private string versionOrleans;
         private string versionHost;
-        private DashboardOptions options;
+
+        private readonly DashboardOptions options;
 
         public SiloGrain(IOptions<DashboardOptions> options)
         {

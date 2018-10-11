@@ -1,14 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
-using Microsoft.Extensions.Options;
-using Orleans;
-using Orleans.Runtime;
-using OrleansDashboard;
 using OrleansDashboard.History;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using OrleansDashboard.Client.Model;
 
 namespace PerformanceTests
@@ -35,7 +29,7 @@ namespace PerformanceTests
         }
 
         // multiple implementations of trace history could be tested here
-        ITraceHistory traceHistory = new TraceHistory();
+        readonly ITraceHistory traceHistory = new TraceHistory();
         int time = 0;
         DateTime startTime = DateTime.UtcNow;
         
