@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Caching;
 using System.Text;
 
 namespace OrleansDashboard.Metrics.TypeFormatting
@@ -11,19 +11,11 @@ namespace OrleansDashboard.Metrics.TypeFormatting
     /// </summary>
     public class TypeFormatter
     {
-        static MemoryCache cache = MemoryCache.Default;
+        private static ConcurrentDictionary<string, string> cache = new ConcurrentDictionary<string, string>();
 
         public static string Parse(string typeName)
         {
-            var parsed = cache.Get(typeName) as string;
-
-            if (string.IsNullOrEmpty(parsed))
-            {
-                parsed = ToString(Tokenise(typeName));
-                cache.Add(typeName, parsed, DateTimeOffset.MaxValue);
-            }
-
-            return parsed;
+            return cache.GetOrAdd(typeName, x => ToString(Tokenise(x)));
         }
 
         private static string ToString(IEnumerable<Token> tokens)
