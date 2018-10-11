@@ -4,11 +4,10 @@ using System.Linq;
 using OrleansDashboard.Client.Model;
 using OrleansDashboard.Client.Model.History;
 
-namespace OrleansDashboard.History
+namespace OrleansDashboard.Metrics.History
 {
     public class TraceHistory : ITraceHistory
     {
-
         const int HistoryLength = 100;
         private readonly List<GrainTraceEntry> history = new List<GrainTraceEntry>();
 
@@ -22,7 +21,7 @@ namespace OrleansDashboard.History
             return GetTracings(history.Where(x => string.Equals(x.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase)));
         }
 
-        private Dictionary<string, GrainTraceEntry> GetTracings(IEnumerable<GrainTraceEntry> traces)
+        private static Dictionary<string, GrainTraceEntry> GetTracings(IEnumerable<GrainTraceEntry> traces)
         {
             var results = new Dictionary<string, GrainTraceEntry>();
 
@@ -131,7 +130,7 @@ namespace OrleansDashboard.History
 
         public IEnumerable<TraceAggregate> GroupByGrainAndSilo()
         {
-            return this.history.GroupBy(x => (x.Grain, x.SiloAddress)).Select(group => {
+            return history.GroupBy(x => (x.Grain, x.SiloAddress)).Select(group => {
                 var result = new TraceAggregate
                 {
                     SiloAddress = group.Key.SiloAddress,

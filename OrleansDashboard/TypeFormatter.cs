@@ -37,11 +37,11 @@ namespace OrleansDashboard
                 Type = type;
                 Value = value;
             }
-            public TokenType Type { get; set; }
-            public string Value { get; set; }
+            public TokenType Type { get; }
+            public string Value { get; }
             public override string ToString()
             {
-                return string.Format("{0} = {1}", Type, Value);
+                return $"{Type} = {Value}";
             }
         }
 

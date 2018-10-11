@@ -24,7 +24,7 @@ namespace OrleansDashboard
             {
                 var guidKey = grainRef.GetPrimaryKey(out var guidExt).ToString();
 
-                return guidExt != null ? $"{guidKey} + {guidExt}" : guidKey.ToString();
+                return guidExt != null ? $"{guidKey} + {guidExt}" : guidKey;
             }
 
             return stringKey;

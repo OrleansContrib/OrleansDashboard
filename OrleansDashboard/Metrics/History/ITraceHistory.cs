@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using OrleansDashboard.Client.Model;
 using OrleansDashboard.Client.Model.History;
 
-namespace OrleansDashboard.History
+namespace OrleansDashboard.Metrics.History
 {
     public interface ITraceHistory
     {

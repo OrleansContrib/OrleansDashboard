@@ -1,15 +1,9 @@
 ﻿using BenchmarkDotNet.Attributes;
-using Microsoft.Extensions.Options;
-using Orleans;
-using Orleans.Runtime;
-using OrleansDashboard;
-using OrleansDashboard.History;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using OrleansDashboard.Client.Model;
+using OrleansDashboard.Metrics.History;
 
 namespace PerformanceTests
 {
@@ -31,13 +25,13 @@ namespace PerformanceTests
         [GlobalSetup]
         public void Setup()
         {
-            Setup(this.traceHistory);
+            Setup(traceHistory);
         }
 
         // multiple implementations of trace history could be tested here
-        ITraceHistory traceHistory = new TraceHistory();
-        int time = 0;
-        DateTime startTime = DateTime.UtcNow;
+        readonly ITraceHistory traceHistory = new TraceHistory();
+        private int time;
+        private DateTime startTime = DateTime.UtcNow;
         
 
         [Benchmark]
@@ -81,8 +75,8 @@ namespace PerformanceTests
 
         void Setup(ITraceHistory history)
         {
-            var start = DateTime.Now.AddSeconds(-this.HistorySize);
-            for (var timeIndex = 0; timeIndex < this.HistorySize; timeIndex++)
+            var start = DateTime.Now.AddSeconds(-HistorySize);
+            for (var timeIndex = 0; timeIndex < HistorySize; timeIndex++)
             {
                 var time = start.AddSeconds(timeIndex);
                 AddTraceData(time, history);
@@ -92,12 +86,12 @@ namespace PerformanceTests
 
         void AddTraceData(DateTime time, ITraceHistory history)
         {
-            for (var siloIndex = 0; siloIndex < this.SiloCount; siloIndex++)
+            for (var siloIndex = 0; siloIndex < SiloCount; siloIndex++)
             {
                 var trace = new List<SiloGrainTraceEntry>();
-                for (var grainIndex = 0; grainIndex < this.GrainTypeCount; grainIndex++)
+                for (var grainIndex = 0; grainIndex < GrainTypeCount; grainIndex++)
                 {
-                    for (var grainMethodIndex = 0; grainMethodIndex < this.GrainMethodCount; grainMethodIndex++)
+                    for (var grainMethodIndex = 0; grainMethodIndex < GrainMethodCount; grainMethodIndex++)
                     {
                         trace.Add(new SiloGrainTraceEntry{
                             ElapsedTime = 10,

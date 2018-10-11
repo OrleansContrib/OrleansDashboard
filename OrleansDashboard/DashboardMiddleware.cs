@@ -277,14 +277,9 @@ You are connected to the Orleans Dashboard log streaming service
         {
             var file = new FileInfo(name);
 
-            if (file.Exists)
-            {
-                return file.OpenRead();
-            }
-            else
-            {
-                return assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
-            }
+            return file.Exists 
+                ? file.OpenRead() 
+                : assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
         }
     }
 }
