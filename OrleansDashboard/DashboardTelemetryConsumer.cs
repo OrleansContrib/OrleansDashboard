@@ -5,13 +5,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {
-    public sealed class DashboardTelemetryConsumer : ITelemetryConsumer, IMetricTelemetryConsumer
+    public sealed class DashboardTelemetryConsumer : IMetricTelemetryConsumer
     {
         public class Value<T>
         {
@@ -87,40 +88,32 @@ namespace OrleansDashboard
         {
             var grain = grainFactory.GetGrain<ISiloGrain>(localSiloDetails.SiloAddress.ToParsableString());
 
-            var counters = new List<StatCounter>();
+            var countersArray = metrics.Select(metric => new StatCounter
+                {
+                    Name = metric.Key,
+                    Value = metric.Value.Current.ToString(CultureInfo.InvariantCulture),
+                    Delta = (metric.Value.Current - metric.Value.Last).ToString(CultureInfo.InvariantCulture)
+                })
+                .Concat(timespanMetrics.Select(metric => new StatCounter
+                {
+                    Name = metric.Key,
+                    Value = (metric.Value.Current).ToString("c", CultureInfo.InvariantCulture),
+                    Delta = (metric.Value.Current - metric.Value.Last).ToString("c", CultureInfo.InvariantCulture)
+                }))
+                .ToArray();
 
-            foreach (var metric in metrics.ToArray())
+            if (countersArray.Length > 0)
             {
-                var v = metric.Value.Current;
-                var d = metric.Value.Current - metric.Value.Last;
-
-                counters.Add(new StatCounter { Name = metric.Key, Value = v.ToString(CultureInfo.InvariantCulture), Delta = d.ToString(CultureInfo.InvariantCulture) });
-            }
-
-            foreach (var metric in timespanMetrics.ToArray())
-            {
-                var v = metric.Value.Current;
-                var d = metric.Value.Current - metric.Value.Last;
-
-                counters.Add(new StatCounter { Name = metric.Key, Value = v.ToString("c", CultureInfo.InvariantCulture), Delta = d.ToString("c", CultureInfo.InvariantCulture) });
-            }
-
-            if (counters.Count > 0)
-            {
-                var countersArray = counters.ToArray();
-
                 grain.ReportCounters(countersArray.AsImmutable());
             }
         }
 
         public void Close()
         {
-            if (!isClosed)
-            {
-                isClosed = true;
+            if (isClosed) return;
 
-                timer.Dispose();
-            }
+            isClosed = true;
+            timer.Dispose();
         }
 
         public void Dispose()
