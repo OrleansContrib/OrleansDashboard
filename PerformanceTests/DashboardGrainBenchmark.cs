@@ -35,7 +35,7 @@ namespace PerformanceTests
         }
 
         // multiple implementations of trace history could be tested here
-        ITraceHistory traceHistory = new TraceHistory();
+        readonly ITraceHistory traceHistory = new TraceHistory();
         int time = 0;
         DateTime startTime = DateTime.UtcNow;
         

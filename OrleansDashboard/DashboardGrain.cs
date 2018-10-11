@@ -24,7 +24,7 @@ namespace OrleansDashboard
         private readonly ITraceHistory history = new TraceHistory();
         private readonly DashboardOptions options;
         private readonly ISiloDetailsProvider siloDetailsProvider;
-        private DashboardCounters counters = new DashboardCounters();
+        private readonly DashboardCounters counters = new DashboardCounters();
         private DateTime startTime = DateTime.UtcNow;
 
         public DashboardGrain(IOptions<DashboardOptions> options, ISiloDetailsProvider siloDetailsProvider)
