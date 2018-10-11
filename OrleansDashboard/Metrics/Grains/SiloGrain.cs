@@ -54,7 +54,7 @@ namespace OrleansDashboard.Metrics.Grains
             var managementGrain = GrainFactory.GetGrain<IManagementGrain>(0);
             try
             {
-                var results = (await managementGrain.GetRuntimeStatistics(new SiloAddress[] { siloAddress })).FirstOrDefault();
+                var results = (await managementGrain.GetRuntimeStatistics(new[] { siloAddress })).FirstOrDefault();
 
                 stats.Enqueue(results);
 

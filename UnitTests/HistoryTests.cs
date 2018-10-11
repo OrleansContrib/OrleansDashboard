@@ -15,7 +15,7 @@ namespace UnitTests
         {
             for (var i = 0; i < count; i++)
             {
-                history.Add(startTime.AddSeconds(seconds), "SILO1", new SiloGrainTraceEntry[]{ new SiloGrainTraceEntry {
+                history.Add(startTime.AddSeconds(seconds), "SILO1", new[]{ new SiloGrainTraceEntry {
                     Grain = "GRAIN1",
                     Method = "METHOD1",
                     Count = 1,
@@ -23,7 +23,7 @@ namespace UnitTests
                     ElapsedTime = 10
                 }});
 
-                history.Add(startTime.AddSeconds(seconds), "SILO2", new SiloGrainTraceEntry[]{ new SiloGrainTraceEntry {
+                history.Add(startTime.AddSeconds(seconds), "SILO2", new[]{ new SiloGrainTraceEntry {
                     Grain = "GRAIN1",
                     Method = "METHOD1",
                     Count = 100,

@@ -10,6 +10,7 @@ using Orleans.Concurrency;
 using Orleans.Runtime;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
+using OrleansDashboard.Metrics.TypeFormatting;
 
 namespace OrleansDashboard.Metrics
 {

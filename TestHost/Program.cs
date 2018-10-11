@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Net;
+using System.Threading;
+using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
-using System;
-using System.Net;
-using System.Threading;
 using TestGrains;
 
 // ReSharper disable MethodSupportsCancellation

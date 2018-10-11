@@ -1,56 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Caching;
 using System.Text;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Metrics.TypeFormatting
 {
     /// <summary>
     /// Naive parser which makes strings containing type information easier to read
     /// </summary>
     public class TypeFormatter
     {
-        enum ParseState
-        {
-            TypeNameSection,
-            GenericCount,
-            GenericArray,
-            TypeArray
-        }
-
-        enum TokenType
-        {
-            TypeNameSection,
-            GenericCount,
-            GenericArrayStart,
-            GenericArrayEnd,
-            TypeArrayStart,
-            TypeArrayEnd,
-            GenericSeparator,
-            TypeSectionSeparator
-        }
-
-        struct Token
-        {
-            public Token(TokenType type, string value)
-            {
-                Type = type;
-                Value = value;
-            }
-            public TokenType Type { get; }
-            public string Value { get; }
-            public override string ToString()
-            {
-                return $"{Type} = {Value}";
-            }
-        }
+        static MemoryCache cache = MemoryCache.Default;
 
         public static string Parse(string typeName)
         {
-            return ToString(Tokenise(typeName));
+            var parsed = cache.Get(typeName) as string;
+
+            if (string.IsNullOrEmpty(parsed))
+            {
+                parsed = ToString(Tokenise(typeName));
+                cache.Add(typeName, parsed, DateTimeOffset.MaxValue);
+            }
+
+            return parsed;
         }
 
-        static string ToString(IEnumerable<Token> tokens)
+        private static string ToString(IEnumerable<Token> tokens)
         {
             var builder = new StringBuilder();
             var firstTypeNameSection = true;
@@ -88,8 +64,7 @@ namespace OrleansDashboard
             return builder.ToString();
         }
    
-
-        static IEnumerable<Token> Tokenise(string value)
+        private static IEnumerable<Token> Tokenise(string value)
         {
             var buffer = new StringBuilder();
             var state = ParseState.TypeNameSection;
@@ -170,8 +145,5 @@ namespace OrleansDashboard
             }
 
         }
-
     }
-
-
 }

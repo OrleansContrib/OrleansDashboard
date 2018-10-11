@@ -13,6 +13,7 @@ using OrleansDashboard.Client.Model;
 using OrleansDashboard.Client.Model.History;
 using OrleansDashboard.Metrics.Details;
 using OrleansDashboard.Metrics.History;
+using OrleansDashboard.Metrics.TypeFormatting;
 
 namespace OrleansDashboard
 {
