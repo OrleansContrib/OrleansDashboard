@@ -1,6 +1,4 @@
-﻿using OrleansDashboard.Client.Model;
-
-namespace OrleansDashboard
+﻿namespace OrleansDashboard.Client.Model
 {
     public sealed class ReminderResponse
     {
