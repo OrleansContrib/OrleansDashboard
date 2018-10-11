@@ -23,22 +23,21 @@ namespace OrleansDashboard.Metrics.History
 
         private static Dictionary<string, GrainTraceEntry> GetTracings(IEnumerable<GrainTraceEntry> traces)
         {
-            var results = new Dictionary<string, GrainTraceEntry>();
-
-            foreach (var group in traces.GroupBy(x => x.PeriodKey))
+            var results = traces.GroupBy(x => x.PeriodKey).ToDictionary(group => group.Key, group =>
             {
-                var entry = new GrainTraceEntry{
+                var entry = new GrainTraceEntry
+                {
                     Period = group.First().Period
                 };
 
-                foreach (var item in group)
+                return group.Aggregate(entry, (acc, item) =>
                 {
-                    entry.Count += item.Count;
-                    entry.ElapsedTime += item.ElapsedTime;
-                    entry.ExceptionCount += item.ExceptionCount;
-                }
-                results.Add(group.Key, entry);
-            }
+                    acc.Count += item.Count;
+                    acc.ElapsedTime += item.ElapsedTime;
+                    acc.ExceptionCount += item.ExceptionCount;
+                    return acc;
+                });
+            });
 
             return results;
         }
@@ -46,60 +45,49 @@ namespace OrleansDashboard.Metrics.History
 
         public void Add(DateTime now, string siloAddress, SiloGrainTraceEntry[] grainTrace)
         {
-            var allGrainTrace = new List<GrainTraceEntry>(grainTrace.Length);
-
             var retirementWindow = now.AddSeconds(-HistoryLength);
             history.RemoveAll(x => x.Period <= retirementWindow);
 
             var periodKey = now.ToPeriodString();
-            foreach (var entry in grainTrace)
+            // fill in any previously captured methods which aren't in this reporting window
+            var values = history.Where(x => string.Equals(x.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase))
+                                .GroupBy(x => (x.Grain, x.Method))
+                                .Select(x => x.First());
+
+            var allGrainTrace = grainTrace.Select(entry => new GrainTraceEntry
             {
-                var grainTraceEntry = new GrainTraceEntry
+                Count = entry.Count,
+                ElapsedTime = entry.ElapsedTime,
+                ExceptionCount = entry.ExceptionCount,
+                Grain = entry.Grain,
+                Method = entry.Method,
+                Period = now,
+                SiloAddress = siloAddress,
+                PeriodKey = periodKey
+            })
+            .Concat(values.Select(value => new GrainTraceEntry
                 {
-                    Count = entry.Count,
-                    ElapsedTime = entry.ElapsedTime,
-                    ExceptionCount = entry.ExceptionCount,
-                    Grain = entry.Grain,
-                    Method = entry.Method,
+                    Count = 0,
+                    ElapsedTime = 0,
+                    Grain = value.Grain,
+                    Method = value.Method,
                     Period = now,
                     SiloAddress = siloAddress,
                     PeriodKey = periodKey
-                };
-
-                allGrainTrace.Add(grainTraceEntry);
-            }
-
-            // fill in any previously captured methods which aren't in this reporting window
-            var values = history.Where(x => string.Equals(x.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase)).GroupBy(x => (x.Grain, x.Method)).Select(x => x.First());
-            foreach (var value in values)
-            {
-                if (!grainTrace.Any(x => 
-                    string.Equals(x.Grain, value.Grain, StringComparison.OrdinalIgnoreCase) &&
-                    string.Equals(x.Method, value.Method, StringComparison.OrdinalIgnoreCase)))
-                {
-                    allGrainTrace.Add(new GrainTraceEntry
-                    {
-                        Count = 0,
-                        ElapsedTime = 0,
-                        Grain = value.Grain,
-                        Method = value.Method,
-                        Period = now,
-                        SiloAddress = siloAddress,
-                        PeriodKey = periodKey
-                    });
-                }
-            }
+                }))
+            .Distinct();
 
             history.AddRange(allGrainTrace);
         }
 
         public Dictionary<string, Dictionary<string, GrainTraceEntry>> QueryGrain(string grain)
         {
+            const string SEPARATOR = ".";
+
             var results = new Dictionary<string, Dictionary<string, GrainTraceEntry>>();
 
             foreach (var historicValue in history.Where(x => x.Grain == grain))
             {
-                const string SEPARATOR = ".";
                 var grainMethodKey = string.Join(SEPARATOR, grain, historicValue.Method);
 
                 if (!results.TryGetValue(grainMethodKey, out var grainResults))

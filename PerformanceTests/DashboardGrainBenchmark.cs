@@ -73,7 +73,7 @@ namespace PerformanceTests
         }
 
 
-        void Setup(ITraceHistory history)
+        private void Setup(ITraceHistory history)
         {
             var start = DateTime.Now.AddSeconds(-HistorySize);
             for (var timeIndex = 0; timeIndex < HistorySize; timeIndex++)
@@ -84,7 +84,7 @@ namespace PerformanceTests
 
         }
 
-        void AddTraceData(DateTime time, ITraceHistory history)
+        private void AddTraceData(DateTime time, ITraceHistory history)
         {
             for (var siloIndex = 0; siloIndex < SiloCount; siloIndex++)
             {

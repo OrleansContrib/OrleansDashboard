@@ -25,7 +25,7 @@ namespace OrleansDashboard.Metrics.Details
             // should reduce allocations of array's etc
 
             return Task.FromResult(siloStatusOracle.GetApproximateSiloStatuses(true)
-                .Select(x => new SiloDetails()
+                .Select(x => new SiloDetails
                 {
                     Status = x.Value.ToString(),
                     SiloStatus = x.Value,
