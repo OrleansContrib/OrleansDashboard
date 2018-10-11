@@ -38,24 +38,23 @@ namespace OrleansDashboard
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            if (actions.Count > 0)
+            if (actions.Count <= 0) return;
+
+            var logBuilder = new StringBuilder();
+
+            logBuilder.Append(DateTime.UtcNow);
+            logBuilder.Append(" ");
+            logBuilder.Append(GetLogLevelString(logLevel));
+            logBuilder.Append(": [");
+            logBuilder.Append(eventId.ToString().PadLeft(8));
+            logBuilder.Append("] ");
+            logBuilder.Append(formatter(state, exception));
+
+            var message = logBuilder.ToString();
+
+            foreach (var action in actions)
             {
-                var logBuilder = new StringBuilder();
-
-                logBuilder.Append(DateTime.UtcNow);
-                logBuilder.Append(" ");
-                logBuilder.Append(GetLogLevelString(logLevel));
-                logBuilder.Append(": [");
-                logBuilder.Append(eventId.ToString().PadLeft(8));
-                logBuilder.Append("] ");
-                logBuilder.Append(formatter(state, exception));
-
-                var message = logBuilder.ToString();
-
-                foreach (var action in actions)
-                {
-                    action(message);
-                }
+                action(message);
             }
         }
 

@@ -5,8 +5,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans.Configuration;
 using Orleans.Hosting;
-using Orleans.Runtime;
 using OrleansDashboard;
+using OrleansDashboard.Metrics;
+using OrleansDashboard.Metrics.Details;
 
 // ReSharper disable CheckNamespace
 
@@ -43,10 +44,8 @@ namespace Orleans
                 {
                     return c.GetRequiredService<MembershipTableSiloDetailsProvider>();
                 }
-                else
-                {
-                    return c.GetRequiredService<SiloStatusOracleSiloDetailsProvider>();
-                }
+
+                return c.GetRequiredService<SiloStatusOracleSiloDetailsProvider>();
             });
             services.AddSingleton(GrainProfiler.DefaultGrainMethodFormatter);
 
@@ -62,7 +61,7 @@ namespace Orleans
 
         public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)
         {
-            if (options == null || string.IsNullOrEmpty(options.BasePath) || options.BasePath == "/")
+            if (string.IsNullOrEmpty(options?.BasePath) || options.BasePath == "/")
             {
                 app.UseMiddleware<DashboardMiddleware>();
             }

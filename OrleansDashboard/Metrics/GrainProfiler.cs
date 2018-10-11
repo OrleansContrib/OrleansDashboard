@@ -4,14 +4,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Orleans;
 using Microsoft.Extensions.Logging;
-using Orleans.Runtime;
+using Orleans;
 using Orleans.Concurrency;
+using Orleans.Runtime;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
+using OrleansDashboard.Metrics.TypeFormatting;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Metrics
 {
     public class GrainProfiler : IIncomingGrainCallFilter
     {
@@ -80,7 +81,7 @@ namespace OrleansDashboard
                     var grainName = context.Grain.GetType().FullName;
                     var methodName = formatMethodName(context);
 
-                    var key = string.Format("{0}.{1}", grainName, methodName);
+                    var key = $"{grainName}.{methodName}";
 
                     var exceptionCount = (isException ? 1 : 0);
 
@@ -126,7 +127,7 @@ namespace OrleansDashboard
 
             try
             {
-                this.dashboardGrain = this.dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
+                dashboardGrain = dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
 
                 dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable()).Ignore();
             }

@@ -1,5 +1,5 @@
 ﻿using System;
-using OrleansDashboard;
+using OrleansDashboard.Metrics.TypeFormatting;
 using TestGrains;
 using Xunit;
 

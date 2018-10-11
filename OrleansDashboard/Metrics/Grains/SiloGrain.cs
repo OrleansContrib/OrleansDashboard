@@ -1,16 +1,16 @@
-﻿using Microsoft.Extensions.Options;
-using Orleans;
-using Orleans.Concurrency;
-using Orleans.Runtime;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Orleans;
+using Orleans.Concurrency;
+using Orleans.Runtime;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Metrics.Grains
 {
     public class SiloGrain : Grain, ISiloGrain
     {
@@ -20,7 +20,7 @@ namespace OrleansDashboard
         private IDisposable timer;
         private string versionOrleans;
         private string versionHost;
-        private DashboardOptions options;
+        private readonly DashboardOptions options;
 
         public SiloGrain(IOptions<DashboardOptions> options)
         {
@@ -54,7 +54,7 @@ namespace OrleansDashboard
             var managementGrain = GrainFactory.GetGrain<IManagementGrain>(0);
             try
             {
-                var results = (await managementGrain.GetRuntimeStatistics(new SiloAddress[] { siloAddress })).FirstOrDefault();
+                var results = (await managementGrain.GetRuntimeStatistics(new[] { siloAddress })).FirstOrDefault();
 
                 stats.Enqueue(results);
 
@@ -100,11 +100,11 @@ namespace OrleansDashboard
             return Task.FromResult(results.AsImmutable());
         }
 
-        public Task ReportCounters(Immutable<StatCounter[]> counters)
+        public Task ReportCounters(Immutable<StatCounter[]> reportCounters)
         {
-            foreach (var counter in counters.Value)
+            foreach (var counter in reportCounters.Value)
             {
-                this.counters[counter.Name] = counter;
+                counters[counter.Name] = counter;
             }
 
             return Task.CompletedTask;

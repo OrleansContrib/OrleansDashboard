@@ -1,9 +1,9 @@
-﻿using Orleans;
-using Orleans.Runtime;
-using System;
+﻿using System;
 using System.Globalization;
-using Microsoft.AspNetCore.Http;
 using System.Net;
+using Microsoft.AspNetCore.Http;
+using Orleans;
+using Orleans.Runtime;
 
 namespace OrleansDashboard
 {
@@ -24,7 +24,7 @@ namespace OrleansDashboard
             {
                 var guidKey = grainRef.GetPrimaryKey(out var guidExt).ToString();
 
-                return guidExt != null ? $"{guidKey} + {guidExt}" : guidKey.ToString();
+                return guidExt != null ? $"{guidKey} + {guidExt}" : guidKey;
             }
 
             return stringKey;

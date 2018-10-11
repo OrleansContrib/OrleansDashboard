@@ -3,7 +3,6 @@ using Orleans;
 using Orleans.Concurrency;
 using Orleans.Placement;
 using Orleans.Runtime;
-using OrleansDashboard.History;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +11,9 @@ using System.Threading.Tasks;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
 using OrleansDashboard.Client.Model.History;
+using OrleansDashboard.Metrics.Details;
+using OrleansDashboard.Metrics.History;
+using OrleansDashboard.Metrics.TypeFormatting;
 
 namespace OrleansDashboard
 {
