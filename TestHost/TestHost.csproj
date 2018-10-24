@@ -7,8 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.5" />
-    <PackageReference Include="Microsoft.Orleans.Client" Version="$(OrleansPackageVersion)" />
-    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="$(OrleansPackageVersion)" />
+    <PackageReference Include="Microsoft.Orleans.Client" Version="2.1.2" />
+    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="2.1.2" />
   </ItemGroup>
 
   <ItemGroup>
