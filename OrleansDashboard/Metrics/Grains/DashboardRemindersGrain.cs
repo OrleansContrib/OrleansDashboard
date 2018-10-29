@@ -20,6 +20,15 @@ namespace OrleansDashboard
         {
             var reminderData = await _reminderTable.ReadRows(0, 0xffffffff);
 
+            if(!reminderData.Reminders.Any())
+            {
+                return new Immutable<ReminderResponse>(new ReminderResponse
+                {
+                    Reminders = new ReminderInfo[0],
+                    Count = 0
+                });
+            }
+
             return new ReminderResponse
             {
                 Reminders = reminderData
