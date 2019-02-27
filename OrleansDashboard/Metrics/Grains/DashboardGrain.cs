@@ -18,7 +18,7 @@ using OrleansDashboard.Metrics.TypeFormatting;
 namespace OrleansDashboard
 {
     [Reentrant]
-    [PreferLocalPlacement]
+    //[PreferLocalPlacement]
     public class DashboardGrain : Grain, IDashboardGrain
     {
         const int DefaultTimerIntervalMs = 1000; // 1 second
