@@ -22,7 +22,7 @@ const storage = require('./lib/storage')
 const target = document.getElementById('content')
 
 // Restore theme preference.
-const defaultTheme = storage.get('theme')
+let defaultTheme = storage.get('theme')
 defaultTheme === 'dark' ? dark() : light()
 
 // Restore grain visibility preferences.
@@ -76,14 +76,14 @@ function getVersion() {
   var version = '2'
   var renderVersion = function() {
     ReactDom.render(
-      <span id="version">
+      <span id="version" style={{marginLeft:40}}>
         v.{version}
         <i
           style={{ marginLeft: '12px', marginRight: '5px' }}
           className="fa fa-github"
         />
         <a
-          style={{ color: 'white', textDecoration: 'underline' }}
+          style={{ color: '#b8c7ce', textDecoration: 'underline' }}
           href="https://github.com/OrleansContrib/OrleansDashboard/"
         >
           Source
@@ -155,7 +155,7 @@ routie('', function() {
   render = function() {
     if (routeIndex != thisRouteIndex) return
     renderPage(
-      <Page title="Dashboard">
+      <Page title="Overview">
         <Overview
           dashboardCounters={dashboardCounters}
           clusterStats={clusterStats}
@@ -168,7 +168,6 @@ routie('', function() {
 
   events.on('dashboard-counters', render)
   events.on('refresh', loadData)
-  getVersion()
   loadDashboardCounters()
 })
 
@@ -439,6 +438,7 @@ setInterval(() => events.emit('refresh'), 1000)
 setInterval(() => events.emit('long-refresh'), 10000)
 
 routie.reload()
+getVersion()
 
 function getMenu() {
   var result = [
@@ -531,6 +531,7 @@ function filterByBothDashSys(x) {
 function light() {
   // Save preference to localStorage.
   storage.put('theme', 'light')
+  defaultTheme = 'light'
 
   // Disable dark theme (which falls back to light theme).
   const style = document.getElementById('dark-theme-style')
@@ -540,6 +541,7 @@ function light() {
 function dark() {
   // Save preference to localStorage.
   storage.put('theme', 'dark')
+  defaultTheme = 'dark'
 
   // Enable dark theme.
   const style = document.getElementById('dark-theme-style')
