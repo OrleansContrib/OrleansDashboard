@@ -21,8 +21,16 @@ namespace Orleans
             builder.ConfigureApplicationParts(appParts => appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences());
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
-            builder.AddIncomingGrainCallFilter<GrainProfiler>();
-            builder.EnableDirectClient();
+
+            return builder;
+        }
+
+        public static ISiloBuilder UseDashboard(this ISiloBuilder builder,
+            Action<DashboardOptions> configurator = null)
+        {
+            builder.ConfigureApplicationParts(appParts => appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences());
+            builder.ConfigureServices(services => services.AddDashboard(configurator));
+            builder.AddStartupTask<Dashboard>();
 
             return builder;
         }
@@ -31,11 +39,14 @@ namespace Orleans
             Action<DashboardOptions> configurator = null)
         {
             services.Configure(configurator ?? (x => { }));
+            services.Configure<TelemetryOptions>(options => options.AddConsumer<DashboardTelemetryConsumer>());
+
             services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-            services.Configure<TelemetryOptions>(options => options.AddConsumer<DashboardTelemetryConsumer>());
+            services.AddSingleton<IIncomingGrainCallFilter, GrainProfiler>();
+        
             services.AddSingleton<ISiloDetailsProvider>(c =>
             {
                 var membershipTable = c.GetService<IMembershipTable>();
@@ -67,8 +78,9 @@ namespace Orleans
             }
             else
             {
-                //Make sure there is a leading slash
+                // Make sure there is a leading slash
                 var basePath = options.BasePath.StartsWith("/") ? options.BasePath : "/" + options.BasePath;
+
                 app.Map(basePath, a => a.UseMiddleware<DashboardMiddleware>());
             }
                         
