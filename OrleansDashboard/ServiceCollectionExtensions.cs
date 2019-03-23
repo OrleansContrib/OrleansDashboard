@@ -93,12 +93,12 @@ namespace Orleans
             if (client != null)
             {
                 services.AddSingleton(client);
+                services.AddSingleton<IGrainFactory>(c => c.GetRequiredService<IClusterClient>());
             }
 
             services.Configure(configurator ?? (x => { }));
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-            services.AddSingleton<IGrainFactory>(c => c.GetRequiredService<IClusterClient>());
 
             return services;
         }

@@ -24,6 +24,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestHostWindows", "TestHost
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansDashboard.Client", "OrleansDashboard.Client\OrleansDashboard.Client.csproj", "{7C320AC3-6555-42C7-8188-F6D98BF7936B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHostCohosted", "TestHostCohosted\TestHostCohosted.csproj", "{0E9B51E6-D67E-4FBB-8F03-5837102D8CA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHostCohosted2", "TestHostCohosted2\TestHostCohosted2.csproj", "{CB1DBCBB-BF40-4A47-B16C-BC93FC22D771}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +66,14 @@ Global
 		{7C320AC3-6555-42C7-8188-F6D98BF7936B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C320AC3-6555-42C7-8188-F6D98BF7936B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C320AC3-6555-42C7-8188-F6D98BF7936B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E9B51E6-D67E-4FBB-8F03-5837102D8CA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E9B51E6-D67E-4FBB-8F03-5837102D8CA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E9B51E6-D67E-4FBB-8F03-5837102D8CA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E9B51E6-D67E-4FBB-8F03-5837102D8CA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB1DBCBB-BF40-4A47-B16C-BC93FC22D771}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB1DBCBB-BF40-4A47-B16C-BC93FC22D771}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB1DBCBB-BF40-4A47-B16C-BC93FC22D771}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB1DBCBB-BF40-4A47-B16C-BC93FC22D771}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
