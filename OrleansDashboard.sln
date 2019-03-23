@@ -22,7 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestHostWindows", "TestHostWindows\TestHostWindows.csproj", "{2ED36673-6848-4F23-B664-295025B59819}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrleansDashboard.Client", "OrleansDashboard.Client\OrleansDashboard.Client.csproj", "{7C320AC3-6555-42C7-8188-F6D98BF7936B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrleansDashboard.Client", "OrleansDashboard.Client\OrleansDashboard.Client.csproj", "{7C320AC3-6555-42C7-8188-F6D98BF7936B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

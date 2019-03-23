@@ -4,14 +4,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Orleans;
 using Microsoft.Extensions.Logging;
-using Orleans.Runtime;
+using Orleans;
 using Orleans.Concurrency;
+using Orleans.Runtime;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
+using OrleansDashboard.Metrics.TypeFormatting;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Metrics
 {
     public class GrainProfiler : IIncomingGrainCallFilter
     {
@@ -23,7 +24,6 @@ namespace OrleansDashboard
         private readonly Timer timer;
         private readonly ILogger<GrainProfiler> logger;
         private readonly ILocalSiloDetails localSiloDetails;
-        private readonly IExternalDispatcher dispatcher;
         private readonly IGrainFactory grainFactory;
         private ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new ConcurrentDictionary<string, SiloGrainTraceEntry>();
         private string siloAddress;
@@ -32,11 +32,9 @@ namespace OrleansDashboard
         public GrainProfiler(
             ILogger<GrainProfiler> logger,
             ILocalSiloDetails localSiloDetails,
-            IExternalDispatcher dispatcher,
             GrainMethodFormatterDelegate formatMethodName,
             IGrainFactory grainFactory)
         {
-            this.dispatcher = dispatcher;
             this.logger = logger;
             this.localSiloDetails = localSiloDetails;
             this.grainFactory = grainFactory;
@@ -83,7 +81,7 @@ namespace OrleansDashboard
                     var grainName = context.Grain.GetType().FullName;
                     var methodName = formatMethodName(context);
 
-                    var key = string.Format("{0}.{1}", grainName, methodName);
+                    var key = $"{grainName}.{methodName}";
 
                     var exceptionCount = (isException ? 1 : 0);
 
@@ -118,30 +116,24 @@ namespace OrleansDashboard
 
         private void ProcessStats(object state)
         {
-            if (dispatcher.CanDispatch())
+            var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, SiloGrainTraceEntry>());
+
+            var items = currentTrace.Values.ToArray();
+
+            foreach (var item in items)
             {
-                var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, SiloGrainTraceEntry>());
+                item.Grain = TypeFormatter.Parse(item.Grain);
+            }
 
-                var items = currentTrace.Values.ToArray();
+            try
+            {
+                dashboardGrain = dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
 
-                foreach (var item in items)
-                {
-                    item.Grain = TypeFormatter.Parse(item.Grain);
-                }
-
-                try
-                {
-                    dispatcher.DispatchAsync(() =>
-                    {
-                        this.dashboardGrain = this.dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
-
-                        return dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable());
-                    }).Ignore();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(100001, ex, "Exception thrown sending tracing to dashboard grain");
-                }
+                dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable()).Ignore();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(100001, ex, "Exception thrown sending tracing to dashboard grain");
             }
         }
     }

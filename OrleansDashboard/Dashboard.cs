@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Runtime;
-using System.Threading;
 using OrleansDashboard.Client;
 
 namespace OrleansDashboard
@@ -18,7 +18,6 @@ namespace OrleansDashboard
         private readonly ILogger<Dashboard> logger;
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IGrainFactory grainFactory;
-        private readonly SiloDispatcher siloDispatcher;
         private readonly DashboardOptions dashboardOptions;
 
         public static int HistoryLength => 100;
@@ -27,17 +26,15 @@ namespace OrleansDashboard
             ILogger<Dashboard> logger,
             ILocalSiloDetails localSiloDetails,
             IGrainFactory grainFactory,
-            IOptions<DashboardOptions> dashboardOptions,
-            SiloDispatcher siloDispatcher)
+            IOptions<DashboardOptions> dashboardOptions)
         {
             this.logger = logger;
             this.grainFactory = grainFactory;
-            this.siloDispatcher = siloDispatcher;
             this.localSiloDetails = localSiloDetails;
             this.dashboardOptions = dashboardOptions.Value;
         }
 
-        public Task Execute(CancellationToken cancellationToken)
+        public async Task Execute(CancellationToken cancellationToken)
         {
             if (dashboardOptions.HostSelf)
             {
@@ -47,7 +44,7 @@ namespace OrleansDashboard
                         new WebHostBuilder()
                             .ConfigureServices(services =>
                             {
-                                services.AddServicesForHostedDashboard(grainFactory, siloDispatcher, dashboardOptions);
+                                services.AddServicesForHostedDashboard(grainFactory, dashboardOptions);
                             })
                             .Configure(app =>
                             {
@@ -64,7 +61,7 @@ namespace OrleansDashboard
                             .UseUrls($"http://{dashboardOptions.Host}:{dashboardOptions.Port}")
                             .Build();
 
-                    host.Start();
+                    await host.StartAsync(cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -74,12 +71,7 @@ namespace OrleansDashboard
                 logger.LogInformation($"Dashboard listening on {dashboardOptions.Port}");
             }
 
-            // horrible hack to grab the scheduler
-            // to allow the stats publisher to push
-            // counters to grains
-            this.siloDispatcher.Setup();
-
-            return Task.WhenAll(
+            await Task.WhenAll(
                 ActivateDashboardGrainAsync(),
                 ActivateSiloGrainAsync());
         }
@@ -103,16 +95,6 @@ namespace OrleansDashboard
             try
             {
                 host?.Dispose();
-            }
-            catch
-            {
-                /* NOOP */
-            }
-
-            try
-            {
-                // Teardown the silo dispatcher to prevent deadlocks.
-                this.siloDispatcher.Dispose();
             }
             catch
             {

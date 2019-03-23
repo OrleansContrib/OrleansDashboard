@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Orleans;
-using System;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
 
@@ -21,23 +21,20 @@ namespace OrleansDashboard
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
         const int REMINDER_PAGE_SIZE = 50;
-        private readonly IExternalDispatcher dispatcher;
         private readonly IOptions<DashboardOptions> options;
-        private readonly IGrainFactory grainFactory;
         private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
+        private readonly IDashboardClient client;
 
         public DashboardMiddleware(RequestDelegate next, 
             IGrainFactory grainFactory, 
-            IExternalDispatcher dispatcher,
             IOptions<DashboardOptions> options,
             DashboardLogger logger)
         {
-            this.grainFactory = grainFactory;
-            this.dispatcher = dispatcher;
             this.options = options;
             this.logger = logger;
             this.next = next;
+            this.client = new DashboardClient(grainFactory);
         }
 
         public async Task Invoke(HttpContext context)
@@ -72,9 +69,7 @@ namespace OrleansDashboard
 
             if (request.Path == "/DashboardCounters")
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
-
+                var result = await client.DashboardCounters();
                 await WriteJson(context, result.Value);
 
                 return;
@@ -82,9 +77,7 @@ namespace OrleansDashboard
 
             if (request.Path == "/ClusterStats")
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(grain.GetClusterTracing).ConfigureAwait(false);
-
+                var result = await client.ClusterStats();
                 await WriteJson(context, result.Value);
 
                 return;
@@ -94,8 +87,7 @@ namespace OrleansDashboard
             {
                 try
                 {
-                    var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
-                    var result = await dispatcher.DispatchAsync(() => grain.GetReminders(1, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
+                    var result = await client.GetReminders(1, REMINDER_PAGE_SIZE);
 
                     await WriteJson(context, result.Value);
                 }
@@ -112,8 +104,7 @@ namespace OrleansDashboard
             {
                 try
                 {
-                    var grain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
-                    var result = await dispatcher.DispatchAsync(() => grain.GetReminders(page, REMINDER_PAGE_SIZE)).ConfigureAwait(false);
+                    var result = await client.GetReminders(page, REMINDER_PAGE_SIZE);
 
                     await WriteJson(context, result.Value);
                 }
@@ -128,8 +119,7 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/HistoricalStats", out var remaining))
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(remaining.ToValue());
-                var result = await dispatcher.DispatchAsync(grain.GetRuntimeStatistics).ConfigureAwait(false);
+                var result = await client.HistoricalStats(remaining.ToValue());
 
                 await WriteJson(context, result.Value);
 
@@ -138,8 +128,7 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/SiloProperties", out var address1))
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(address1.ToValue());
-                var result = await dispatcher.DispatchAsync(grain.GetExtendedProperties).ConfigureAwait(false);
+                var result = await client.SiloProperties(address1.ToValue());
 
                 await WriteJson(context, result.Value);
 
@@ -148,8 +137,7 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/SiloStats", out var address2))
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.GetSiloTracing(address2.ToValue())).ConfigureAwait(false);
+                var result = await client.SiloStats(address2.ToValue());
 
                 await WriteJson(context, result.Value);
 
@@ -158,8 +146,7 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/SiloCounters", out var address3))
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(address3.ToValue());
-                var result = await dispatcher.DispatchAsync(grain.GetCounters).ConfigureAwait(false);
+                var result = await client.GetCounters(address3.ToValue());
 
                 await WriteJson(context, result.Value);
 
@@ -168,8 +155,7 @@ namespace OrleansDashboard
 
             if (request.Path.StartsWithSegments("/GrainStats", out var grainName1))
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.GetGrainTracing(grainName1.ToValue())).ConfigureAwait(false);
+                var result = await client.GrainStats(grainName1.ToValue());
 
                 await WriteJson(context, result.Value);
 
@@ -178,8 +164,7 @@ namespace OrleansDashboard
 
             if (request.Path == "/TopGrainMethods")
             {
-                var grain = grainFactory.GetGrain<IDashboardGrain>(0);
-                var result = await dispatcher.DispatchAsync(() => grain.TopGrainMethods()).ConfigureAwait(false);
+                var result = await client.TopGrainMethods();
 
                 await WriteJson(context, result.Value);
 
@@ -280,14 +265,9 @@ You are connected to the Orleans Dashboard log streaming service
         {
             var file = new FileInfo(name);
 
-            if (file.Exists)
-            {
-                return file.OpenRead();
-            }
-            else
-            {
-                return assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
-            }
+            return file.Exists 
+                ? file.OpenRead() 
+                : assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
         }
     }
 }

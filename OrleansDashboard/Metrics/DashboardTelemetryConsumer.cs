@@ -5,13 +5,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
 
 namespace OrleansDashboard
 {
-    public sealed class DashboardTelemetryConsumer : ITelemetryConsumer, IMetricTelemetryConsumer
+    public sealed class DashboardTelemetryConsumer : IMetricTelemetryConsumer
     {
         public class Value<T>
         {
@@ -41,15 +42,13 @@ namespace OrleansDashboard
         private readonly ConcurrentDictionary<string, Value<TimeSpan>> timespanMetrics = new ConcurrentDictionary<string, Value<TimeSpan>>();
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IGrainFactory grainFactory;
-        private readonly IExternalDispatcher dispatcher;
         private readonly Timer timer;
         private bool isClosed;
 
-        public DashboardTelemetryConsumer(ILocalSiloDetails localSiloDetails, IGrainFactory grainFactory, IExternalDispatcher dispatcher)
+        public DashboardTelemetryConsumer(ILocalSiloDetails localSiloDetails, IGrainFactory grainFactory)
         {
             this.localSiloDetails = localSiloDetails;
             this.grainFactory = grainFactory;
-            this.dispatcher = dispatcher;
 
             // register timer to report every second
             timer = new Timer(x => Flush(), null, 1 * 1000, 1 * 1000);
@@ -87,45 +86,34 @@ namespace OrleansDashboard
 
         public void Flush()
         {
-            if (dispatcher.CanDispatch())
+            var grain = grainFactory.GetGrain<ISiloGrain>(localSiloDetails.SiloAddress.ToParsableString());
+
+            var countersArray = metrics.Select(metric => new StatCounter
+                {
+                    Name = metric.Key,
+                    Value = metric.Value.Current.ToString(CultureInfo.InvariantCulture),
+                    Delta = (metric.Value.Current - metric.Value.Last).ToString(CultureInfo.InvariantCulture)
+                })
+                .Concat(timespanMetrics.Select(metric => new StatCounter
+                {
+                    Name = metric.Key,
+                    Value = (metric.Value.Current).ToString("c", CultureInfo.InvariantCulture),
+                    Delta = (metric.Value.Current - metric.Value.Last).ToString("c", CultureInfo.InvariantCulture)
+                }))
+                .ToArray();
+
+            if (countersArray.Length > 0)
             {
-                var grain = grainFactory.GetGrain<ISiloGrain>(localSiloDetails.SiloAddress.ToParsableString());
-
-                var counters = new List<StatCounter>();
-
-                foreach (var metric in metrics.ToArray())
-                {
-                    var v = metric.Value.Current;
-                    var d = metric.Value.Current - metric.Value.Last;
-
-                    counters.Add(new StatCounter { Name = metric.Key, Value = v.ToString(CultureInfo.InvariantCulture), Delta = d.ToString(CultureInfo.InvariantCulture) });
-                }
-
-                foreach (var metric in timespanMetrics.ToArray())
-                {
-                    var v = metric.Value.Current;
-                    var d = metric.Value.Current - metric.Value.Last;
-
-                    counters.Add(new StatCounter { Name = metric.Key, Value = v.ToString("c", CultureInfo.InvariantCulture), Delta = d.ToString("c", CultureInfo.InvariantCulture) });
-                }
-
-                if (counters.Count > 0)
-                {
-                    var countersArray = counters.ToArray();
-
-                    dispatcher.DispatchAsync(() => grain.ReportCounters(countersArray.AsImmutable()));
-                }
+                grain.ReportCounters(countersArray.AsImmutable());
             }
         }
 
         public void Close()
         {
-            if (!isClosed)
-            {
-                isClosed = true;
+            if (isClosed) return;
 
-                timer.Dispose();
-            }
+            isClosed = true;
+            timer.Dispose();
         }
 
         public void Dispose()

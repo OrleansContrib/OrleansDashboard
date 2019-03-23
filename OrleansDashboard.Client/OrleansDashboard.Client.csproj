@@ -1,13 +1,26 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <PackageLicense>MIT</PackageLicense>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/OrleansContrib/OrleansDashboard</PackageProjectUrl>
+    <PackageTags>orleans dashboard metrics monitor</PackageTags>
+    <Description>An admin dashboard for Microsoft Orleans</Description>
+    <Company>OrleansContrib</Company>
+    <Version>$(DashboardVersion)</Version>
+    <Copyright>Copyright © 2019</Copyright>
+    <Authors>OrleansContrib</Authors>
+    <PackageIconUrl>http://dotnet.github.io/orleans/assets/logo.png</PackageIconUrl>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <AssemblyVersion>$(DashboardVersion)</AssemblyVersion>
+    <FileVersion>$(DashboardVersion)</FileVersion>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Client" Version="$(OrleansPackageVersion)" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="$(OrleansPackageVersion)" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="$(OrleansPackageVersion)">
+    <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="$(OrleansPackageVersion)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
