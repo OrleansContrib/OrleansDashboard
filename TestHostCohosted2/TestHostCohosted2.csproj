@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.AspNetCore.All" />
     <PackageReference Include="Microsoft.Orleans.Client" Version="$(OrleansPackageVersion)" />
     <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="$(OrleansPackageVersion)" />
+    <PackageReference Include="Orleans.WebHostCompatibilityLayer" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>
