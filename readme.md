@@ -24,8 +24,28 @@ new SiloHostBuilder()
 
 Start the silo, and open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
 
-Please note, the CPU and Memory metrics are only enabled on Windows when you add the [Microsoft.Orleans.OrleansTelemetryConsumers.Counters](https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Counters/) package and have registered an implementation of  `IHostEnvironmentStatistics` such as with `builder.UsePerfCounterEnvironmentStatistics()` (currently Windows only).
+Please note, the dashboard registers its services and grains using `ConfigureApplicationParts` which disables the
+automatic discovery of grains in Orleans. To enable automatic discovery of the grains of the original project, change
+the configuration to:
+
+```c#
+new SiloHostBuilder()
+  .ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory())
+  .UseDashboard(options => { })
+  .Build();
+```
+
+### CPU and Memory Metrics on Windows
+
+The CPU and Memory metrics are only enabled on Windows when you add the [Microsoft.Orleans.OrleansTelemetryConsumers.Counters](https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Counters/) package and have registered an implementation of  `IHostEnvironmentStatistics` such as with `builder.UsePerfCounterEnvironmentStatistics()` (currently Windows only).
 You also have to wait some time before you see the data.
+
+### CPU and Memory Metrics on Linux
+
+Since version 2.3, Orleans includes an implementation of `IHostEnvironmentStatistics` for linux in
+[Microsoft.Orleans.OrleansTelemetryConsumers.Linux](https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Linux/).
+To enable CPU and Memory metrics, install the nuget package and add the implementation using to the silo using
+`siloBuilder.UseLinuxEnvironmentStatistics()`.
 
 ## Configuring the Dashboard
 
