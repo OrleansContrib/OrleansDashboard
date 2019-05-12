@@ -1,26 +1,20 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
 using OrleansDashboard.Client;
 using OrleansDashboard.Client.Model;
 using OrleansDashboard.Metrics.TypeFormatting;
+using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace OrleansDashboard.Metrics
 {
-    public class GrainProfiler : IIncomingGrainCallFilter
+    public sealed class GrainProfiler : IGrainProfiler, IDisposable
     {
-        public delegate string GrainMethodFormatterDelegate(IIncomingGrainCallContext callContext);
-
-        public static readonly GrainMethodFormatterDelegate DefaultGrainMethodFormatter = c => c.ImplementationMethod?.Name ?? "Unknown";
-
-        private readonly GrainMethodFormatterDelegate formatMethodName;
         private readonly Timer timer;
         private readonly ILogger<GrainProfiler> logger;
         private readonly ILocalSiloDetails localSiloDetails;
@@ -29,17 +23,12 @@ namespace OrleansDashboard.Metrics
         private string siloAddress;
         private IDashboardGrain dashboardGrain;
 
-        public GrainProfiler(
-            ILogger<GrainProfiler> logger,
-            ILocalSiloDetails localSiloDetails,
-            GrainMethodFormatterDelegate formatMethodName,
-            IGrainFactory grainFactory)
+        public GrainProfiler(IGrainFactory grainFactory, ILogger<GrainProfiler> logger, ILocalSiloDetails localSiloDetails)
         {
-            this.logger = logger;
-            this.localSiloDetails = localSiloDetails;
             this.grainFactory = grainFactory;
 
-            this.formatMethodName = formatMethodName;
+            this.logger = logger;
+            this.localSiloDetails = localSiloDetails;
 
             // register timer to report every second
             timer = new Timer(ProcessStats, null, 1 * 1000, 1 * 1000);
@@ -50,90 +39,75 @@ namespace OrleansDashboard.Metrics
             timer.Dispose();
         }
 
-        public async Task Invoke(IIncomingGrainCallContext context)
+        public void Track(double elapsedMs, Type grainType, [CallerMemberName] string methodName = null, bool failed = false)
         {
-            if (siloAddress == null)
+            if (grainType == null)
             {
-                siloAddress = localSiloDetails.SiloAddress.ToParsableString();
+                throw new ArgumentNullException(nameof(grainType));
             }
 
-            var stopwatch = Stopwatch.StartNew();
-            
-            var isException = false;
-
-            try
+            if (string.IsNullOrWhiteSpace(methodName))
             {
-                await context.Invoke();
+                throw new ArgumentException("Method name cannot be null or empty.", nameof(methodName));
             }
-            catch (Exception)
-            {
-                isException = true;
-                throw;
-            }
-            finally
-            {
 
-                try
+            var grainName = grainType.FullName;
+
+            var key = $"{grainName}.{methodName}";
+
+            var exceptionCount = (failed ? 1 : 0);
+
+            grainTrace.AddOrUpdate(key, _ =>
+                new SiloGrainTraceEntry
                 {
-                    stopwatch.Stop();
+                    Count = 1,
+                    ExceptionCount = exceptionCount,
+                    ElapsedTime = elapsedMs,
+                    Grain = grainName,
+                    Method = methodName
+                },
+            (_, last) =>
+            {
+                last.Count += 1;
+                last.ElapsedTime += elapsedMs;
 
-                    var elapsedMs = stopwatch.Elapsed.TotalMilliseconds;
-                    var grainName = context.Grain.GetType().FullName;
-                    var methodName = formatMethodName(context);
-
-                    var key = $"{grainName}.{methodName}";
-
-                    var exceptionCount = (isException ? 1 : 0);
-
-                    grainTrace.AddOrUpdate(key, _ => 
-                        new SiloGrainTraceEntry
-                        {
-                            Count = 1,
-                            ExceptionCount = exceptionCount,
-                            ElapsedTime = elapsedMs,
-                            Grain = grainName ,
-                            Method = methodName
-                        },
-                    (_, last) =>
-                    {
-                        last.Count += 1;
-                        last.ElapsedTime += elapsedMs;
-
-                        if (isException)
-                        {
-                            last.ExceptionCount += exceptionCount;
-                        }
-
-                        return last;
-                    });
-                }
-                catch (Exception ex)
+                if (failed)
                 {
-                    logger.LogError(100002, ex, "error recording results for grain");
+                    last.ExceptionCount += exceptionCount;
                 }
-            }
+
+                return last;
+            });
         }
 
         private void ProcessStats(object state)
         {
             var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, SiloGrainTraceEntry>());
 
-            var items = currentTrace.Values.ToArray();
-
-            foreach (var item in items)
+            if (currentTrace.Count > 0)
             {
-                item.Grain = TypeFormatter.Parse(item.Grain);
-            }
+                if (siloAddress == null)
+                {
+                    siloAddress = localSiloDetails.SiloAddress.ToParsableString();
+                }
 
-            try
-            {
-                dashboardGrain = dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
+                var items = currentTrace.Values.ToArray();
 
-                dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable()).Ignore();
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(100001, ex, "Exception thrown sending tracing to dashboard grain");
+                foreach (var item in items)
+                {
+                    item.Grain = TypeFormatter.Parse(item.Grain);
+                }
+
+                try
+                {
+                    dashboardGrain = dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
+
+                    dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable()).Ignore();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(100001, ex, "Exception thrown sending tracing to dashboard grain");
+                }
             }
         }
     }

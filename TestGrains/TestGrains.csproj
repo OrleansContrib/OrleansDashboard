@@ -12,4 +12,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="$(OrleansPackageVersion)" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OrleansDashboard\OrleansDashboard.csproj" />
+  </ItemGroup>
 </Project>
