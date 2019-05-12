@@ -45,7 +45,8 @@ namespace Orleans
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-            services.AddSingleton<IIncomingGrainCallFilter, GrainProfiler>();
+            services.AddSingleton<IGrainProfiler, GrainProfiler>();
+            services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
         
             services.AddSingleton<ISiloDetailsProvider>(c =>
             {
@@ -58,7 +59,7 @@ namespace Orleans
 
                 return c.GetRequiredService<SiloStatusOracleSiloDetailsProvider>();
             });
-            services.AddSingleton(GrainProfiler.DefaultGrainMethodFormatter);
+            services.AddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
 
             return services;
         }

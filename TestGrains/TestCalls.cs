@@ -37,6 +37,8 @@ namespace TestGrains
                         var genericClient = client.GetGrain<IGenericGrain<string>>("foo");
 
                         await genericClient.Echo("hello world");
+
+                        await genericClient.EchoNoProfiling("hello world");
                     }
                     catch
                     {
