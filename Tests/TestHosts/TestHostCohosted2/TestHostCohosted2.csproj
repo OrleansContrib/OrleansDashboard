@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OrleansDashboard\OrleansDashboard.csproj" />
-    <ProjectReference Include="..\TestGrains\TestGrains.csproj" />
+    <ProjectReference Include="..\..\..\OrleansDashboard\OrleansDashboard.csproj" />
+    <ProjectReference Include="..\..\TestGrains\TestGrains.csproj" />
   </ItemGroup>
 
 </Project>
