@@ -60,7 +60,7 @@ The dashboard supports the following properties for the configuration:
 
 ```c#
 new SiloHostBuilder()
-  .UseDashboard(options => { 
+  .UseDashboard(options => {
     options.Username = "USERNAME";
     options.Password = "PASSWORD";
     options.Host = "*";
@@ -88,7 +88,7 @@ This is only required if you want to modify the user interface.
 The user interface is react.js, using browserify to compose the javascript delivered to the browser.
 The HTML and JS files are embedded resources within the dashboard DLL.
 
-To build the UI, you must have [node.js](https://nodejs.org/en/) and npm installed. 
+To build the UI, you must have [node.js](https://nodejs.org/en/) and npm installed.
 
 To build `index.min.js`, which contains the UI components and dependencies, install the dependencies and run the build script using npm:
 
@@ -101,6 +101,12 @@ $ npm run build
 This will copy the bundled, minified javascript file into the correct place for it to be picked up as an embedded resource in the .NET OrleansDashboard project.
 
 You will need to rebuild the OrleansDashboard project to see any changes.
+
+## Testing the Dashboard
+
+The `Tests/TestHosts/` directory contains a number of preconfigured test application.
+
+Try the `Tests/TestHosts/TestHost` project as a starting point.
 
 ## Dashboard API
 
@@ -120,7 +126,7 @@ Returns a summary of cluster metrics. Number of active hosts (and a history), nu
   "totalActiveHostCountHistory": [ ... ],
   "hosts": [ ... ],
   "simpleGrainStats": [ ... ],
-  "totalActivationCount": 32, 
+  "totalActivationCount": 32,
   "totalActivationCountHistory": [ ... ]
 }
 ```

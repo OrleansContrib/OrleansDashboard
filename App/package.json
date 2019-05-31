@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .js --ext .jsx",
     "test": "mocha",
     "browserify": "cross-env BABEL_ENV=production browserify index.jsx -t babelify -g [ envify --NODE_ENV production ] -g uglifyify | uglifyjs --compress warnings=false --mangle > ../OrleansDashboard/index.min.js",
-    "watch": "cross-env BABEL_ENV=development watchify index.jsx -t babelify -g [ envify --NODE_ENV development ] -o ../TestHost/index.min.js"
+    "watch": "cross-env BABEL_ENV=development watchify index.jsx -t babelify -g [ envify --NODE_ENV development ] -o ../Tests/TestHosts/TestHost/index.min.js"
   },
   "dependencies": {
     "chart.js": "^2.7.2",
