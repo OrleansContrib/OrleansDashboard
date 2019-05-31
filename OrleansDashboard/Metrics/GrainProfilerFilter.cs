@@ -15,7 +15,6 @@ namespace OrleansDashboard.Metrics
         public static readonly GrainMethodFormatterDelegate DefaultGrainMethodFormatter = c => c.ImplementationMethod?.Name ?? "Unknown";
 
         private readonly GrainMethodFormatterDelegate formatMethodName;
-        private readonly Timer timer;
         private readonly IGrainProfiler profiler;
         private readonly ILogger<GrainProfilerFilter> logger;
 
@@ -24,11 +23,6 @@ namespace OrleansDashboard.Metrics
             this.profiler = profiler;
             this.logger = logger;
             this.formatMethodName = formatMethodName ?? DefaultGrainMethodFormatter;
-        }
-
-        public void Dispose()
-        {
-            timer.Dispose();
         }
 
         public async Task Invoke(IIncomingGrainCallContext context)
