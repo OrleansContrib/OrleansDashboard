@@ -66,11 +66,19 @@ namespace OrleansDashboard.Metrics
             }
         }
 
-        private static bool ShouldSkipProfiling(IIncomingGrainCallContext context)
+        private  bool ShouldSkipProfiling(IIncomingGrainCallContext context)
         {
-            return
+            try
+            {
+                return
                 context.Grain.GetType().GetCustomAttribute<NoProfilingAttribute>() != null ||
                 context.ImplementationMethod?.GetCustomAttribute<NoProfilingAttribute>() != null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(100003, ex, "error recording results for grain");
+                return false;
+            }
         }
     }
 }
