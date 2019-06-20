@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Orleans;
@@ -66,17 +65,17 @@ namespace OrleansDashboard.Metrics
             }
         }
 
-        private  bool ShouldSkipProfiling(IIncomingGrainCallContext context)
+        private bool ShouldSkipProfiling(IIncomingGrainCallContext context)
         {
             try
             {
                 return
-                context.Grain.GetType().GetCustomAttribute<NoProfilingAttribute>() != null ||
-                context.ImplementationMethod?.GetCustomAttribute<NoProfilingAttribute>() != null;
+                    context.Grain.GetType().GetCustomAttribute<NoProfilingAttribute>() != null ||
+                    context.ImplementationMethod?.GetCustomAttribute<NoProfilingAttribute>() != null;
             }
             catch (Exception ex)
             {
-                logger.LogError(100003, ex, "error recording results for grain");
+                logger.LogError(100003, ex, "error reading NoProfilingAttribute attribute for grain");
                 return false;
             }
         }
