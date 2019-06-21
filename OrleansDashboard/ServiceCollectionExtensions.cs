@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans.Configuration;
@@ -59,7 +60,9 @@ namespace Orleans
 
                 return c.GetRequiredService<SiloStatusOracleSiloDetailsProvider>();
             });
-            services.AddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
+
+            services.TryAddSingleton(GrainProfilerFilter.NoopOldGrainMethodFormatter);
+            services.TryAddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
 
             return services;
         }

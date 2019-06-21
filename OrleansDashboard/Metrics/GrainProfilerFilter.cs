@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Orleans;
+using Orleans.CodeGeneration;
 
 namespace OrleansDashboard.Metrics
 {
@@ -12,16 +13,26 @@ namespace OrleansDashboard.Metrics
         public delegate string GrainMethodFormatterDelegate(IIncomingGrainCallContext callContext);
 
         public static readonly GrainMethodFormatterDelegate DefaultGrainMethodFormatter = c => c.ImplementationMethod?.Name ?? "Unknown";
+        public static readonly Func<IIncomingGrainCallContext, string> NoopOldGrainMethodFormatter = x => "Noop";
 
         private readonly GrainMethodFormatterDelegate formatMethodName;
         private readonly IGrainProfiler profiler;
         private readonly ILogger<GrainProfilerFilter> logger;
 
-        public GrainProfilerFilter(IGrainProfiler profiler, ILogger<GrainProfilerFilter> logger, GrainMethodFormatterDelegate formatMethodName)
+        public GrainProfilerFilter(IGrainProfiler profiler, ILogger<GrainProfilerFilter> logger, GrainMethodFormatterDelegate formatMethodName,
+            Func<IIncomingGrainCallContext, string> oldFormatMethodName)
         {
             this.profiler = profiler;
             this.logger = logger;
-            this.formatMethodName = formatMethodName ?? DefaultGrainMethodFormatter;
+
+            if (oldFormatMethodName != NoopOldGrainMethodFormatter)
+            {
+                this.formatMethodName = new GrainMethodFormatterDelegate(oldFormatMethodName);
+            }
+            else
+            {
+                this.formatMethodName = formatMethodName ?? DefaultGrainMethodFormatter;
+            }
         }
 
         public async Task Invoke(IIncomingGrainCallContext context)
