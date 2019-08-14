@@ -10,10 +10,10 @@ namespace OrleansDashboard
 {
     public class DashboardRemindersGrain : Grain, IDashboardRemindersGrain
     {
-        private static readonly ReminderResponse EmptyReminders = new ReminderResponse
+        private static readonly Immutable<ReminderResponse> EmptyReminders = new ReminderResponse
         {
             Reminders = new ReminderInfo[0]
-        };
+        }.AsImmutable();
 
         private readonly IReminderTable _reminderTable;
 
@@ -26,14 +26,14 @@ namespace OrleansDashboard
         {
             if (_reminderTable == null)
             {
-                return EmptyReminders.AsImmutable();
+                return EmptyReminders;
             }
 
             var reminderData = await _reminderTable.ReadRows(0, 0xffffffff);
 
             if(!reminderData.Reminders.Any())
             {
-                return EmptyReminders.AsImmutable();
+                return EmptyReminders;
             }
 
             return new ReminderResponse
