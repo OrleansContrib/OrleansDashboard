@@ -116,7 +116,7 @@ namespace OrleansDashboard
             }
             catch (ArgumentOutOfRangeException)
             {
-                return "Invalid Values";
+                return "";
             }
         }
 
