@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Concurrency;
@@ -9,24 +10,30 @@ namespace OrleansDashboard
 {
     public class DashboardRemindersGrain : Grain, IDashboardRemindersGrain
     {
+        private static readonly ReminderResponse EmptyReminders = new ReminderResponse
+        {
+            Reminders = new ReminderInfo[0]
+        };
+
         private readonly IReminderTable _reminderTable;
 
-        public DashboardRemindersGrain(IReminderTable reminderTable)
+        public DashboardRemindersGrain(IServiceProvider serviceProvider)
         {
-            _reminderTable = reminderTable;
+            _reminderTable = serviceProvider.GetService(typeof(IReminderTable)) as IReminderTable;
         }
 
         public async Task<Immutable<ReminderResponse>> GetReminders(int pageNumber, int pageSize)
         {
+            if (_reminderTable == null)
+            {
+                return EmptyReminders.AsImmutable();
+            }
+
             var reminderData = await _reminderTable.ReadRows(0, 0xffffffff);
 
             if(!reminderData.Reminders.Any())
             {
-                return new Immutable<ReminderResponse>(new ReminderResponse
-                {
-                    Reminders = new ReminderInfo[0],
-                    Count = 0
-                });
+                return EmptyReminders.AsImmutable();
             }
 
             return new ReminderResponse
