@@ -92,13 +92,13 @@ namespace OrleansDashboard
                 {
                     Name = metric.Key,
                     Value = metric.Value.Current.ToString(CultureInfo.InvariantCulture),
-                    Delta = (metric.Value.Current - metric.Value.Last).ToString(CultureInfo.InvariantCulture)
+                    Delta = ComputeDelta(metric)
                 })
                 .Concat(timespanMetrics.Select(metric => new StatCounter
                 {
                     Name = metric.Key,
                     Value = (metric.Value.Current).ToString("c", CultureInfo.InvariantCulture),
-                    Delta = (metric.Value.Current - metric.Value.Last).ToString("c", CultureInfo.InvariantCulture)
+                    Delta = ComputeDelta(metric)
                 }))
                 .ToArray();
 
@@ -106,6 +106,23 @@ namespace OrleansDashboard
             {
                 grain.ReportCounters(countersArray.AsImmutable());
             }
+        }
+
+        private static string ComputeDelta(KeyValuePair<string, Value<TimeSpan>> metric)
+        {
+            try
+            {
+                return (metric.Value.Current - metric.Value.Last).ToString("c", CultureInfo.InvariantCulture);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return "";
+            }
+        }
+
+        private static string ComputeDelta(KeyValuePair<string, Value<double>> metric)
+        {
+            return (metric.Value.Current - metric.Value.Last).ToString(CultureInfo.InvariantCulture);
         }
 
         public void Close()
