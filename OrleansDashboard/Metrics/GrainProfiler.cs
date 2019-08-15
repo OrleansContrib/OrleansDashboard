@@ -10,16 +10,17 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace OrleansDashboard.Metrics
 {
-    public sealed class GrainProfiler : IGrainProfiler, IDisposable
+    public sealed class GrainProfiler : IGrainProfiler, ILifecycleParticipant<ISiloLifecycle>
     {
-        private readonly Timer timer;
         private readonly ILogger<GrainProfiler> logger;
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IGrainFactory grainFactory;
         private ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new ConcurrentDictionary<string, SiloGrainTraceEntry>();
+        private Timer timer;
         private string siloAddress;
         private IDashboardGrain dashboardGrain;
 
@@ -30,13 +31,25 @@ namespace OrleansDashboard.Metrics
             this.logger = logger;
             this.localSiloDetails = localSiloDetails;
 
-            // register timer to report every second
-            timer = new Timer(ProcessStats, null, 1 * 1000, 1 * 1000);
         }
 
-        public void Dispose()
+        public void Participate(ISiloLifecycle lifecycle)
+        {
+            lifecycle.Subscribe<GrainProfiler>(ServiceLifecycleStage.Last, ct => OnStart(), ct => OnStop());
+        }
+
+        private Task OnStart()
+        {
+            timer = new Timer(ProcessStats, null, 1 * 1000, 1 * 1000);
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnStop()
         {
             timer.Dispose();
+
+            return Task.CompletedTask;
         }
 
         public void Track(double elapsedMs, Type grainType, [CallerMemberName] string methodName = null, bool failed = false)

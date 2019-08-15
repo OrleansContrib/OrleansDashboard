@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans.Configuration;
 using Orleans.Hosting;
+using Orleans.Runtime;
 using OrleansDashboard;
 using OrleansDashboard.Metrics;
 using OrleansDashboard.Metrics.Details;
@@ -47,6 +48,7 @@ namespace Orleans
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IGrainProfiler, GrainProfiler>();
+            services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>)c.GetRequiredService<IGrainProfiler>());
             services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
         
             services.AddSingleton<ISiloDetailsProvider>(c =>
