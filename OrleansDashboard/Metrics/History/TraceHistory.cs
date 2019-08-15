@@ -8,7 +8,7 @@ namespace OrleansDashboard.Metrics.History
 {
     public class TraceHistory : ITraceHistory
     {
-        const int HistoryLength = 100;
+        const int HistoryDurationInSeconds = 100;
         private readonly List<GrainTraceEntry> history = new List<GrainTraceEntry>();
 
         public Dictionary<string, GrainTraceEntry> QueryAll()
@@ -23,29 +23,42 @@ namespace OrleansDashboard.Metrics.History
 
         private static Dictionary<string, GrainTraceEntry> GetTracings(IEnumerable<GrainTraceEntry> traces)
         {
-            var results = traces.GroupBy(x => x.PeriodKey).ToDictionary(group => group.Key, group =>
+            var result = new Dictionary<string, GrainTraceEntry>();
+
+            var entries = traces.ToLookup(x => x.PeriodKey);
+
+            var time = GetRetirementWindow(DateTime.UtcNow);
+
+            for (var i = 0; i < HistoryDurationInSeconds; i++)
             {
+                time = time.AddSeconds(1);
+
+                var periodKey = time.ToPeriodString();
+
                 var entry = new GrainTraceEntry
                 {
-                    Period = group.First().Period
+                    Period = time,
+                    PeriodKey = periodKey
                 };
 
-                return group.Aggregate(entry, (acc, item) =>
+                foreach (var trace in entries[periodKey])
                 {
-                    acc.Count += item.Count;
-                    acc.ElapsedTime += item.ElapsedTime;
-                    acc.ExceptionCount += item.ExceptionCount;
-                    return acc;
-                });
-            });
+                    entry.Count += trace.Count;
+                    entry.ElapsedTime += trace.ElapsedTime;
+                    entry.ExceptionCount += trace.ExceptionCount;
+                }
 
-            return results;
+                result[periodKey] = entry;
+            }
+
+            return result;
         }
 
 
         public void Add(DateTime now, string siloAddress, SiloGrainTraceEntry[] grainTrace)
         {
-            var retirementWindow = now.AddSeconds(-HistoryLength);
+            var retirementWindow = GetRetirementWindow(now);
+
             history.RemoveAll(x => x.Period <= retirementWindow);
 
             var periodKey = now.ToPeriodString();
@@ -66,18 +79,23 @@ namespace OrleansDashboard.Metrics.History
                 PeriodKey = periodKey
             })
             .Concat(values.Select(value => new GrainTraceEntry
-                {
-                    Count = 0,
-                    ElapsedTime = 0,
-                    Grain = value.Grain,
-                    Method = value.Method,
-                    Period = now,
-                    SiloAddress = siloAddress,
-                    PeriodKey = periodKey
-                }))
+            {
+                Count = 0,
+                ElapsedTime = 0,
+                Grain = value.Grain,
+                Method = value.Method,
+                Period = now,
+                SiloAddress = siloAddress,
+                PeriodKey = periodKey
+            }))
             .Distinct();
 
             history.AddRange(allGrainTrace);
+        }
+
+        private static DateTime GetRetirementWindow(DateTime now)
+        {
+            return now.AddSeconds(-HistoryDurationInSeconds);
         }
 
         public Dictionary<string, Dictionary<string, GrainTraceEntry>> QueryGrain(string grain)
@@ -143,7 +161,7 @@ namespace OrleansDashboard.Metrics.History
                     {
                         Grain = x.Key.Grain,
                         Method = x.Key.Method,
-                        NumberOfSamples = HistoryLength // this will give the wrong answer during the first 100 seconds
+                        NumberOfSamples = HistoryDurationInSeconds // this will give the wrong answer during the first 100 seconds
                     };
                     foreach (var value in x)
                     {
@@ -153,8 +171,6 @@ namespace OrleansDashboard.Metrics.History
                     }
                     return aggregate;
                 });
-
-            
         }
     }
 }
