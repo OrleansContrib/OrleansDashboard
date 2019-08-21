@@ -9,7 +9,8 @@ namespace OrleansDashboard.Metrics.History
     public class TraceHistory : ITraceHistory
     {
         const int HistoryDurationInSeconds = 100;
-        private readonly List<GrainTraceEntry> history = new List<GrainTraceEntry>();
+        private readonly LinkedList<GrainTraceEntry> history = new LinkedList<GrainTraceEntry>();
+        private readonly HashSet<(string SiloAddress, GrainTraceEntry Entry)> allMethods = new HashSet<(string SiloAddress, GrainTraceEntry Entry)>();
 
         public Dictionary<string, GrainTraceEntry> QueryAll()
         {
@@ -59,13 +60,24 @@ namespace OrleansDashboard.Metrics.History
         {
             var retirementWindow = GetRetirementWindow(now);
 
-            history.RemoveAll(x => x.Period <= retirementWindow);
+            var current = history.First;
+
+            while (current != null)
+            {
+                var next = current.Next;
+
+                if (current.Value.Period < retirementWindow)
+                {
+                    history.Remove(current);
+                }
+
+                current = next;
+            }
 
             var periodKey = now.ToPeriodString();
+
             // fill in any previously captured methods which aren't in this reporting window
-            var values = history.Where(x => string.Equals(x.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase))
-                                .GroupBy(x => (x.Grain, x.Method))
-                                .Select(x => x.First());
+            var values = allMethods.Where(x => string.Equals(x.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase));
 
             var allGrainTrace = grainTrace.Select(entry => new GrainTraceEntry
             {
@@ -78,19 +90,27 @@ namespace OrleansDashboard.Metrics.History
                 SiloAddress = siloAddress,
                 PeriodKey = periodKey
             })
-            .Concat(values.Select(value => new GrainTraceEntry
-            {
-                Count = 0,
-                ElapsedTime = 0,
-                Grain = value.Grain,
-                Method = value.Method,
-                Period = now,
-                SiloAddress = siloAddress,
-                PeriodKey = periodKey
-            }))
+            .Concat(allMethods.Select(value => value.Entry))
             .Distinct();
 
-            history.AddRange(allGrainTrace);
+            foreach (var entry in allGrainTrace)
+            {
+                if (!allMethods.Contains((siloAddress, entry)))
+                {
+                    allMethods.Add((siloAddress, new GrainTraceEntry
+                    {
+                        Count = 0,
+                        ElapsedTime = 0,
+                        Grain = entry.Grain,
+                        Method = entry.Method,
+                        Period = now,
+                        SiloAddress = siloAddress,
+                        PeriodKey = periodKey
+                    }));
+                }
+
+                history.AddLast(entry);
+            }
         }
 
         private static DateTime GetRetirementWindow(DateTime now)
