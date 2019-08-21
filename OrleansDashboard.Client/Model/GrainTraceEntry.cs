@@ -15,25 +15,38 @@ namespace OrleansDashboard.Client.Model
         public long ExceptionCount { get; set; }
         public double ElapsedTime { get; set; }
 
-        public int CompareTo(GrainTraceEntry other)
+        public int CompareTo(object obj)
         {
-            return string.Compare(ToString(), other.ToString(), StringComparison.OrdinalIgnoreCase);
+            return obj is GrainTraceEntry entry ? CompareTo(entry) : -1;
         }
 
-        public bool Equals(GrainTraceEntry other) => CompareTo(other) == 0;
+        public int CompareTo(GrainTraceEntry other)
+        {
+            var compared = string.Compare(Grain, other.Grain, StringComparison.OrdinalIgnoreCase);
 
-        public override string ToString() => $"{Grain}.{Method}";
+            if (compared != 0)
+            {
+                return string.Compare(Method, other.Method, StringComparison.OrdinalIgnoreCase);
+            }
 
-        public override int GetHashCode() => ToString().GetHashCode();
+            return compared;
+        }
 
         public override bool Equals(object obj)
         {
             return obj is GrainTraceEntry entry && Equals(entry);
         }
 
-        public int CompareTo(object obj)
+        public bool Equals(GrainTraceEntry other)
         {
-            return obj is GrainTraceEntry entry ? CompareTo(entry) : -1;
+            return other != null && string.Equals(Grain, other.Grain, StringComparison.OrdinalIgnoreCase) && string.Equals(Method, other.Method, StringComparison.OrdinalIgnoreCase
         }
+
+        public override int GetHashCode()
+        {
+            return (Grain?.GetHashCode() ?? 0) ^ (113 * Method?.GetHashCode() ?? 0);
+        }
+
+        public override string ToString() => $"{Grain}.{Method}";
     }
 }
