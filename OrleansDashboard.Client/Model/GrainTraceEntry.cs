@@ -24,7 +24,7 @@ namespace OrleansDashboard.Client.Model
         {
             var compared = string.Compare(Grain, other.Grain, StringComparison.OrdinalIgnoreCase);
 
-            if (compared != 0)
+            if (compared == 0)
             {
                 return string.Compare(Method, other.Method, StringComparison.OrdinalIgnoreCase);
             }
