@@ -39,7 +39,7 @@ namespace OrleansDashboard.Client.Model
 
         public bool Equals(GrainTraceEntry other)
         {
-            return other != null && string.Equals(Grain, other.Grain, StringComparison.OrdinalIgnoreCase) && string.Equals(Method, other.Method, StringComparison.OrdinalIgnoreCase
+            return other != null && string.Equals(Grain, other.Grain, StringComparison.OrdinalIgnoreCase) && string.Equals(Method, other.Method, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()

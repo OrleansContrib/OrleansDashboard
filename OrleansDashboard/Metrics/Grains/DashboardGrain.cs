@@ -22,11 +22,10 @@ namespace OrleansDashboard
     public class DashboardGrain : Grain, IDashboardGrain
     {
         const int DefaultTimerIntervalMs = 1000; // 1 second
-        private static readonly TimeSpan DefaultTimerInterval = TimeSpan.FromSeconds(1);
         private readonly ITraceHistory history = new TraceHistory();
         private readonly DashboardOptions options;
         private readonly ISiloDetailsProvider siloDetailsProvider;
-        private DashboardCounters counters = new DashboardCounters();
+        private readonly DashboardCounters counters = new DashboardCounters();
         private DateTime startTime = DateTime.UtcNow;
 
         public DashboardGrain(IOptions<DashboardOptions> options, ISiloDetailsProvider siloDetailsProvider)
