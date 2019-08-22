@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Orleans;
-using Orleans.CodeGeneration;
 
 namespace OrleansDashboard.Metrics
 {
@@ -18,6 +18,7 @@ namespace OrleansDashboard.Metrics
         private readonly GrainMethodFormatterDelegate formatMethodName;
         private readonly IGrainProfiler profiler;
         private readonly ILogger<GrainProfilerFilter> logger;
+        private readonly ConcurrentDictionary<MethodInfo, bool> shouldSkipCache = new ConcurrentDictionary<MethodInfo, bool>();
 
         public GrainProfilerFilter(IGrainProfiler profiler, ILogger<GrainProfilerFilter> logger, GrainMethodFormatterDelegate formatMethodName,
             Func<IIncomingGrainCallContext, string> oldFormatMethodName)
@@ -78,17 +79,34 @@ namespace OrleansDashboard.Metrics
 
         private bool ShouldSkipProfiling(IIncomingGrainCallContext context)
         {
-            try
+            var grainMethod = context.ImplementationMethod;
+
+            if (grainMethod == null)
             {
-                return
-                    context.Grain.GetType().GetCustomAttribute<NoProfilingAttribute>() != null ||
-                    context.ImplementationMethod?.GetCustomAttribute<NoProfilingAttribute>() != null;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(100003, ex, "error reading NoProfilingAttribute attribute for grain");
                 return false;
             }
+
+            if (!shouldSkipCache.TryGetValue(grainMethod, out var shouldSkip))
+            {
+                try
+                {
+                    var grainType = context.Grain.GetType();
+
+                    shouldSkip =
+                        grainType.GetCustomAttribute<NoProfilingAttribute>() != null ||
+                        grainMethod.GetCustomAttribute<NoProfilingAttribute>() != null;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(100003, ex, "error reading NoProfilingAttribute attribute for grain");
+
+                    shouldSkip = false;
+                }
+
+                shouldSkipCache.TryAdd(grainMethod, shouldSkip);
+            }
+
+            return shouldSkip;
         }
     }
 }

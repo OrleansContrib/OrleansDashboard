@@ -43,6 +43,7 @@ namespace OrleansDashboard
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IGrainFactory grainFactory;
         private readonly Timer timer;
+        private string siloAddress;
         private bool isClosed;
 
         public DashboardTelemetryConsumer(ILocalSiloDetails localSiloDetails, IGrainFactory grainFactory)
@@ -86,7 +87,12 @@ namespace OrleansDashboard
 
         public void Flush()
         {
-            var grain = grainFactory.GetGrain<ISiloGrain>(localSiloDetails.SiloAddress.ToParsableString());
+            if (siloAddress == null)
+            {
+                siloAddress = localSiloDetails.SiloAddress.ToParsableString();
+            }
+
+            var grain = grainFactory.GetGrain<ISiloGrain>(siloAddress);
 
             var countersArray = metrics.Select(metric => new StatCounter
                 {
