@@ -18,7 +18,7 @@ namespace OrleansDashboard.Metrics
         private readonly GrainMethodFormatterDelegate formatMethodName;
         private readonly IGrainProfiler profiler;
         private readonly ILogger<GrainProfilerFilter> logger;
-        private readonly ConcurrentDictionary<MethodInfo, bool> shouldProfileCache = new ConcurrentDictionary<MethodInfo, bool>();
+        private readonly ConcurrentDictionary<MethodInfo, bool> shouldSkipCache = new ConcurrentDictionary<MethodInfo, bool>();
 
         public GrainProfilerFilter(IGrainProfiler profiler, ILogger<GrainProfilerFilter> logger, GrainMethodFormatterDelegate formatMethodName,
             Func<IIncomingGrainCallContext, string> oldFormatMethodName)
@@ -81,20 +81,30 @@ namespace OrleansDashboard.Metrics
         {
             var method = context.ImplementationMethod;
 
-            return shouldProfileCache.GetOrAdd(context.ImplementationMethod, _ =>
+            if (method == null)
+            {
+                return false;
+            }
+
+            if (!shouldSkipCache.TryGetValue(context.ImplementationMethod, out var shouldSkip))
             {
                 try
                 {
-                    return
+                    shouldSkip =
                         context.Grain.GetType().GetCustomAttribute<NoProfilingAttribute>() != null ||
-                        context.ImplementationMethod?.GetCustomAttribute<NoProfilingAttribute>() != null;
+                        context.ImplementationMethod.GetCustomAttribute<NoProfilingAttribute>() != null;
                 }
                 catch (Exception ex)
                 {
                     logger.LogError(100003, ex, "error reading NoProfilingAttribute attribute for grain");
-                    return false;
+
+                    shouldSkip = false;
                 }
-            });
+
+                shouldSkipCache.TryAdd(context.ImplementationMethod, shouldSkip);
+            }
+
+            return shouldSkip;
         }
     }
 }
