@@ -79,20 +79,22 @@ namespace OrleansDashboard.Metrics
 
         private bool ShouldSkipProfiling(IIncomingGrainCallContext context)
         {
-            var method = context.ImplementationMethod;
+            var grainMethod = context.ImplementationMethod;
 
-            if (method == null)
+            if (grainMethod == null)
             {
                 return false;
             }
 
-            if (!shouldSkipCache.TryGetValue(context.ImplementationMethod, out var shouldSkip))
+            if (!shouldSkipCache.TryGetValue(grainMethod, out var shouldSkip))
             {
                 try
                 {
+                    var grainType = context.Grain.GetType();
+
                     shouldSkip =
-                        context.Grain.GetType().GetCustomAttribute<NoProfilingAttribute>() != null ||
-                        context.ImplementationMethod.GetCustomAttribute<NoProfilingAttribute>() != null;
+                        grainType.GetCustomAttribute<NoProfilingAttribute>() != null ||
+                        grainMethod.GetCustomAttribute<NoProfilingAttribute>() != null;
                 }
                 catch (Exception ex)
                 {
