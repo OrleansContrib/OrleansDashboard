@@ -103,7 +103,7 @@ namespace OrleansDashboard.Metrics
                     shouldSkip = false;
                 }
 
-                shouldSkipCache.TryAdd(context.ImplementationMethod, shouldSkip);
+                shouldSkipCache.TryAdd(grainMethod, shouldSkip);
             }
 
             return shouldSkip;
