@@ -8,6 +8,5 @@ namespace OrleansDashboard.Client.Model.History
         public long ExceptionCount { get; set; }
         public double ElapsedTime { get; set; }
         public long NumberOfSamples { get; set; }
-
     }
 }

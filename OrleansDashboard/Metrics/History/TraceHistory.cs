@@ -10,7 +10,7 @@ namespace OrleansDashboard.Metrics.History
     {
         const int HistoryDurationInSeconds = 100;
         private readonly LinkedList<GrainTraceEntry> history = new LinkedList<GrainTraceEntry>();
-        private readonly HashSet<(string SiloAddress, GrainTraceEntry Entry)> allMethods = new HashSet<(string SiloAddress, GrainTraceEntry Entry)>();
+        private readonly HashSet<GrainTraceEntry> allMethods = new HashSet<GrainTraceEntry>(GrainTraceEqualityComparer.ByGrainAndMethodAndSilo);
 
         public Dictionary<string, GrainTraceEntry> QueryAll()
         {
@@ -76,40 +76,49 @@ namespace OrleansDashboard.Metrics.History
 
             var periodKey = now.ToPeriodString();
 
-            // fill in any previously captured methods which aren't in this reporting window
-            var values = allMethods.Where(x => string.Equals(x.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase));
+            var added = new HashSet<GrainTraceEntry>(GrainTraceEqualityComparer.ByGrainAndMethod);
 
-            var allGrainTrace = grainTrace.Select(entry => new GrainTraceEntry
+            foreach (var entry in grainTrace)
             {
-                Count = entry.Count,
-                ElapsedTime = entry.ElapsedTime,
-                ExceptionCount = entry.ExceptionCount,
-                Grain = entry.Grain,
-                Method = entry.Method,
-                Period = now,
-                SiloAddress = siloAddress,
-                PeriodKey = periodKey
-            })
-            .Concat(allMethods.Select(value => value.Entry))
-            .Distinct();
-
-            foreach (var entry in allGrainTrace)
-            {
-                if (!allMethods.Contains((siloAddress, entry)))
+                var newEntry = new GrainTraceEntry
                 {
-                    allMethods.Add((siloAddress, new GrainTraceEntry
+                    Count = entry.Count,
+                    ElapsedTime = entry.ElapsedTime,
+                    ExceptionCount = entry.ExceptionCount,
+                    Grain = entry.Grain,
+                    Method = entry.Method,
+                    Period = now,
+                    SiloAddress = siloAddress,
+                    PeriodKey = periodKey
+                };
+
+                if (!allMethods.Contains(newEntry))
+                {
+                    allMethods.Add(new GrainTraceEntry
                     {
                         Count = 0,
                         ElapsedTime = 0,
-                        Grain = entry.Grain,
-                        Method = entry.Method,
+                        Grain = newEntry.Grain,
+                        Method = newEntry.Method,
                         Period = now,
                         SiloAddress = siloAddress,
                         PeriodKey = periodKey
-                    }));
+                    });
                 }
 
-                history.AddLast(entry);
+                if (added.Add(newEntry))
+                {
+                    history.AddLast(newEntry);
+                }
+            }
+
+            // fill in any previously captured methods which aren't in this reporting window
+            foreach (var siloMethod in allMethods)
+            {
+                if (string.Equals(siloMethod.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase) && added.Add(siloMethod))
+                {
+                    history.AddLast(siloMethod);
+                }
             }
         }
 

@@ -3,7 +3,6 @@ using System.Linq;
 
 namespace OrleansDashboard.Client.Model
 {
-
     public class DashboardCounters
     {
         public DashboardCounters()
