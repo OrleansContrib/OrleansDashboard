@@ -7,8 +7,8 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Orleans;
-using OrleansDashboard.Client;
-using OrleansDashboard.Client.Model;
+using OrleansDashboard.Implementation;
+using OrleansDashboard.Model;
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
@@ -20,7 +20,7 @@ namespace OrleansDashboard
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
-        const int REMINDER_PAGE_SIZE = 50;
+        private const int REMINDER_PAGE_SIZE = 50;
         private readonly IOptions<DashboardOptions> options;
         private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
@@ -78,6 +78,7 @@ namespace OrleansDashboard
             if (request.Path == "/ClusterStats")
             {
                 var result = await client.ClusterStats();
+
                 await WriteJson(context, result.Value);
 
                 return;
@@ -223,7 +224,7 @@ namespace OrleansDashboard
 
                 if (basePath != "/")
                 {
-                    basePath = basePath + "/";
+                    basePath += "/";
                 }
 
                 content = content.Replace("{{BASE}}", basePath);
