@@ -43,10 +43,6 @@ namespace TestHostCohosted2
                         options.HostSelf = false;
                     });
                 })
-                .ConfigureServices(services =>
-                {
-                    services.AddServicesForSelfHostedDashboard();
-                })
                 .ConfigureWebHostDefaults(builder =>
                 {
                     builder.Configure(app =>
