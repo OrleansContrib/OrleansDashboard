@@ -1,27 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
-	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <AssemblyVersion>$(DashboardVersion)</AssemblyVersion>
+    <Authors>OrleansContrib</Authors>
+    <Company>OrleansContrib</Company>
+    <Copyright>Copyright © 2019</Copyright>
+    <Description>An admin dashboard for Microsoft Orleans</Description>
+    <FileVersion>$(DashboardVersion)</FileVersion>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageIcon>OrleansLogo.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/OrleansContrib/OrleansDashboard</PackageProjectUrl>
     <PackageTags>orleans dashboard metrics monitor</PackageTags>
-    <Description>An admin dashboard for Microsoft Orleans</Description>
-    <Company>OrleansContrib</Company>
+    <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
     <Version>$(DashboardVersion)</Version>
-    <Copyright>Copyright © 2019</Copyright>
-    <Authors>OrleansContrib</Authors>
-    <PackageIconUrl>http://dotnet.github.io/orleans/assets/logo.png</PackageIconUrl>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <AssemblyVersion>$(DashboardVersion)</AssemblyVersion>
-    <FileVersion>$(DashboardVersion)</FileVersion>
-    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
-
+  
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  
   <ItemGroup>
     <None Remove="favicon.ico" />
     <None Remove="Index.html" />
     <None Remove="index.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="OrleansLogo.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -31,9 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.3" />
     <PackageReference Include="Microsoft.Orleans.Core" Version="$(OrleansPackageVersion)" />
     <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="$(OrleansPackageVersion)" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -43,6 +47,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OrleansDashboard.Client\OrleansDashboard.Client.csproj" />
+    <ProjectReference Include="..\OrleansDashboard.Core\OrleansDashboard.Core.csproj" />
   </ItemGroup>
 </Project>

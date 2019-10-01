@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
@@ -16,49 +14,45 @@ namespace TestHostCohosted2
     {
         static void Main(string[] args)
         {
-            WebHost.CreateDefaultBuilder(args)
-                .ConfigureServices((context, services) =>
+            Host.CreateDefaultBuilder(args)
+                // Bug in Orleans
+                .UseDefaultServiceProvider(options =>
                 {
-                    services.AddServicesForSelfHostedDashboard(null, options =>
+                    options.ValidateOnBuild = false;
+                })
+                .UseOrleans(builder =>
+                {
+                    var siloPort = 11111;
+                    var siloAddress = IPAddress.Loopback;
+
+                    int gatewayPort = 30000;
+
+                    builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort));
+                    builder.UseInMemoryReminderService();
+                    builder.ConfigureEndpoints(siloAddress, siloPort, gatewayPort);
+                    builder.Configure<ClusterOptions>(options =>
                     {
-                        options.HideTrace = true;
+                        options.ClusterId = "helloworldcluster";
+                        options.ServiceId = "1";
                     });
 
-                    services.AddOrleans(context.Configuration, context.HostingEnvironment, builder =>
+                    builder.ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly));
+
+                    builder.UseDashboard(options =>
                     {
-                        var siloPort = 11111;
-                        var siloAddress = IPAddress.Loopback;
-
-                        int gatewayPort = 30000;
-
-                        builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort));
-                        builder.UseInMemoryReminderService();
-                        builder.ConfigureEndpoints(siloAddress, siloPort, gatewayPort);
-                        builder.Configure<ClusterOptions>(options =>
-                        {
-                            options.ClusterId = "helloworldcluster";
-                            options.ServiceId = "1";
-                        });
-
-                        builder.ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly));
-
-                        builder.UseDashboard(options =>
-                        {
-                            options.HostSelf = false;
-                        });
+                        options.HostSelf = false;
                     });
                 })
-                .ConfigureLogging(builder =>
+                .ConfigureWebHostDefaults(builder =>
                 {
-                    builder.AddConsole();
-                })
-                .Configure(app =>
-                {
-                    app.UseOrleansDashboard();
-
-                    app.Map("/dashboard", d =>
+                    builder.Configure(app =>
                     {
-                        d.UseOrleansDashboard();
+                        app.UseOrleansDashboard();
+
+                        app.Map("/dashboard", d =>
+                        {
+                            d.UseOrleansDashboard();
+                        });
                     });
                 })
                 .Build()

@@ -4,10 +4,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Orleans.ApplicationParts;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
 using OrleansDashboard;
+using OrleansDashboard.Implementation;
+using OrleansDashboard.Implementation.Details;
 using OrleansDashboard.Metrics;
 using OrleansDashboard.Metrics.Details;
 
@@ -20,7 +23,7 @@ namespace Orleans
         public static ISiloHostBuilder UseDashboard(this ISiloHostBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.ConfigureApplicationParts(appParts => appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences());
+            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
 
@@ -30,7 +33,7 @@ namespace Orleans
         public static ISiloBuilder UseDashboard(this ISiloBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.ConfigureApplicationParts(appParts => appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences());
+            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
 
@@ -71,9 +74,14 @@ namespace Orleans
 
         public static IClientBuilder UseDashboard(this IClientBuilder builder)
         {
-            builder.ConfigureApplicationParts(appParts => appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences());
+            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
 
             return builder;
+        }
+
+        private static void AddDashboardParts(this IApplicationPartManager appParts)
+        {
+            appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences();
         }
 
         public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)
@@ -85,7 +93,7 @@ namespace Orleans
             else
             {
                 // Make sure there is a leading slash
-                var basePath = options.BasePath.StartsWith("/") ? options.BasePath : "/" + options.BasePath;
+                var basePath = options.BasePath.StartsWith("/") ? options.BasePath : $"/{options.BasePath}";
 
                 app.Map(basePath, a => a.UseMiddleware<DashboardMiddleware>());
             }

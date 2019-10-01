@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using OrleansDashboard.Client.Model;
+using OrleansDashboard.Model;
 using OrleansDashboard.Metrics.History;
 using Xunit;
 
@@ -8,7 +8,7 @@ namespace UnitTests
 {
     public class TraceHistoryTests
     {
-        DateTime startTime = DateTime.UtcNow;
+        private readonly DateTime startTime = DateTime.UtcNow;
         private int seconds;
 
         void Add(ITraceHistory history, int count)

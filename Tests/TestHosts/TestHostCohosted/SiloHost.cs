@@ -13,7 +13,7 @@ namespace TestHostCohosted
 {
     public sealed class SiloHost : IHostedService
     {
-        private ISiloHost siloHost;
+        private readonly ISiloHost siloHost;
 
         public IGrainFactory GrainFactory
         {

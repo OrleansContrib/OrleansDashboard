@@ -2,6 +2,8 @@
 {
     public sealed class DashboardOptions
     {
+        public string BasePath { get; set; } = "/";
+
         public string Username { get; set; }
 
         public string Password { get; set; }
@@ -15,8 +17,6 @@
         public int CounterUpdateIntervalMs { get; set; } = 1000;
 
         public int Port { get; set; } = 8080;
-
-        public string BasePath { get; set; } = "/";
 
         public bool HasUsernameAndPassword()
         {
