@@ -53,7 +53,7 @@ namespace Orleans
             services.AddSingleton<IGrainProfiler, GrainProfiler>();
             services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>)c.GetRequiredService<IGrainProfiler>());
             services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
-        
+
             services.AddSingleton<ISiloDetailsProvider>(c =>
             {
                 var membershipTable = c.GetService<IMembershipTable>();
@@ -97,7 +97,7 @@ namespace Orleans
 
                 app.Map(basePath, a => a.UseMiddleware<DashboardMiddleware>());
             }
-                        
+
             return app;
         }
 

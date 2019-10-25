@@ -26,8 +26,8 @@ namespace OrleansDashboard
         private readonly RequestDelegate next;
         private readonly IDashboardClient client;
 
-        public DashboardMiddleware(RequestDelegate next, 
-            IGrainFactory grainFactory, 
+        public DashboardMiddleware(RequestDelegate next,
+            IGrainFactory grainFactory,
             IOptions<DashboardOptions> options,
             DashboardLogger logger)
         {
@@ -220,7 +220,9 @@ namespace OrleansDashboard
             {
                 var content = new StreamReader(stream).ReadToEnd();
 
-                var basePath = context.Request.PathBase;
+                var basePath = string.IsNullOrWhiteSpace(this.options.Value.ScriptPath)
+                    ? context.Request.PathBase.ToString()
+                    : this.options.Value.ScriptPath;
 
                 if (basePath != "/")
                 {
@@ -266,8 +268,8 @@ You are connected to the Orleans Dashboard log streaming service
         {
             var file = new FileInfo(name);
 
-            return file.Exists 
-                ? file.OpenRead() 
+            return file.Exists
+                ? file.OpenRead()
                 : assembly.GetManifestResourceStream($"OrleansDashboard.{name}");
         }
     }
