@@ -26,11 +26,12 @@ namespace TestHost
                     {
                         options.HostSelf = true;
                         options.HideTrace = false;
+                        options.BasePath = "BAR";
                     })
                     .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
                     .UseInMemoryReminderService()
                     .ConfigureEndpoints(siloAddress, siloPort, gatewayPort)
-                    .Configure<ClusterOptions>(options => 
+                    .Configure<ClusterOptions>(options =>
                     {
                         options.ClusterId = "helloworldcluster";
                         options.ServiceId = "1";
@@ -47,7 +48,7 @@ namespace TestHost
             var client =
                 new ClientBuilder()
                     .UseStaticClustering(options => options.Gateways.Add((new IPEndPoint(siloAddress, gatewayPort)).ToGatewayUri()))
-                    .Configure<ClusterOptions>(options => 
+                    .Configure<ClusterOptions>(options =>
                     {
                         options.ClusterId = "helloworldcluster";
                         options.ServiceId = "1";
