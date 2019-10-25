@@ -15,7 +15,6 @@ using OrleansDashboard.Metrics.TypeFormatting;
 namespace OrleansDashboard
 {
     [Reentrant]
-    //[PreferLocalPlacement]
     public class DashboardGrain : Grain, IDashboardGrain
     {
         const int DefaultTimerIntervalMs = 1000; // 1 second
@@ -23,6 +22,7 @@ namespace OrleansDashboard
         private readonly ISiloDetailsProvider siloDetailsProvider;
         private readonly DashboardCounters counters = new DashboardCounters();
         private readonly TimeSpan updateInterval;
+        private bool isUpdating;
         private DateTime startTime = DateTime.UtcNow;
         private DateTime lastRefreshTime = DateTime.UtcNow;
 
@@ -35,6 +35,11 @@ namespace OrleansDashboard
 
         private async Task EnsureCountersAreUpToDate()
         {
+            if (isUpdating)
+            {
+                return;
+            }
+
             var now = DateTime.UtcNow;
 
             if ((now - lastRefreshTime) < updateInterval)
@@ -42,16 +47,24 @@ namespace OrleansDashboard
                 return;
             }
 
-            var metricsGrain = GrainFactory.GetGrain<IManagementGrain>(0);
-            var activationCountTask = metricsGrain.GetTotalActivationCount();
-            var simpleGrainStatsTask = metricsGrain.GetSimpleGrainStatistics();
-            var siloDetailsTask = siloDetailsProvider.GetSiloDetails();
+            isUpdating = true;
+            try
+            {
+                var metricsGrain = GrainFactory.GetGrain<IManagementGrain>(0);
+                var activationCountTask = metricsGrain.GetTotalActivationCount();
+                var simpleGrainStatsTask = metricsGrain.GetSimpleGrainStatistics();
+                var siloDetailsTask = siloDetailsProvider.GetSiloDetails();
 
-            await Task.WhenAll(activationCountTask,  simpleGrainStatsTask, siloDetailsTask);
+                await Task.WhenAll(activationCountTask, simpleGrainStatsTask, siloDetailsTask);
 
-            RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result);
+                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result);
 
-            lastRefreshTime = now;
+                lastRefreshTime = now;
+            }
+            finally
+            {
+                isUpdating = false;
+            }
         }
 
         internal void RecalculateCounters(int activationCount, SiloDetails[] hosts,
