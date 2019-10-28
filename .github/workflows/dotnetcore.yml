@@ -16,7 +16,7 @@ jobs:
     - name: Build
       run: |
         cd OrleansDashboard
-        dotnet pack -c Release
+        dotnet build --configuration Release
     - name: Publish
       run: |
         cd OrleansDashboard/bin/Release
