@@ -26,7 +26,6 @@ namespace TestHost
                     {
                         options.HostSelf = true;
                         options.HideTrace = false;
-                        options.BasePath = "BAR";
                     })
                     .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
                     .UseInMemoryReminderService()
