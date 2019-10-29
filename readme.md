@@ -1,6 +1,6 @@
 # Orleans Dashboard
 
-[![Build status](https://ci.appveyor.com/api/projects/status/ukphl1c0s9cuf4jl?svg=true)](https://ci.appveyor.com/project/richorama/orleansdashboard)
+![](https://github.com/OrleansContrib/OrleansDashboard/workflows/Node%20CI/badge.svg?branch=master) ![](https://github.com/OrleansContrib/OrleansDashboard/workflows/.NET%20Core/badge.svg?branch=master)
 
 An admin dashboard for Microsoft Orleans.
 
