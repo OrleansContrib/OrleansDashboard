@@ -21,4 +21,4 @@ jobs:
       run: |
         cd OrleansDashboard/bin/Release
         dotnet nuget push *.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }}
-      if: github.ref == 'master'
+      if: github.ref == 'refs/heads/master'
