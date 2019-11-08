@@ -1,11 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Orleans;
 using OrleansDashboard.Implementation;
 using OrleansDashboard.Model;
@@ -16,10 +15,16 @@ namespace OrleansDashboard
 {
     public sealed class DashboardMiddleware
     {
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
+
+        static DashboardMiddleware()
+        {
+            Options.Converters.Add(new TimeSpanConverter());
+        }
+
         private const int REMINDER_PAGE_SIZE = 50;
         private readonly IOptions<DashboardOptions> options;
         private readonly DashboardLogger logger;
@@ -34,7 +39,7 @@ namespace OrleansDashboard
             this.options = options;
             this.logger = logger;
             this.next = next;
-            this.client = new DashboardClient(grainFactory);
+            client = new DashboardClient(grainFactory);
         }
 
         public async Task Invoke(HttpContext context)
@@ -182,14 +187,15 @@ namespace OrleansDashboard
             await next(context);
         }
 
-        private static async Task WriteJson(HttpContext context, object content)
+        private static async Task WriteJson<T>(HttpContext context, T content)
         {
             context.Response.StatusCode = 200;
             context.Response.ContentType = "text/json";
 
-            var json = JsonConvert.SerializeObject(content, Formatting.Indented, SerializerSettings);
-
-            await context.Response.WriteAsync(json);
+            await using (var writer = new Utf8JsonWriter(context.Response.BodyWriter))
+            {
+                JsonSerializer.Serialize(writer, content, Options);
+            }
         }
 
         private static async Task WriteFileAsync(HttpContext context, string name, string contentType)
@@ -220,9 +226,9 @@ namespace OrleansDashboard
             {
                 var content = new StreamReader(stream).ReadToEnd();
 
-                var basePath = string.IsNullOrWhiteSpace(this.options.Value.ScriptPath)
+                var basePath = string.IsNullOrWhiteSpace(options.Value.ScriptPath)
                     ? context.Request.PathBase.ToString()
-                    : this.options.Value.ScriptPath;
+                    : options.Value.ScriptPath;
 
                 if (basePath != "/")
                 {
@@ -246,9 +252,11 @@ namespace OrleansDashboard
 
             var token = context.RequestAborted;
 
-            using (var writer = new TraceWriter(logger, context))
+            try
             {
-                await writer.WriteAsync(@"
+                using (var writer = new TraceWriter(logger, context))
+                {
+                    await writer.WriteAsync(@"
    ____       _                        _____            _     _                         _
   / __ \     | |                      |  __ \          | |   | |                       | |
  | |  | |_ __| | ___  __ _ _ __  ___  | |  | | __ _ ___| |__ | |__   ___   __ _ _ __ __| |
@@ -259,8 +267,13 @@ namespace OrleansDashboard
 You are connected to the Orleans Dashboard log streaming service
 ").ConfigureAwait(false);
 
-                await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
-                await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
+
+                    await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException)
+            {
             }
         }
 

@@ -15,11 +15,6 @@ namespace TestHostCohosted2
         static void Main(string[] args)
         {
             Host.CreateDefaultBuilder(args)
-                // Bug in Orleans
-                .UseDefaultServiceProvider(options =>
-                {
-                    options.ValidateOnBuild = false;
-                })
                 .UseOrleans(builder =>
                 {
                     var siloPort = 11111;

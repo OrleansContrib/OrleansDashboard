@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
-using OrleansDashboard;
 using OrleansDashboard.Model;
 
 namespace OrleansDashboard.Metrics.Grains
