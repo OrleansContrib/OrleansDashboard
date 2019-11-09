@@ -15,10 +15,8 @@ jobs:
         dotnet-version: 3.0.100
     - name: Build
       run: |
-        cd OrleansDashboard
         dotnet build --configuration Release
     - name: Publish
       run: |
-        cd OrleansDashboard/bin/Release
-        dotnet nuget push *.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }}
+        dotnet nuget push **/*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }}
       if: github.ref == 'refs/heads/master'
