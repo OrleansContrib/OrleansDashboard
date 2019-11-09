@@ -1,6 +1,7 @@
 # Orleans Dashboard
 
 ![](https://github.com/OrleansContrib/OrleansDashboard/workflows/Node%20CI/badge.svg?branch=master) ![](https://github.com/OrleansContrib/OrleansDashboard/workflows/.NET%20Core/badge.svg?branch=master)
+![Nuget](https://img.shields.io/nuget/v/OrleansDashboard)
 
 An admin dashboard for Microsoft Orleans.
 
