@@ -18,6 +18,5 @@ jobs:
         dotnet build --configuration Release
     - name: Publish
       run: |
-        ! dotnet nuget push **/OrleansDashboard.Core.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }}
         ! dotnet nuget push **/OrleansDashboard.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }}
       if: github.ref == 'refs/heads/master'
