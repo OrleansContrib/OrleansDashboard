@@ -31,6 +31,8 @@ namespace TestGrains
                     {
                         var testGrain = client.GetGrain<ITestGrain>(random.Next(500));
 
+                        await Task.Delay(2000);
+
                         await testGrain.ExampleMethod1();
                         await testGrain.ExampleMethod2();
 
