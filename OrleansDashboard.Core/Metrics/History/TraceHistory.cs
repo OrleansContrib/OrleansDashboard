@@ -8,9 +8,24 @@ namespace OrleansDashboard.Metrics.History
 {
     public class TraceHistory : ITraceHistory
     {
+        const string SEPARATOR = ".";
         const int HistoryDurationInSeconds = 100;
         private readonly LinkedList<GrainTraceEntry> history = new LinkedList<GrainTraceEntry>();
         private readonly HashSet<GrainTraceEntry> allMethods = new HashSet<GrainTraceEntry>(GrainTraceEqualityComparer.ByGrainAndMethodAndSilo);
+
+        public Dictionary<string, Dictionary<string, GrainTraceEntry>> QueryGrain(string grain)
+        {
+            var results = new Dictionary<string, Dictionary<string, GrainTraceEntry>>();
+
+            foreach (var group in history.Where(x => x.Grain == grain).GroupBy(x => (x.Grain, x.Method)))
+            {
+                var grainMethodKey = string.Join(SEPARATOR, group.Key.Grain, group.Key.Method);
+
+                results[grainMethodKey] = GetTracings(group);
+            }
+
+            return results;
+        }
 
         public Dictionary<string, GrainTraceEntry> QueryAll()
         {
@@ -127,42 +142,6 @@ namespace OrleansDashboard.Metrics.History
             return now.AddSeconds(-HistoryDurationInSeconds);
         }
 
-        public Dictionary<string, Dictionary<string, GrainTraceEntry>> QueryGrain(string grain)
-        {
-            const string SEPARATOR = ".";
-
-            var results = new Dictionary<string, Dictionary<string, GrainTraceEntry>>();
-
-            foreach (var historicValue in history.Where(x => x.Grain == grain))
-            {
-                var grainMethodKey = string.Join(SEPARATOR, grain, historicValue.Method);
-
-                if (!results.TryGetValue(grainMethodKey, out var grainResults))
-                {
-                    results[grainMethodKey] = grainResults = new Dictionary<string, GrainTraceEntry>();
-                }
-
-                var key = historicValue.PeriodKey;
-
-                if (!grainResults.TryGetValue(grainMethodKey, out var value))
-                {
-                    grainResults[key] = value = new GrainTraceEntry
-                    {
-                        Grain = historicValue.Grain,
-                        Method = historicValue.Method,
-                        Period = historicValue.Period
-                    };
-                }
-
-                value.Count += historicValue.Count;
-                value.ElapsedTime += historicValue.ElapsedTime;
-                value.ExceptionCount += historicValue.ExceptionCount;
-            }
-            
-            return results;
-
-        }
-
         public IEnumerable<TraceAggregate> GroupByGrainAndSilo()
         {
             return history.GroupBy(x => (x.Grain, x.SiloAddress)).Select(group => {
@@ -186,7 +165,7 @@ namespace OrleansDashboard.Metrics.History
             return history
                 .GroupBy(x => (x.Grain, x.Method))
                 .Select(x => {
-                    var aggregate = new GrainMethodAggregate 
+                    var aggregate = new GrainMethodAggregate
                     {
                         Grain = x.Key.Grain,
                         Method = x.Key.Method,
