@@ -56,5 +56,15 @@ namespace UnitTests
 
             Assert.Equal("TestGrains.ITestGenericGrain<String, Int32>", name);
         }
+
+        [Fact]
+        public void TestGenericGrainWithFsType()
+        {
+            var example = ".Program.Progress";
+
+            var name = TypeFormatter.Parse(example);
+
+            Assert.Equal(".Program.Progress", name);
+        }
     }
 }
