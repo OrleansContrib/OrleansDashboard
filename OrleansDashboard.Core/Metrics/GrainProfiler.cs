@@ -51,6 +51,26 @@ namespace OrleansDashboard.Metrics
             return Task.CompletedTask;
         }
 
+        // Taken from https://github.com/dotnet/orleans/blob/b279a53197a0de2926eb9fae312bc9e66cd117e1/src/Orleans.Core/CodeGeneration/TypeUtils.cs#L311-L326
+        // This is the method that Orleans uses to convert a grain type into the grain type name when calling the GetSimpleGrainStatistics method
+        static string GetFullName(Type t)
+        {
+            if (t == null) throw new ArgumentNullException(nameof(t));
+            if (t.IsNested && !t.IsGenericParameter)
+            {
+                return t.Namespace + "." + t.DeclaringType.Name + "." + t.Name;
+            }
+            if (t.IsArray)
+            {
+                return GetFullName(t.GetElementType())
+                       + "["
+                       + new string(',', t.GetArrayRank() - 1)
+                       + "]";
+            }
+            return t.FullName ?? (t.IsGenericParameter ? t.Name : t.Namespace + "." + t.Name);
+        }
+
+
         public void Track(double elapsedMs, Type grainType, [CallerMemberName] string methodName = null, bool failed = false)
         {
             if (grainType == null)
@@ -63,9 +83,10 @@ namespace OrleansDashboard.Metrics
                 throw new ArgumentException("Method name cannot be null or empty.", nameof(methodName));
             }
 
-            var grainName = grainType.FullName;
+            var grainName = GetFullName(grainType);
 
             var key = $"{grainName}.{methodName}";
+            logger.LogInformation(key);
 
             var exceptionCount = (failed ? 1 : 0);
 

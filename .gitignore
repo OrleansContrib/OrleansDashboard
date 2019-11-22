@@ -9,6 +9,7 @@
 .vscode/
 BenchmarkDotNet.Artifacts/
 TestHost/index.min.js
+.ionide/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
