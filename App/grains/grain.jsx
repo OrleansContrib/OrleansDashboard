@@ -132,7 +132,7 @@ module.exports = class Grain extends React.Component {
               {Object.keys(this.props.grainStats)
                 .sort()
                 .map(key => (
-                  <GrainGraph
+                  <GrainGraph key={key}
                     stats={this.props.grainStats[key]}
                     grainMethod={getName(key)}
                   />

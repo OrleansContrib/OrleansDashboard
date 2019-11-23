@@ -10,7 +10,7 @@ module.exports = class extends React.Component {
 
   renderSilo(silo) {
     return (
-      <div className="well well-sm">
+      <div key={silo.siloAddress} className="well well-sm">
         <a href={'#/host/' + silo.siloAddress}>{silo.siloAddress}</a>{' '}
         <small>
           <SiloState status={silo.status} />
@@ -47,7 +47,7 @@ module.exports = class extends React.Component {
             <tr>
               <td />
               {faultZones.map(faultZone => {
-                return <th>Fault Zone {faultZone}</th>
+                return <th key={faultZone}>Fault Zone {faultZone}</th>
               })}
             </tr>
             {updateZones.map(updateZone => {

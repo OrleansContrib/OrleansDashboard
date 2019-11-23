@@ -21,7 +21,7 @@ module.exports = class extends React.Component {
     return (
       <ul className="sidebar-menu">
         {this.props.menu.map(x => (
-          <MenuSection
+          <MenuSection key={x.name}
             active={x.active}
             icon={x.icon}
             name={x.name}
