@@ -20,9 +20,9 @@ module.exports = class extends React.Component {
       [e.target.name]: e.target.value
     })
   }
-  renderReminder(reminderData) {
+  renderReminder(reminderData, index) {
     return (
-      <tr>
+      <tr key={index}>
         <td>{reminderData.grainReference}</td>
         <td>{reminderData.primaryKey}</td>
         <td>

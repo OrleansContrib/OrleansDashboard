@@ -15,4 +15,10 @@
     <ProjectReference Include="..\..\TestGrains\TestGrains.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="index.min.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

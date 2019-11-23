@@ -22,17 +22,19 @@ module.exports = class extends React.Component {
     )
   }
   render() {
+    const values = this.props.values || [];
+
     return (
       <table className="table" style={{ tableLayout: 'fixed', width: '100%' }}>
         <tbody>
-          {(this.props.values || []).map(this.renderRow)}
-          {this.props.values.length ? null : (
+          {values.map(this.renderRow)}
+          {values.length === 0 &&
             <tr>
               <td>
                 <i>No data</i>
               </td>
             </tr>
-          )}
+          }
         </tbody>
       </table>
     )

@@ -17,7 +17,6 @@ module.exports = class extends React.Component {
           type="button"
           className="close"
           onClick={this.handleClick}
-          ariaHidden="true"
         >
           ×
         </button>
