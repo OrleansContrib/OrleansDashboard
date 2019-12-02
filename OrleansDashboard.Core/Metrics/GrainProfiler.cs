@@ -86,7 +86,6 @@ namespace OrleansDashboard.Metrics
             var grainName = GetFullName(grainType);
 
             var key = $"{grainName}.{methodName}";
-            logger.LogInformation(key);
 
             var exceptionCount = (failed ? 1 : 0);
 
