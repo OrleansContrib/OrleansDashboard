@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <AssemblyVersion>$(DashboardVersion)</AssemblyVersion>
+    <Authors>OrleansContrib</Authors>
+    <Company>OrleansContrib</Company>
+    <Copyright>Copyright © 2019</Copyright>
+    <Description>An admin dashboard for Microsoft Orleans</Description>
+    <FileVersion>$(DashboardVersion)</FileVersion>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageIcon>OrleansLogo.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/OrleansContrib/OrleansDashboard</PackageProjectUrl>
+    <PackageTags>orleans dashboard metrics monitor</PackageTags>
+    <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
+    <Version>$(DashboardVersion)</Version>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="favicon.ico" />
+    <None Remove="Index.html" />
+    <None Remove="index.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="OrleansLogo.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="favicon.ico" />
+    <EmbeddedResource Include="Index.html" />
+    <EmbeddedResource Include="index.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="$(OrleansPackageVersion)" PrivateAssets="all">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="3.1.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OrleansDashboard.Collect\OrleansDashboard.Collect.csproj" />
+  </ItemGroup>
+</Project>

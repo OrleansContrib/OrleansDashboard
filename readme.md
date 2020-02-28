@@ -5,7 +5,7 @@
 
 An admin dashboard for Microsoft Orleans.
 
-![](screenshots/dashboard.png)
+![](assets/dashboard.png)
 
 ## Installation
 
