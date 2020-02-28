@@ -26,7 +26,7 @@ namespace OrleansDashboard
         private DateTime startTime = DateTime.UtcNow;
         private DateTime lastRefreshTime = DateTime.UtcNow;
 
-        public DashboardGrain(IOptions<DashboardOptions> options, ISiloDetailsProvider siloDetailsProvider)
+        public DashboardGrain(IOptions<DashboardCollectOptions> options, ISiloDetailsProvider siloDetailsProvider)
         {
             this.siloDetailsProvider = siloDetailsProvider;
 

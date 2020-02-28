@@ -1,11 +1,10 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Orleans;
+﻿using Orleans;
 using Orleans.Runtime;
-using OrleansDashboard.Metrics.Details;
 using OrleansDashboard.Model;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace OrleansDashboard.Implementation.Details
+namespace OrleansDashboard.Metrics.Details
 {
     /// <summary>
     /// Default silo details provider
