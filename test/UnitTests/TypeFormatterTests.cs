@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Orleans;
 using OrleansDashboard.Metrics.TypeFormatting;
+using TestGrains;
 using Xunit;
 
 namespace UnitTests
@@ -70,18 +71,5 @@ namespace UnitTests
         }
     }
 
-    public interface IGenericGrain<T> : IGrainWithStringKey
-    {
-        Task<T> Echo(T value);
-
-        Task<T> EchoNoProfiling(T value);
-    }
-    public interface ITestGenericGrain<T, U> : IGrainWithStringKey
-    {
-        Task<T> TestT(T value);
-
-        Task<U> TestU(U value);
-
-        Task<T> TestTU(T value1, U value2);
-    }
+ 
 }
