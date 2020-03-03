@@ -43,10 +43,17 @@ You also have to wait some time before you see the data.
 
 ### CPU and Memory Metrics on Linux
 
-Since version 2.3, Orleans includes an implementation of `IHostEnvironmentStatistics` for linux in
+Since version 2.3, Orleans includes an implementation of `IHostEnvironmentStatistics` for Linux in
 [Microsoft.Orleans.OrleansTelemetryConsumers.Linux](https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Linux/).
-To enable CPU and Memory metrics, install the nuget package and add the implementation using to the silo using
+To enable CPU and Memory metrics, install the NuGet package and add the implementation to the silo using
 `siloBuilder.UseLinuxEnvironmentStatistics()`.
+
+### CPU and Memory Metrics on AWS ECS
+
+A community-maintained implementation of `IHostEnvironmentStatistics` for AWS ECS is available in
+[Orleans.TelemetryConsumers.ECS](https://www.nuget.org/packages/Orleans.TelemetryConsumers.ECS/).
+To enable CPU and Memory metrics, install the NuGet package and add the implementation to the silo using
+`siloBuilder.UseEcsTaskHostEnvironmentStatistics()`.
 
 ## Configuring the Dashboard
 
