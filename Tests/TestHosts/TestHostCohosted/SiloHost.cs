@@ -29,10 +29,11 @@ namespace TestHostCohosted
 
             siloHost =
                 new SiloHostBuilder()
-                    .UseDashboard(options =>
-                    {
-                        options.HostSelf = false;
-                    })
+                    //.UseDashboard(options =>
+                    //{
+                    //    options.HostSelf = false;
+                    //})
+                    .UseDashboardCollect()
                     .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
                     .UseInMemoryReminderService()
                     .ConfigureEndpoints(siloAddress, siloPort, gatewayPort)

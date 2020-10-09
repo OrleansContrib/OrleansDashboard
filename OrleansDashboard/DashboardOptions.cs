@@ -1,6 +1,6 @@
 ﻿namespace OrleansDashboard
 {
-    public sealed class DashboardOptions
+    public sealed class DashboardOptions: DashboardCollectOptions
     {
         /// <summary>
         ///   The URL path the dashboard web server will listen on.
@@ -38,12 +38,6 @@
         ///   Set to 'false' to disable the dashboard from self hosting, and host it yourself as a middleware component.
         /// </summary>
         public bool HostSelf { get; set; } = true;
-
-
-        /// <summary>
-        ///   Number of ms between counter samples.
-        /// </summary>
-        public int CounterUpdateIntervalMs { get; set; } = 1000;
 
         /// <summary>
         ///   The port number the dashboard will use for self-hosting.

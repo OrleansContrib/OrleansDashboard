@@ -1,18 +1,11 @@
-﻿using System;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Orleans.ApplicationParts;
-using Orleans.Configuration;
 using Orleans.Hosting;
-using Orleans.Runtime;
 using OrleansDashboard;
 using OrleansDashboard.Implementation;
-using OrleansDashboard.Implementation.Details;
-using OrleansDashboard.Metrics;
-using OrleansDashboard.Metrics.Details;
+using System;
 
 // ReSharper disable CheckNamespace
 
@@ -23,65 +16,39 @@ namespace Orleans
         public static ISiloHostBuilder UseDashboard(this ISiloHostBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
-            builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
-
+            builder.ConfigureServices(services => services.Configure(configurator ?? (x => { })));
+            if (configurator == null)
+                builder.UseDashboardCollect();
+            else
+            {
+                var opt = new DashboardOptions();
+                configurator.Invoke(opt);
+                builder.UseDashboardCollect(opt);
+            }
             return builder;
         }
 
         public static ISiloBuilder UseDashboard(this ISiloBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
-            builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
-
-            return builder;
-        }
-
-        public static IServiceCollection AddDashboard(this IServiceCollection services,
-            Action<DashboardOptions> configurator = null)
-        {
-            services.Configure(configurator ?? (x => { }));
-            services.Configure<TelemetryOptions>(options => options.AddConsumer<DashboardTelemetryConsumer>());
-
-            services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
-            services.AddSingleton<MembershipTableSiloDetailsProvider>();
-            services.AddSingleton(DashboardLogger.Instance);
-            services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-            services.AddSingleton<IGrainProfiler, GrainProfiler>();
-            services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>)c.GetRequiredService<IGrainProfiler>());
-            services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
-
-            services.AddSingleton<ISiloDetailsProvider>(c =>
+            builder.ConfigureServices(services => services.Configure(configurator ?? (x => { })));
+            if (configurator == null)
+                builder.UseDashboardCollect();
+            else
             {
-                var membershipTable = c.GetService<IMembershipTable>();
-
-                if (membershipTable != null)
-                {
-                    return c.GetRequiredService<MembershipTableSiloDetailsProvider>();
-                }
-
-                return c.GetRequiredService<SiloStatusOracleSiloDetailsProvider>();
-            });
-
-            services.TryAddSingleton(GrainProfilerFilter.NoopOldGrainMethodFormatter);
-            services.TryAddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
-
-            return services;
+                var opt = new DashboardOptions();
+                configurator.Invoke(opt);
+                builder.UseDashboardCollect(opt);
+            }
+            return builder;
         }
 
         public static IClientBuilder UseDashboard(this IClientBuilder builder)
         {
             builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
-
             return builder;
-        }
-
-        private static void AddDashboardParts(this IApplicationPartManager appParts)
-        {
-            appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences();
         }
 
         public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)
@@ -97,7 +64,6 @@ namespace Orleans
 
                 app.Map(basePath, a => a.UseMiddleware<DashboardMiddleware>());
             }
-
             return app;
         }
 
@@ -109,11 +75,9 @@ namespace Orleans
                 services.AddSingleton(client);
                 services.AddSingleton<IGrainFactory>(c => c.GetRequiredService<IClusterClient>());
             }
-
             services.Configure(configurator ?? (x => { }));
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
-
             return services;
         }
 
@@ -123,7 +87,6 @@ namespace Orleans
             services.AddSingleton(Options.Create(options));
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton(grainFactory);
-
             return services;
         }
     }

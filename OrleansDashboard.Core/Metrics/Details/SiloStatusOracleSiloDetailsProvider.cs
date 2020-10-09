@@ -4,7 +4,7 @@ using Orleans.Runtime;
 using OrleansDashboard.Metrics.Details;
 using OrleansDashboard.Model;
 
-namespace OrleansDashboard.Implementation.Details
+namespace OrleansDashboard.Metrics.Details
 {
     /// <summary>
     /// Simple silo details provider

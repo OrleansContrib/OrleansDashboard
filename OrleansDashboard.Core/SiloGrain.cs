@@ -9,26 +9,27 @@ using Orleans.Concurrency;
 using Orleans.Runtime;
 using OrleansDashboard.Model;
 
-namespace OrleansDashboard.Metrics.Grains
+namespace OrleansDashboard
 {
     public class SiloGrain : Grain, ISiloGrain
     {
+        const int HistoryLength = 100;
         const int DefaultTimerIntervalMs = 1000; // 1 second
         private readonly Queue<SiloRuntimeStatistics> stats = new Queue<SiloRuntimeStatistics>();
         private readonly Dictionary<string, StatCounter> counters = new Dictionary<string, StatCounter>();
         private IDisposable timer;
         private string versionOrleans;
         private string versionHost;
-        private readonly DashboardOptions options;
+        private readonly DashboardCollectOptions options;
 
-        public SiloGrain(IOptions<DashboardOptions> options)
+        public SiloGrain(IOptions<DashboardCollectOptions> options)
         {
             this.options = options.Value;
         }
 
         public override async Task OnActivateAsync()
         {
-            foreach (var x in Enumerable.Range(1, Dashboard.HistoryLength))
+            foreach (var x in Enumerable.Range(1, SiloGrain.HistoryLength))
             {
                 stats.Enqueue(null);
             }
@@ -57,7 +58,7 @@ namespace OrleansDashboard.Metrics.Grains
 
                 stats.Enqueue(results);
 
-                while (stats.Count > Dashboard.HistoryLength)
+                while (stats.Count > SiloGrain.HistoryLength)
                 {
                     stats.Dequeue();
                 }
