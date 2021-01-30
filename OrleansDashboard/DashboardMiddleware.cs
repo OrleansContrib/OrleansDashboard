@@ -100,7 +100,7 @@ namespace OrleansDashboard
                 catch
                 {
                     // if reminders are not configured, the call to the grain will fail
-                    await WriteJson(context, new ReminderResponse { Reminders = new ReminderInfo[0], Count = 0 });
+                    await WriteJson(context, new ReminderResponse { Reminders = Array.Empty<ReminderInfo>(), Count = 0 });
                 }
 
                 return;
@@ -117,7 +117,7 @@ namespace OrleansDashboard
                 catch
                 {
                     // if reminders are not configured, the call to the grain will fail
-                    await WriteJson(context, new ReminderResponse { Reminders = new ReminderInfo[0], Count = 0 });
+                    await WriteJson(context, new ReminderResponse { Reminders = Array.Empty<ReminderInfo>(), Count = 0 });
                 }
 
                 return;
