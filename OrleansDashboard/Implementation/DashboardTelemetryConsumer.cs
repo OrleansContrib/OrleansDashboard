@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using OrleansDashboard.Model;
 
@@ -13,10 +12,10 @@ namespace OrleansDashboard
 {
     public sealed class DashboardTelemetryConsumer : IMetricTelemetryConsumer
     {
-        public class Value<T>
+        public readonly struct Value<T>
         {
-            public T Current;
-            public T Last;
+            public readonly T Current;
+            public readonly T Last;
 
             public Value(T value)
                 : this(value, value)
@@ -93,31 +92,42 @@ namespace OrleansDashboard
 
             var grain = grainFactory.GetGrain<ISiloGrain>(siloAddress);
 
-            var countersArray = metrics.Select(metric => new StatCounter
-                {
-                    Name = metric.Key,
-                    Value = metric.Value.Current.ToString(CultureInfo.InvariantCulture),
-                    Delta = ComputeDelta(metric)
-                })
-                .Concat(timespanMetrics.Select(metric => new StatCounter
-                {
-                    Name = metric.Key,
-                    Value = (metric.Value.Current).ToString("c", CultureInfo.InvariantCulture),
-                    Delta = ComputeDelta(metric)
-                }))
-                .ToArray();
+            var size = metrics.Count + timespanMetrics.Count;
 
-            if (countersArray.Length > 0)
+            if (size == 0)
             {
-                grain.ReportCounters(countersArray.AsImmutable());
+                return;
             }
+
+            var counters = new StatCounter[size];
+            var countersIndex = 0;
+
+            foreach (var (key, value) in metrics)
+            {
+                counters[countersIndex] =
+                    new StatCounter(key, value.Current.ToString(CultureInfo.InvariantCulture),
+                        ComputeDelta(value));
+
+                countersIndex++;
+            }
+
+            foreach (var (key, value) in timespanMetrics)
+            {
+                counters[countersIndex] =
+                    new StatCounter(key, value.Current.ToString("c", CultureInfo.InvariantCulture),
+                        ComputeDelta(value));
+
+                countersIndex++;
+            }
+
+            grain.ReportCounters(counters.AsImmutable());
         }
 
-        private static string ComputeDelta(KeyValuePair<string, Value<TimeSpan>> metric)
+        private static string ComputeDelta(Value<TimeSpan> metric)
         {
             try
             {
-                return (metric.Value.Current - metric.Value.Last).ToString("c", CultureInfo.InvariantCulture);
+                return (metric.Current - metric.Last).ToString("c", CultureInfo.InvariantCulture);
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -125,9 +135,9 @@ namespace OrleansDashboard
             }
         }
 
-        private static string ComputeDelta(KeyValuePair<string, Value<double>> metric)
+        private static string ComputeDelta(Value<double> metric)
         {
-            return (metric.Value.Current - metric.Value.Last).ToString(CultureInfo.InvariantCulture);
+            return (metric.Current - metric.Last).ToString(CultureInfo.InvariantCulture);
         }
 
         public void Close()
