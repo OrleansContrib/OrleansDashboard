@@ -1,11 +1,18 @@
 ﻿namespace OrleansDashboard.Model
 {
-    public class StatCounter
+    public readonly struct StatCounter
     {
-        public string Name { get; set; }
+        public readonly string Name;
 
-        public string Value { get; set; }
+        public readonly string Value;
 
-        public string Delta { get; set; }
+        public readonly string Delta;
+
+        public StatCounter(string name, string value, string delta) : this()
+        {
+            Name = name;
+            Value = value;
+            Delta = delta;
+        }
     }
 }

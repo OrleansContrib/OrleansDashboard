@@ -19,13 +19,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Client" Version="$(OrleansPackageVersion)" />
-    <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="$(OrleansPackageVersion)">
+    <PackageReference Include="Microsoft.Orleans.Client" Version="3.4.0" />
+    <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.4.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="OrleansLogo.png" Pack="true" PackagePath="\"/>
+    <None Include="OrleansLogo.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
