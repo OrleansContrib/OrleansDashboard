@@ -87,14 +87,14 @@ module.exports = class Overview extends React.Component {
           </div>
           <div className="col-md-4">
             <CounterWidget
-              icon="tachometer"
+              icon="tachometer-alt"
               counter={(stats.totalCalls / 100).toFixed(2)}
               title="Req/sec"
             />
           </div>
           <div className="col-md-4">
             <CounterWidget
-              icon="clock-o"
+              icon="clock"
               counter={
                 stats.totalCalls === 0
                   ? '0'

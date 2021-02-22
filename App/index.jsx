@@ -445,7 +445,7 @@ function getMenu() {
     {
       name: 'Overview',
       path: '#/',
-      icon: 'fa fa-tachometer'
+      icon: 'fa fa-tachometer-alt'
     },
     {
       name: 'Grains',
