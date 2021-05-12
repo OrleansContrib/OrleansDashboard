@@ -12,7 +12,7 @@
     "watch": "cross-env BABEL_ENV=development watchify index.jsx -t babelify -g [ envify --NODE_ENV development ] -o ../Tests/TestHosts/TestHost/index.min.js"
   },
   "dependencies": {
-    "chart.js": "^2.7.2",
+    "chart.js": "^2.9.4",
     "eventthing": "^1.0.7",
     "humanize-duration": "^3.15.1",
     "react": "^15.6.2",
