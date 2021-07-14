@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\OrleansDashboard.EmbeddedAssets\OrleansDashboard.EmbeddedAssets.csproj" />
     <ProjectReference Include="..\..\..\OrleansDashboard\OrleansDashboard.csproj" />
     <ProjectReference Include="..\..\TestGrains\TestGrains.csproj" />
   </ItemGroup>
