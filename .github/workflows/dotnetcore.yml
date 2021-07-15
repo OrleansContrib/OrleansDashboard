@@ -25,4 +25,5 @@ jobs:
       run: |
         ! dotnet nuget push **/OrleansDashboard.3.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }}
         ! dotnet nuget push **/OrleansDashboard.Core.3.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }}
+        ! dotnet nuget push **/OrleansDashboard.Core.3.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }}
       if: github.ref == 'refs/heads/master'
