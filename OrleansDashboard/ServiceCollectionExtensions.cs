@@ -10,6 +10,7 @@ using Orleans.Hosting;
 using Orleans.Runtime;
 using OrleansDashboard;
 using OrleansDashboard.Implementation;
+using OrleansDashboard.Implementation.Assets;
 using OrleansDashboard.Implementation.Details;
 using OrleansDashboard.Metrics;
 using OrleansDashboard.Metrics.Details;
@@ -53,6 +54,7 @@ namespace Orleans
             services.AddSingleton<IGrainProfiler, GrainProfiler>();
             services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>)c.GetRequiredService<IGrainProfiler>());
             services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
+            services.TryAddSingleton<IAssetProvider, CDNAssetProvider>();
 
             services.AddSingleton<ISiloDetailsProvider>(c =>
             {
@@ -113,6 +115,7 @@ namespace Orleans
             services.Configure(configurator ?? (x => { }));
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
+            services.TryAddSingleton<IAssetProvider, CDNAssetProvider>();
 
             return services;
         }
@@ -123,6 +126,7 @@ namespace Orleans
             services.AddSingleton(Options.Create(options));
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton(grainFactory);
+            services.TryAddSingleton<IAssetProvider, CDNAssetProvider>();
 
             return services;
         }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Orleans;
 using OrleansDashboard.Implementation;
+using OrleansDashboard.Implementation.Assets;
 using OrleansDashboard.Model;
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
@@ -29,16 +30,19 @@ namespace OrleansDashboard
         private readonly IOptions<DashboardOptions> options;
         private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
+        private readonly IAssetProvider assetProvider;
         private readonly IDashboardClient client;
 
         public DashboardMiddleware(RequestDelegate next,
             IGrainFactory grainFactory,
+            IAssetProvider assetProvider,
             IOptions<DashboardOptions> options,
             DashboardLogger logger)
         {
             this.options = options;
             this.logger = logger;
             this.next = next;
+            this.assetProvider = assetProvider;
             client = new DashboardClient(grainFactory);
         }
 
@@ -72,9 +76,24 @@ namespace OrleansDashboard
                 return;
             }
 
+            if (request.Path.StartsWithSegments("/webfonts", out var name))
+            {
+                await assetProvider.ServeAssetAsync(name.Value[1..], context);
+
+                return;
+            }
+
+            if (request.Path.StartsWithSegments("/assets", out var fontName))
+            {
+                await assetProvider.ServeAssetAsync(fontName.Value[1..], context);
+
+                return;
+            }
+
             if (request.Path == "/DashboardCounters")
             {
                 var result = await client.DashboardCounters();
+
                 await WriteJson(context, result.Value);
 
                 return;

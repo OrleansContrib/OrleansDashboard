@@ -37,6 +37,8 @@ namespace TestHostCohosted2
                     {
                         options.HostSelf = false;
                     });
+
+                    builder.UseDashboardEmbeddedFiles();
                 })
                 .ConfigureWebHostDefaults(builder =>
                 {
