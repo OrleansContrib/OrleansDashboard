@@ -379,6 +379,3 @@ GET /Trace
 ```
 
 Streams the trace log as plain text in a long running HTTP request.
-
-
-
