@@ -18,7 +18,8 @@ namespace OrleansDashboard
     {
         private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            IncludeFields = true,
         };
 
         static DashboardMiddleware()
