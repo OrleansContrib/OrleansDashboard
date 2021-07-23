@@ -23,5 +23,5 @@ jobs:
         dotnet build --configuration Release
     - name: Publish
       run: |
-        ! dotnet nuget push **/Release/*.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }}
+        ! dotnet nuget push **/Release/*.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }} --skip-duplicate
       if: github.ref == 'refs/heads/master'
