@@ -104,6 +104,12 @@ namespace OrleansDashboard
 
             foreach (var (key, value) in metrics)
             {
+                // In case new values have been added to metrics in another thread. It will be pushed the next time then.
+                if (countersIndex == metrics.Count)
+                {
+                    break;
+                }
+
                 counters[countersIndex] =
                     new StatCounter(key, value.Current.ToString(CultureInfo.InvariantCulture),
                         ComputeDelta(value));
@@ -113,6 +119,12 @@ namespace OrleansDashboard
 
             foreach (var (key, value) in timespanMetrics)
             {
+                // In case new values have been added to metrics in timespanMetrics thread. It will be pushed the next time then.
+                if (countersIndex == metrics.Count)
+                {
+                    break;
+                }
+
                 counters[countersIndex] =
                     new StatCounter(key, value.Current.ToString("c", CultureInfo.InvariantCulture),
                         ComputeDelta(value));
