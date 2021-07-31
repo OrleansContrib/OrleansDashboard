@@ -20,7 +20,6 @@ namespace OrleansDashboard
             public Value(T value)
                 : this(value, value)
             {
-
             }
 
             public Value(T last, T current)
@@ -105,13 +104,15 @@ namespace OrleansDashboard
             foreach (var (key, value) in metrics)
             {
                 // In case new values have been added to metrics in another thread. It will be pushed the next time then.
-                if (countersIndex == metrics.Count)
+                if (countersIndex == counters.Length)
                 {
                     break;
                 }
 
                 counters[countersIndex] =
-                    new StatCounter(key, value.Current.ToString(CultureInfo.InvariantCulture),
+                    new StatCounter(
+                        key, 
+                        value.Current.ToString(CultureInfo.InvariantCulture),
                         ComputeDelta(value));
 
                 countersIndex++;
@@ -120,13 +121,15 @@ namespace OrleansDashboard
             foreach (var (key, value) in timespanMetrics)
             {
                 // In case new values have been added to metrics in timespanMetrics thread. It will be pushed the next time then.
-                if (countersIndex == metrics.Count)
+                if (countersIndex == counters.Length)
                 {
                     break;
                 }
 
                 counters[countersIndex] =
-                    new StatCounter(key, value.Current.ToString("c", CultureInfo.InvariantCulture),
+                    new StatCounter(
+                        key,
+                        value.Current.ToString("c", CultureInfo.InvariantCulture),
                         ComputeDelta(value));
 
                 countersIndex++;

@@ -103,7 +103,10 @@ namespace OrleansDashboard.Metrics.Grains
         {
             foreach (var counter in reportCounters.Value)
             {
-                counters[counter.Name] = counter;
+                if (!string.IsNullOrWhiteSpace(counter.Name))
+                {
+                    counters[counter.Name] = counter;
+                }
             }
 
             return Task.CompletedTask;
