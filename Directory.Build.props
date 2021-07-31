@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
     <OrleansPackageVersion Condition=" '$(OrleansPackageVersion)'=='' ">3.1.6</OrleansPackageVersion>
-    <DashboardVersion Condition=" '$(DashboardVersion)'=='' ">3.5.1</DashboardVersion>
+    <DashboardVersion Condition=" '$(DashboardVersion)'=='' ">3.5.2</DashboardVersion>
   </PropertyGroup>
 </Project>
