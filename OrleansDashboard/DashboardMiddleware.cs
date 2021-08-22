@@ -274,7 +274,7 @@ namespace OrleansDashboard
 
             try
             {
-                using (var writer = new TraceWriter(logger, context))
+                await using (var writer = new TraceWriter(logger, context))
                 {
                     await writer.WriteAsync(@"
    ____       _                        _____            _     _                         _
