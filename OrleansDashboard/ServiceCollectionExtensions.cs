@@ -83,7 +83,9 @@ namespace Orleans
 
         private static void AddDashboardParts(this IApplicationPartManager appParts)
         {
-            appParts.AddFrameworkPart(typeof(Dashboard).Assembly).WithReferences();
+            appParts
+                .AddFrameworkPart(typeof(Dashboard).Assembly)
+                .AddFrameworkPart(typeof(IDashboardGrain).Assembly);
         }
 
         public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)
