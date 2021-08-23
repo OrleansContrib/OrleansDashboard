@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OrleansDashboard.Implementation
 {
-    public class TraceWriter : IDisposable
+    public class TraceWriter : IAsyncDisposable
     {
         private readonly DashboardLogger traceListener;
         private readonly HttpContext context;
@@ -68,11 +68,11 @@ namespace OrleansDashboard.Implementation
             }
         }
 
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
             traceListener.Remove(Write);
 
-            writer.Dispose();
+            return writer.DisposeAsync();
         }
 
         private static string GetLogLevelString(LogLevel logLevel)
