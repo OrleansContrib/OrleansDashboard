@@ -3,7 +3,10 @@
 ![](https://github.com/OrleansContrib/OrleansDashboard/workflows/Node%20CI/badge.svg?branch=master) ![](https://github.com/OrleansContrib/OrleansDashboard/workflows/.NET%20Core/badge.svg?branch=master)
 ![Nuget](https://img.shields.io/nuget/v/OrleansDashboard)
 
-An admin dashboard for Microsoft Orleans.
+A dashboard for Microsoft Orleans which provides some simple metrics and insights into what is happening inside you Orleans appliction.
+
+The dashboard is simple to set up and is designed as a convenience for developers to use whilst building Orleans applications. It is not designed as a replacement
+for a production monitoring system.
 
 ![](screenshots/dashboard.png)
 
