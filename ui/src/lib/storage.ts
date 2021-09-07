@@ -1,5 +1,5 @@
 // polyfill localStorage with temp store
-var store = {}
+var store: any = {}
 
 try {
   if (localStorage) {
@@ -9,15 +9,11 @@ try {
   // noop
 }
 
-module.exports.put = (key, value) => {
-  store[key] = value
-}
+export const put = (key: string, value: string) => (store[key] = value)
 
-module.exports.get = key => {
-  return store[key]
-}
+export const get = (key: string) => store[key]
 
-module.exports.del = key => {
+export const del = (key: string) => {
   if (store.removeItem) {
     store.removeItem(key)
   } else {
