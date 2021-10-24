@@ -145,7 +145,6 @@ routie('', function() {
       http.get('ClusterStats', function(err, data) {
         clusterStats = data
         http.get('TopGrainMethods', function(err, grainMethodsData) {
-          loadDataIsPending = false;
           grainMethodStats = grainMethodsData
           unfiltedMethodStats = grainMethodsData
           grainMethodStats.calls = unfiltedMethodStats.calls.filter(
@@ -158,8 +157,8 @@ routie('', function() {
             getFilter(settings)
           )
           render()
-        })
-      })
+        }).finally(() => loadDataIsPending = false);
+      }).catch(() => loadDataIsPending = false);
     }
   }
 
@@ -324,10 +323,9 @@ routie('/grain/:grainType', function(grainType) {
   var loadData = function(cb) {
     if (!loadDataIsPending) {
       http.get('GrainStats/' + grainType, function(err, data) {
-        loadDataIsPending = false;
         grainStats = data
         render()
-      })
+      }).finally(() => loadDataIsPending = false);
     }
   }
 
@@ -381,10 +379,9 @@ routie('/reminders/:page?', function(page) {
     if (!loadDataIsPending) {
       loadDataIsPending = true;
       http.get(`Reminders/${page}`, function(err, data) {
-        loadDataIsPending = false;
         remindersData = data
         renderReminders()
-      })
+      }).finally(() => loadDataIsPending = false);
     }
   }
 
