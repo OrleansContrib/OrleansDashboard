@@ -60,9 +60,15 @@ function closeError() {
 
 http.onError(showError)
 
+function setIntervalDebounced(action, interval) {
+  Promise.resolve(action()).finally(() => {
+    setTimeout(setIntervalDebounced.bind(this, action, interval), interval);
+  });
+}
+
 // continually poll the dashboard counters
 function loadDashboardCounters() {
-  http.get('DashboardCounters', function(err, data) {
+  return http.get('DashboardCounters', function(err, data) {
     dashboardCounters = data
     unfilteredDashboardCounters = data
     dashboardCounters.simpleGrainStats = unfilteredDashboardCounters.simpleGrainStats.filter(
@@ -103,7 +109,7 @@ function getVersion() {
 }
 
 // we always want to refresh the dashboard counters
-setInterval(loadDashboardCounters, 1000)
+setIntervalDebounced(loadDashboardCounters, 1000)
 loadDashboardCounters()
 var render = () => {}
 
@@ -132,24 +138,29 @@ routie('', function() {
   var clusterStats = {}
   var grainMethodStats = []
   var unfiltedMethodStats = []
+  var loadDataIsPending = false;
   var loadData = function(cb) {
-    http.get('ClusterStats', function(err, data) {
-      clusterStats = data
-      http.get('TopGrainMethods', function(err, grainMethodsData) {
-        grainMethodStats = grainMethodsData
-        unfiltedMethodStats = grainMethodsData
-        grainMethodStats.calls = unfiltedMethodStats.calls.filter(
-          getFilter(settings)
-        )
-        grainMethodStats.errors = unfiltedMethodStats.errors.filter(
-          getFilter(settings)
-        )
-        grainMethodStats.latency = unfiltedMethodStats.latency.filter(
-          getFilter(settings)
-        )
-        render()
+    if (!loadDataIsPending) {
+      loadDataIsPending = true;
+      http.get('ClusterStats', function(err, data) {
+        clusterStats = data
+        http.get('TopGrainMethods', function(err, grainMethodsData) {
+          loadDataIsPending = false;
+          grainMethodStats = grainMethodsData
+          unfiltedMethodStats = grainMethodsData
+          grainMethodStats.calls = unfiltedMethodStats.calls.filter(
+            getFilter(settings)
+          )
+          grainMethodStats.errors = unfiltedMethodStats.errors.filter(
+            getFilter(settings)
+          )
+          grainMethodStats.latency = unfiltedMethodStats.latency.filter(
+            getFilter(settings)
+          )
+          render()
+        })
       })
-    })
+    }
   }
 
   render = function() {
@@ -309,11 +320,15 @@ routie('/grain/:grainType', function(grainType) {
   renderLoading()
 
   var grainStats = {}
+  var loadDataIsPending = false;
   var loadData = function(cb) {
-    http.get('GrainStats/' + grainType, function(err, data) {
-      grainStats = data
-      render()
-    })
+    if (!loadDataIsPending) {
+      http.get('GrainStats/' + grainType, function(err, data) {
+        loadDataIsPending = false;
+        grainStats = data
+        render()
+      })
+    }
   }
 
   render = function() {
@@ -361,11 +376,16 @@ routie('/reminders/:page?', function(page) {
     return (document.location.hash = `/reminders/${lastPage}`)
   }
 
+  var loadDataIsPending = false;
   var loadData = function(cb) {
-    http.get(`Reminders/${page}`, function(err, data) {
-      remindersData = data
-      renderReminders()
-    })
+    if (!loadDataIsPending) {
+      loadDataIsPending = true;
+      http.get(`Reminders/${page}`, function(err, data) {
+        loadDataIsPending = false;
+        remindersData = data
+        renderReminders()
+      })
+    }
   }
 
   events.on('long-refresh', loadData)
