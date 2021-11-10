@@ -33,13 +33,13 @@ namespace OrleansDashboard
         private readonly IOptions<DashboardOptions> options;
         private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
-        private readonly IClusterClient clusterClient;
+        private readonly IGrainFactory grainFactory;
         private readonly IAssetProvider assetProvider;
         
         private IDashboardClient client;
 
         public DashboardMiddleware(RequestDelegate next,
-            IClusterClient clusterClient,
+            IGrainFactory grainFactory,
             IAssetProvider assetProvider,
             IOptions<DashboardOptions> options,
             DashboardLogger logger)
@@ -47,7 +47,7 @@ namespace OrleansDashboard
             this.options = options;
             this.logger = logger;
             this.next = next;
-            this.clusterClient = clusterClient;
+            this.grainFactory = grainFactory;
             this.assetProvider = assetProvider;
         }
 
@@ -58,15 +58,15 @@ namespace OrleansDashboard
             var client = this.client;
             if (client is null)
             {
-                if (clusterClient.IsInitialized)
-                {
-                    this.client = client = new DashboardClient(clusterClient);
-                }
-                else
+                if (grainFactory is IClusterClient { IsInitialized: false })
                 {
                     await WriteUnavailable(context, false);
 
                     return;
+                }
+                else
+                {
+                    this.client = client = new DashboardClient(grainFactory);
                 }
             }
 
