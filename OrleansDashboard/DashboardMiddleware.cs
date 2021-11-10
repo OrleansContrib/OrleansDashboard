@@ -257,6 +257,12 @@ namespace OrleansDashboard
 
                 content = content.Replace("{{BASE}}", basePath);
                 content = content.Replace("{{HIDE_TRACE}}", options.Value.HideTrace.ToString().ToLowerInvariant());
+                content = content.Replace("{{CUSTOM_CSS}}", options.Value.CustomCssPath switch
+                {
+                    // We're deliberately not escaping path as we're keep things lightweight and we don't want to bring in other dependencies
+                    string path => $@"<link rel=""stylesheet"" type=""text/css"" href=""{path}"" />",
+                    _ => string.Empty
+                }) ;
 
                 await context.Response.WriteAsync(content);
             }

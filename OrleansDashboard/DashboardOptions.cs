@@ -15,6 +15,12 @@
         public string ScriptPath { get; set; }
 
         /// <summary>
+        ///   The URL path the dashboard will attempt to load a custom CSS file from on top of the default CSS file
+        ///   The default is null, which will not load in a custom CSS file
+        /// </summary>
+        public string CustomCssPath { get; set; } 
+
+        /// <summary>
         ///   Username for basic auth
         /// </summary>
         public string Username { get; set; }
