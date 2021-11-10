@@ -20,12 +20,12 @@ namespace OrleansDashboard
 
         public Task Invoke(HttpContext context)
         {
-            if (context.Request.Headers.ContainsKey("Authorization"))
+            if (context.Request.Headers.TryGetValue("Authorization", out var authorizationHeader))
             {
-                var value = context.Request.Headers["Authorization"].ToString();
+                var authorizationEncoded = authorizationHeader.ToString().Replace("Basic", string.Empty).Trim();
+                var authorizationBytes = Convert.FromBase64String(authorizationEncoded);
 
-                var decodedString =
-                    Encoding.UTF8.GetString(Convert.FromBase64String(value.Replace("Basic", "").Trim()));
+                var decodedString = Encoding.UTF8.GetString(authorizationBytes);
 
                 var parts = decodedString.Split(':');
 

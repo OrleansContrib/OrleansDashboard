@@ -142,17 +142,25 @@ namespace OrleansDashboard
         {
             try
             {
-                return (metric.Current - metric.Last).ToString("c", CultureInfo.InvariantCulture);
+                var delta = metric.Current - metric.Last;
+
+                return delta.ToString("c", CultureInfo.InvariantCulture);
+            }
+            catch (OverflowException)
+            {
+                return string.Empty;
             }
             catch (ArgumentOutOfRangeException)
             {
-                return "";
+                return string.Empty;
             }
         }
 
         private static string ComputeDelta(Value<double> metric)
         {
-            return (metric.Current - metric.Last).ToString(CultureInfo.InvariantCulture);
+            var delta = metric.Current - metric.Last;
+
+            return delta.ToString(CultureInfo.InvariantCulture);
         }
 
         public void Close()
