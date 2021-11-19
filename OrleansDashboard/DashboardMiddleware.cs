@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Orleans;
+using Orleans.Runtime;
 using OrleansDashboard.Implementation;
 using OrleansDashboard.Implementation.Assets;
 using OrleansDashboard.Model;
@@ -28,11 +29,14 @@ namespace OrleansDashboard
         }
 
         private const int REMINDER_PAGE_SIZE = 50;
+        private const int UNAVAILABLE_RETRY_DELAY = 1;
         private readonly IOptions<DashboardOptions> options;
         private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
+        private readonly IGrainFactory grainFactory;
         private readonly IAssetProvider assetProvider;
-        private readonly IDashboardClient client;
+        
+        private IDashboardClient client;
 
         public DashboardMiddleware(RequestDelegate next,
             IGrainFactory grainFactory,
@@ -43,168 +47,209 @@ namespace OrleansDashboard
             this.options = options;
             this.logger = logger;
             this.next = next;
+            this.grainFactory = grainFactory;
             this.assetProvider = assetProvider;
-            client = new DashboardClient(grainFactory);
         }
 
         public async Task Invoke(HttpContext context)
         {
             var request = context.Request;
 
-            if (request.Path == "/" || string.IsNullOrEmpty(request.Path))
+            var client = this.client;
+            if (client is null)
             {
-                await WriteIndexFile(context);
-
-                return;
-            }
-            if (request.Path == "/favicon.ico")
-            {
-                await WriteFileAsync(context, "favicon.ico", "image/x-icon");
-
-                return;
-            }
-            if (request.Path == "/index.min.js")
-            {
-                await WriteFileAsync(context, "index.min.js", "application/javascript");
-
-                return;
-            }
-
-            if (request.Path == "/version")
-            {
-                await WriteJson(context, new { version = typeof (DashboardMiddleware).Assembly.GetName().Version.ToString() });
-
-                return;
-            }
-
-            if (request.Path.StartsWithSegments("/webfonts", out var name))
-            {
-                await assetProvider.ServeAssetAsync(name.Value[1..], context);
-
-                return;
-            }
-
-            if (request.Path.StartsWithSegments("/assets", out var fontName))
-            {
-                await assetProvider.ServeAssetAsync(fontName.Value[1..], context);
-
-                return;
-            }
-
-            if (request.Path == "/DashboardCounters")
-            {
-                var result = await client.DashboardCounters();
-
-                await WriteJson(context, result.Value);
-
-                return;
-            }
-
-            if (request.Path == "/ClusterStats")
-            {
-                var result = await client.ClusterStats();
-
-                await WriteJson(context, result.Value);
-
-                return;
-            }
-
-            if (request.Path == "/Reminders")
-            {
-                try
+                if (grainFactory is IClusterClient { IsInitialized: false })
                 {
-                    var result = await client.GetReminders(1, REMINDER_PAGE_SIZE);
+                    await WriteUnavailable(context, false);
+
+                    return;
+                }
+                else
+                {
+                    this.client = client = new DashboardClient(grainFactory);
+                }
+            }
+
+            try
+            {
+
+                if (request.Path == "/" || string.IsNullOrEmpty(request.Path))
+                {
+                    await WriteIndexFile(context);
+
+                    return;
+                }
+                if (request.Path == "/favicon.ico")
+                {
+                    await WriteFileAsync(context, "favicon.ico", "image/x-icon");
+
+                    return;
+                }
+                if (request.Path == "/index.min.js")
+                {
+                    await WriteFileAsync(context, "index.min.js", "application/javascript");
+
+                    return;
+                }
+
+                if (request.Path == "/version")
+                {
+                    await WriteJson(context, new { version = typeof(DashboardMiddleware).Assembly.GetName().Version.ToString() });
+
+                    return;
+                }
+
+                if (request.Path.StartsWithSegments("/webfonts", out var name))
+                {
+                    await assetProvider.ServeAssetAsync(name.Value[1..], context);
+
+                    return;
+                }
+
+                if (request.Path.StartsWithSegments("/assets", out var fontName))
+                {
+                    await assetProvider.ServeAssetAsync(fontName.Value[1..], context);
+
+                    return;
+                }
+
+                if (request.Path == "/DashboardCounters")
+                {
+                    var result = await client.DashboardCounters();
 
                     await WriteJson(context, result.Value);
-                }
-                catch
-                {
-                    // if reminders are not configured, the call to the grain will fail
-                    await WriteJson(context, new ReminderResponse { Reminders = Array.Empty<ReminderInfo>(), Count = 0 });
+
+                    return;
                 }
 
-                return;
-            }
-
-            if (request.Path.StartsWithSegments("/Reminders", out var pageString1) && int.TryParse(pageString1.ToValue(), out var page))
-            {
-                try
+                if (request.Path == "/ClusterStats")
                 {
-                    var result = await client.GetReminders(page, REMINDER_PAGE_SIZE);
+                    var result = await client.ClusterStats();
 
                     await WriteJson(context, result.Value);
+
+                    return;
                 }
-                catch
+
+                if (request.Path == "/Reminders")
                 {
-                    // if reminders are not configured, the call to the grain will fail
-                    await WriteJson(context, new ReminderResponse { Reminders = Array.Empty<ReminderInfo>(), Count = 0 });
+                    try
+                    {
+                        var result = await client.GetReminders(1, REMINDER_PAGE_SIZE);
+
+                        await WriteJson(context, result.Value);
+                    }
+                    catch
+                    {
+                        // if reminders are not configured, the call to the grain will fail
+                        await WriteJson(context, new ReminderResponse { Reminders = Array.Empty<ReminderInfo>(), Count = 0 });
+                    }
+
+                    return;
                 }
 
-                return;
+                if (request.Path.StartsWithSegments("/Reminders", out var pageString1) && int.TryParse(pageString1.ToValue(), out var page))
+                {
+                    try
+                    {
+                        var result = await client.GetReminders(page, REMINDER_PAGE_SIZE);
+
+                        await WriteJson(context, result.Value);
+                    }
+                    catch
+                    {
+                        // if reminders are not configured, the call to the grain will fail
+                        await WriteJson(context, new ReminderResponse { Reminders = Array.Empty<ReminderInfo>(), Count = 0 });
+                    }
+
+                    return;
+                }
+
+                if (request.Path.StartsWithSegments("/HistoricalStats", out var remaining))
+                {
+                    var result = await client.HistoricalStats(remaining.ToValue());
+
+                    await WriteJson(context, result.Value);
+
+                    return;
+                }
+
+                if (request.Path.StartsWithSegments("/SiloProperties", out var address1))
+                {
+                    var result = await client.SiloProperties(address1.ToValue());
+
+                    await WriteJson(context, result.Value);
+
+                    return;
+                }
+
+                if (request.Path.StartsWithSegments("/SiloStats", out var address2))
+                {
+                    var result = await client.SiloStats(address2.ToValue());
+
+                    await WriteJson(context, result.Value);
+
+                    return;
+                }
+
+                if (request.Path.StartsWithSegments("/SiloCounters", out var address3))
+                {
+                    var result = await client.GetCounters(address3.ToValue());
+
+                    await WriteJson(context, result.Value);
+
+                    return;
+                }
+
+                if (request.Path.StartsWithSegments("/GrainStats", out var grainName1))
+                {
+                    var result = await client.GrainStats(grainName1.ToValue());
+
+                    await WriteJson(context, result.Value);
+
+                    return;
+                }
+
+                if (request.Path == "/TopGrainMethods")
+                {
+                    var result = await client.TopGrainMethods();
+
+                    await WriteJson(context, result.Value);
+
+                    return;
+                }
+
+                if (request.Path == "/Trace")
+                {
+                    await TraceAsync(context);
+
+                    return;
+                }
             }
-
-            if (request.Path.StartsWithSegments("/HistoricalStats", out var remaining))
+            catch (SiloUnavailableException)
             {
-                var result = await client.HistoricalStats(remaining.ToValue());
-
-                await WriteJson(context, result.Value);
-
-                return;
-            }
-
-            if (request.Path.StartsWithSegments("/SiloProperties", out var address1))
-            {
-                var result = await client.SiloProperties(address1.ToValue());
-
-                await WriteJson(context, result.Value);
-
-                return;
-            }
-
-            if (request.Path.StartsWithSegments("/SiloStats", out var address2))
-            {
-                var result = await client.SiloStats(address2.ToValue());
-
-                await WriteJson(context, result.Value);
-
-                return;
-            }
-
-            if (request.Path.StartsWithSegments("/SiloCounters", out var address3))
-            {
-                var result = await client.GetCounters(address3.ToValue());
-
-                await WriteJson(context, result.Value);
-
-                return;
-            }
-
-            if (request.Path.StartsWithSegments("/GrainStats", out var grainName1))
-            {
-                var result = await client.GrainStats(grainName1.ToValue());
-
-                await WriteJson(context, result.Value);
-
-                return;
-            }
-
-            if (request.Path == "/TopGrainMethods")
-            {
-                var result = await client.TopGrainMethods();
-
-                await WriteJson(context, result.Value);
-
-                return;
-            }
-
-            if (request.Path == "/Trace")
-            {
-                await TraceAsync(context);
+                await WriteUnavailable(context, true);
 
                 return;
             }
 
             await next(context);
+        }
+
+        private static async Task WriteUnavailable(HttpContext context, bool lostConnectivity)
+        {
+            context.Response.StatusCode = 503; // Service Unavailable
+            context.Response.ContentType = "text/plain";
+            context.Response.Headers["Retry-After"] = UNAVAILABLE_RETRY_DELAY.ToString();
+
+            if (lostConnectivity)
+            {
+                await context.Response.WriteAsync("The dashboard has lost connectivity with the Orleans cluster");
+            }
+            else
+            {
+                await context.Response.WriteAsync("The dashboard is still trying to connect to the Orleans cluster");
+            }
         }
 
         private static async Task WriteJson<T>(HttpContext context, T content)
