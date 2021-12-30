@@ -26,6 +26,8 @@ new SiloHostBuilder()
   .Build();
 ```
 
+The dashboard should be installed on every silo in the cluster.
+
 Start the silo, and open this url in your browser: [`http://localhost:8080`](http://localhost:8080)
 
 Please note, the dashboard registers its services and grains using `ConfigureApplicationParts` which disables the
