@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Orleans;
 
 namespace OrleansDashboard.Implementation
 {
@@ -27,7 +28,7 @@ namespace OrleansDashboard.Implementation
         {
             var task = WriteAsync(eventId, level, message);
 
-            task.ConfigureAwait(false);
+            task.Ignore();
             task.ContinueWith(_ => { /* noop */ });
         }
 
