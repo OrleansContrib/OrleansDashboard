@@ -50,7 +50,7 @@ namespace OrleansDashboard.Implementation
         {
             try
             {
-                await writer.WriteAsync($"{DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)} {GetLogLevelString(level)}: [{eventId.ToString().PadLeft(8)}] {message}\r\n");
+                await writer.WriteAsync($"{DateTime.UtcNow} {GetLogLevelString(level)}: [{eventId.ToString().PadLeft(8)}] {message}\r\n");
 
                 await writer.FlushAsync();
 
