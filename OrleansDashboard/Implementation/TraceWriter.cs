@@ -29,7 +29,6 @@ namespace OrleansDashboard.Implementation
             var task = WriteAsync(eventId, level, message);
 
             task.Ignore();
-            task.ContinueWith(_ => { /* noop */ });
         }
 
         public async Task WriteAsync(string message)
