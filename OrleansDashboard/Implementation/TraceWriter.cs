@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -34,8 +35,8 @@ namespace OrleansDashboard.Implementation
         {
             try
             {
-                writer.Write(message);
-                writer.Write("\r\n");
+                await writer.WriteAsync(message);
+                await writer.WriteAsync("\r\n");
 
                 await writer.FlushAsync();
 
@@ -50,14 +51,7 @@ namespace OrleansDashboard.Implementation
         {
             try
             {
-                writer.Write(DateTime.UtcNow);
-                writer.Write(" ");
-                writer.Write(GetLogLevelString(level));
-                writer.Write(": [");
-                writer.Write(eventId.ToString().PadLeft(8));
-                writer.Write("] ");
-                writer.Write(message);
-                writer.Write("\r\n");
+                await writer.WriteAsync($"{DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)} {GetLogLevelString(level)}: [{eventId.ToString().PadLeft(8)}] {message}\r\n");
 
                 await writer.FlushAsync();
 
