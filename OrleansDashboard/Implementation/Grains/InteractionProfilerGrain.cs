@@ -87,15 +87,21 @@ namespace OrleansDashboard.Metrics.Grains
         {
             var content = string.Join("\n    ", interaction.Values.SelectMany(s => s)
                 /*.Where(w=>!string.IsNullOrEmpty(w.To))*/
-                .Select(s => $"{s.Value.Grain} -> {s.Value.TargetGrain ?? s.Value.Grain} [ label = \"{s.Value.Method}\" ];"));
+                .Select(s => $"{s.Value.Grain} -> {s.Value.TargetGrain ?? s.Value.Grain+"_self"} [ label = \"{s.Value.Method}\", color=\"0.650 0.700 0.700\" ];"));
 
+            var colors = string.Join("\n", interaction.Values.SelectMany(s => s)
+                .Select(s => s.Value.Grain)
+                .Distinct()
+                .Select(s => $"{s} [color=\"0.628 0.227 1.000\"];"));
+            
             var graphCode = @$"
 digraph finite_state_machine {{
 rankdir=LR;
-node [shape = doublecircle]; {interaction.Values.SelectMany(s => s).GroupBy(w => w.Value.Grain).OrderBy(s => s.Count()).First().Key};
-node [shape = circle];
+ratio = fill;
+node [style=filled];
     {content}
 
+{colors}
 }}";
             return graphCode;
         }
