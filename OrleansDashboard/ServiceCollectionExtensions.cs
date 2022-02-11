@@ -26,6 +26,8 @@ namespace Orleans
         {
             builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
             builder.ConfigureServices(services => services.AddDashboard(configurator));
+            builder.AddIncomingGrainCallFilter<GrainInteractionFilter>();
+            builder.AddOutgoingGrainCallFilter<GrainInteractionFilter>();
             builder.AddStartupTask<Dashboard>();
 
             return builder;

@@ -14,6 +14,9 @@ namespace OrleansDashboard
 
         [OneWay]
         Task SubmitTracing(string siloAddress, Immutable<SiloGrainTraceEntry[]> grainCallTime);
+        
+        [OneWay]
+        Task SubmitGrainInteraction(string interactionsGraph);
 
         Task<Immutable<DashboardCounters>> GetCounters();
 
@@ -24,5 +27,7 @@ namespace OrleansDashboard
         Task<Immutable<Dictionary<string, GrainTraceEntry>>> GetSiloTracing(string address);
 
         Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods();
+        
+        Task<string> GetInteractionsGraph();
     }
 }

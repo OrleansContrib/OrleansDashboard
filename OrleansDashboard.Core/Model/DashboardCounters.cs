@@ -26,5 +26,6 @@ namespace OrleansDashboard.Model
         public SimpleGrainStatisticCounter[] SimpleGrainStats { get; set; }
         public int TotalActivationCount { get; set; }
         public ImmutableQueue<int> TotalActivationCountHistory { get; set; }
+        public string InteractionsGraph { get; set; }
     }
 }
