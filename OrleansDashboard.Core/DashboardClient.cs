@@ -68,5 +68,10 @@ namespace OrleansDashboard
         {
             return await dashboardGrain.TopGrainMethods().ConfigureAwait(false);
         }
+
+        public async Task<string> GetInteractionsGraph()
+        {
+            return await dashboardGrain.GetInteractionsGraph().ConfigureAwait(false);
+        }
     }
 }
