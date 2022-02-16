@@ -10,6 +10,8 @@ namespace TestGrains
         Task ExampleMethod1();
 
         Task ExampleMethod2();
+        
+        Task ExampleMethod3();
     }
 
     public class TestGrain : Grain, ITestGrain, IRemindable
@@ -29,6 +31,12 @@ namespace TestGrains
             }
 
             return Task.CompletedTask;
+        }
+
+        public async Task ExampleMethod3()
+        {
+            await ExampleMethod1();
+            await GrainFactory.GetGrain<ITestMessageBasedGrain>(100).Notify("test");
         }
 
         public override async Task OnActivateAsync()
