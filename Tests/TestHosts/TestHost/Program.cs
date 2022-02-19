@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
@@ -21,26 +23,30 @@ namespace TestHost
             var siloAddress = IPAddress.Loopback;
 
             var silo =
-                new SiloHostBuilder()
-                    .UseDashboard(options =>
+                new ServiceCollection()
+                    .AddOrleans(orleans =>
                     {
-                        options.HostSelf = true;
-                        options.HideTrace = false;
+                        orleans
+                            .UseDashboard(options =>
+                             {
+                                 options.HostSelf = true;
+                                 options.HideTrace = false;
+                             })
+                            .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
+                            .UseInMemoryReminderService()
+                            .ConfigureEndpoints(siloAddress, siloPort, gatewayPort)
+                            .Configure<ClusterOptions>(options =>
+                            {
+                                options.ClusterId = "helloworldcluster";
+                                options.ServiceId = "1";
+                            })
+                            .ConfigureLogging(builder =>
+                            {
+                                builder.AddConsole();
+                            });
                     })
-                    .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
-                    .UseInMemoryReminderService()
-                    .ConfigureEndpoints(siloAddress, siloPort, gatewayPort)
-                    .Configure<ClusterOptions>(options =>
-                    {
-                        options.ClusterId = "helloworldcluster";
-                        options.ServiceId = "1";
-                    })
-                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
-                    .ConfigureLogging(builder =>
-                    {
-                        builder.AddConsole();
-                    })
-                    .Build();
+                    .BuildServiceProvider()
+                    .GetRequiredService<IISi>;
 
             silo.StartAsync().Wait();
 

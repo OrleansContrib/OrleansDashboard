@@ -31,8 +31,6 @@ namespace TestHostCohosted2
                         options.ServiceId = "1";
                     });
 
-                    builder.ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly));
-
                     builder.UseDashboard(options =>
                     {
                         options.HostSelf = false;

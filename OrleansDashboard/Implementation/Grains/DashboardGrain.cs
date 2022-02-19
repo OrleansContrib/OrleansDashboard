@@ -11,6 +11,7 @@ using OrleansDashboard.Model.History;
 using OrleansDashboard.Metrics.Details;
 using OrleansDashboard.Metrics.History;
 using OrleansDashboard.Metrics.TypeFormatting;
+using System.Threading;
 
 namespace OrleansDashboard
 {
@@ -106,11 +107,11 @@ namespace OrleansDashboard
             }).ToArray();
         }
 
-        public override Task OnActivateAsync()
+        public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
             startTime = DateTime.UtcNow;
 
-            return base.OnActivateAsync();
+            return base.OnActivateAsync(cancellationToken);
         }
 
         public async Task<Immutable<DashboardCounters>> GetCounters()
@@ -149,7 +150,8 @@ namespace OrleansDashboard
             
             var values = history.AggregateByGrainMethod().ToList();
             
-            return new Dictionary<string, GrainMethodAggregate[]>{
+            return new Dictionary<string, GrainMethodAggregate[]>
+            {
                 { "calls", values.OrderByDescending(x => x.Count).Take(numberOfResultsToReturn).ToArray() },
                 { "latency", values.OrderByDescending(x => x.ElapsedTime / (double) x.Count).Take(numberOfResultsToReturn).ToArray() },
                 { "errors", values.Where(x => x.ExceptionCount > 0 && x.Count > 0).OrderByDescending(x => x.ExceptionCount / x.Count).Take(numberOfResultsToReturn).ToArray() },

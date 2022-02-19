@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Orleans;
@@ -26,7 +27,7 @@ namespace OrleansDashboard.Metrics.Grains
             this.options = options.Value;
         }
 
-        public override async Task OnActivateAsync()
+        public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
             foreach (var x in Enumerable.Range(1, Dashboard.HistoryLength))
             {
@@ -44,7 +45,7 @@ namespace OrleansDashboard.Metrics.Grains
                 Debug.WriteLine("Not running in Orleans runtime");
             }
 
-            await base.OnActivateAsync();
+            await base.OnActivateAsync(cancellationToken);
         }
 
         private async Task CollectStatistics(bool canDeactivate)

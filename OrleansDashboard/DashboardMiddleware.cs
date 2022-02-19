@@ -58,16 +58,7 @@ namespace OrleansDashboard
             var client = this.client;
             if (client is null)
             {
-                if (grainFactory is IClusterClient { IsInitialized: false })
-                {
-                    await WriteUnavailable(context, false);
-
-                    return;
-                }
-                else
-                {
-                    this.client = client = new DashboardClient(grainFactory);
-                }
+                this.client = client = new DashboardClient(grainFactory);
             }
 
             try
