@@ -6,12 +6,17 @@ using OrleansDashboard.Model.History;
 
 namespace OrleansDashboard.Metrics.History
 {
-    public class TraceHistory : ITraceHistory
+    public sealed class TraceHistory : ITraceHistory
     {
-        const string SEPARATOR = ".";
-        const int HistoryDurationInSeconds = 100;
+        private const string SEPARATOR = ".";
         private readonly LinkedList<GrainTraceEntry> history = new LinkedList<GrainTraceEntry>();
         private readonly HashSet<GrainTraceEntry> allMethods = new HashSet<GrainTraceEntry>(GrainTraceEqualityComparer.ByGrainAndMethodAndSilo);
+        private readonly int historyLength;
+
+        public TraceHistory(int historyLength)
+        {
+            this.historyLength = historyLength;
+        }
 
         public Dictionary<string, Dictionary<string, GrainTraceEntry>> QueryGrain(string grain)
         {
@@ -37,7 +42,7 @@ namespace OrleansDashboard.Metrics.History
             return GetTracings(history.Where(x => string.Equals(x.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase)));
         }
 
-        private static Dictionary<string, GrainTraceEntry> GetTracings(IEnumerable<GrainTraceEntry> traces)
+        private Dictionary<string, GrainTraceEntry> GetTracings(IEnumerable<GrainTraceEntry> traces)
         {
             var result = new Dictionary<string, GrainTraceEntry>();
 
@@ -45,7 +50,7 @@ namespace OrleansDashboard.Metrics.History
 
             var time = GetRetirementWindow(DateTime.UtcNow);
 
-            for (var i = 0; i < HistoryDurationInSeconds; i++)
+            for (var i = 0; i < historyLength; i++)
             {
                 time = time.AddSeconds(1);
 
@@ -137,9 +142,9 @@ namespace OrleansDashboard.Metrics.History
             }
         }
 
-        private static DateTime GetRetirementWindow(DateTime now)
+        private DateTime GetRetirementWindow(DateTime now)
         {
-            return now.AddSeconds(-HistoryDurationInSeconds);
+            return now.AddSeconds(-historyLength);
         }
 
         public IEnumerable<TraceAggregate> GroupByGrainAndSilo()
@@ -173,7 +178,7 @@ namespace OrleansDashboard.Metrics.History
                     {
                         Grain = x.Key.Grain,
                         Method = x.Key.Method,
-                        NumberOfSamples = HistoryDurationInSeconds // this will give the wrong answer during the first 100 seconds
+                        NumberOfSamples = historyLength // this will give the wrong answer during the first 100 seconds
                     };
 
                     foreach (var value in x)
