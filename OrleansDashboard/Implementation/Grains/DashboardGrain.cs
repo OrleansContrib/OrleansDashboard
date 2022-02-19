@@ -79,7 +79,6 @@ namespace OrleansDashboard
             counters.TotalActivationCountHistory = counters.TotalActivationCountHistory.Enqueue(activationCount).Dequeue();
             counters.TotalActiveHostCountHistory = counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount).Dequeue();
 
-            // TODO - whatever max elapsed time
             var elapsedTime = Math.Min((DateTime.UtcNow - startTime).TotalSeconds, 100);
 
             counters.Hosts = hosts;
