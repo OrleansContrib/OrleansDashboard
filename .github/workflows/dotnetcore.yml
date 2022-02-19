@@ -20,7 +20,7 @@ jobs:
         cd ../../
     - name: Build
       run: |
-        dotnet build --configuration Release
+        dotnet build ./OrleansDashboard/OrleansDashboard.csproj --configuration Release
     - name: Publish
       run: |
         dotnet nuget push **/Release/*.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }} --skip-duplicate
