@@ -15,9 +15,9 @@ namespace OrleansDashboard
 
         Task<Immutable<ReminderResponse>> GetReminders(int pageNumber, int pageSize);
 
-        Task<Immutable<SiloRuntimeStatistics[]>> HistoricalStats(string siloGrain);
+        Task<Immutable<SiloRuntimeStatistics[]>> HistoricalStats(string siloAddress);
 
-        Task<Immutable<Dictionary<string, string>>> SiloProperties(string siloGrain);
+        Task<Immutable<Dictionary<string, string>>> SiloProperties(string siloAddress);
 
         Task<Immutable<Dictionary<string, GrainTraceEntry>>> SiloStats(string siloAddress);
 
@@ -25,6 +25,6 @@ namespace OrleansDashboard
 
         Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GrainStats(string grainName);
 
-        Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods();
+        Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods(int take);
     }
 }

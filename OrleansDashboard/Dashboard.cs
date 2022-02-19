@@ -19,8 +19,6 @@ namespace OrleansDashboard
         private readonly IGrainFactory grainFactory;
         private readonly DashboardOptions dashboardOptions;
 
-        public static int HistoryLength => 100;
-
         public Dashboard(
             ILogger<Dashboard> logger,
             ILocalSiloDetails localSiloDetails,

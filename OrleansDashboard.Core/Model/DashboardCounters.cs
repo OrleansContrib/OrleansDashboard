@@ -28,7 +28,11 @@ namespace OrleansDashboard.Model
 
         public DashboardCounters()
         {
-            var values = Enumerable.Repeat(1, 100).Select(x => 0);
+        }
+
+        public DashboardCounters(int initialLength)
+        {
+            var values = Enumerable.Repeat(1, initialLength).Select(x => 0);
 
             TotalActivationCountHistory = ImmutableQueue.CreateRange(values);
             TotalActiveHostCountHistory = ImmutableQueue.CreateRange(values);

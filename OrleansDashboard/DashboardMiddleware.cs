@@ -203,7 +203,7 @@ namespace OrleansDashboard
 
                 if (request.Path == "/TopGrainMethods")
                 {
-                    var result = await client.TopGrainMethods();
+                    var result = await client.TopGrainMethods(take: 5);
 
                     await WriteJson(context, result.Value);
 
