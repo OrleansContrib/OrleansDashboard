@@ -9,7 +9,6 @@ namespace PerformanceTests
 {
     public class DashboardGrainBenchmark
     {
-
         [Params(10)]
         public int SiloCount { get; set; }
 
@@ -33,7 +32,6 @@ namespace PerformanceTests
         private int time;
         private DateTime startTime = DateTime.UtcNow;
         
-
         [Benchmark]
         public void Test_Add_TraceHistory()
         {
@@ -64,14 +62,12 @@ namespace PerformanceTests
         {
             traceHistory.GroupByGrainAndSilo().ToLookup(x => (x.Grain, x.SiloAddress));
         }
-
         
         [Benchmark]
         public void Test_AggregateByGrainMethod_TraceHistory()
         {
             traceHistory.AggregateByGrainMethod().ToList();
         }
-
 
         private void Setup(ITraceHistory history)
         {
@@ -81,7 +77,6 @@ namespace PerformanceTests
                 var time = start.AddSeconds(timeIndex);
                 AddTraceData(time, history);
             }
-
         }
 
         private void AddTraceData(DateTime time, ITraceHistory history)
@@ -89,6 +84,7 @@ namespace PerformanceTests
             for (var siloIndex = 0; siloIndex < SiloCount; siloIndex++)
             {
                 var trace = new List<SiloGrainTraceEntry>();
+
                 for (var grainIndex = 0; grainIndex < GrainTypeCount; grainIndex++)
                 {
                     for (var grainMethodIndex = 0; grainMethodIndex < GrainMethodCount; grainMethodIndex++)
@@ -102,11 +98,9 @@ namespace PerformanceTests
                         });
                     }
                 }
+
                 history.Add(time, $"SILO_{siloIndex}", trace.ToArray());
             }
-        }
-
-
-     
+        }     
     }
 }
