@@ -116,7 +116,7 @@ namespace OrleansDashboard.Metrics
         {
             var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, SiloGrainTraceEntry>());
 
-            if (currentTrace.Count > 0)
+            if (!currentTrace.IsEmpty)
             {
                 if (siloAddress == null)
                 {
@@ -132,7 +132,7 @@ namespace OrleansDashboard.Metrics
 
                 try
                 {
-                    dashboardGrain = dashboardGrain ?? grainFactory.GetGrain<IDashboardGrain>(0);
+                    dashboardGrain ??= grainFactory.GetGrain<IDashboardGrain>(0);
 
                     dashboardGrain.SubmitTracing(siloAddress, items.AsImmutable()).Ignore();
                 }

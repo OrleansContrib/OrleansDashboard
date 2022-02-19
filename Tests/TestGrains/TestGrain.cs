@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Runtime;
@@ -31,7 +32,7 @@ namespace TestGrains
             return Task.CompletedTask;
         }
 
-        public override async Task OnActivateAsync()
+        public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
             await RegisterOrUpdateReminder("Frequent", TimeSpan.Zero, TimeSpan.FromMinutes(1));
             await RegisterOrUpdateReminder("Daily", TimeSpan.Zero, TimeSpan.FromDays(1));

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
     <AssemblyVersion>$(DashboardVersion)</AssemblyVersion>
     <Authors>OrleansContrib</Authors>
     <Company>OrleansContrib</Company>
@@ -19,12 +19,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Client" Version="3.4.0" />
-    <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.4.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Orleans.Runtime.Abstractions" Version="3.6.0" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="4.0.0-preview1" />
   </ItemGroup>
+	
   <ItemGroup>
     <None Include="OrleansLogo.png" Pack="true" PackagePath="\" />
   </ItemGroup>

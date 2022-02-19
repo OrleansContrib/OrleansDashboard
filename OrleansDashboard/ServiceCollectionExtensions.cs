@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Orleans.ApplicationParts;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
@@ -21,20 +20,9 @@ namespace Orleans
 {
     public static class ServiceCollectionExtensions
     {
-        public static ISiloHostBuilder UseDashboard(this ISiloHostBuilder builder,
-            Action<DashboardOptions> configurator = null)
-        {
-            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
-            builder.ConfigureServices(services => services.AddDashboard(configurator));
-            builder.AddStartupTask<Dashboard>();
-
-            return builder;
-        }
-
         public static ISiloBuilder UseDashboard(this ISiloBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
 
@@ -72,20 +60,6 @@ namespace Orleans
             services.TryAddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
 
             return services;
-        }
-
-        public static IClientBuilder UseDashboard(this IClientBuilder builder)
-        {
-            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
-
-            return builder;
-        }
-
-        private static void AddDashboardParts(this IApplicationPartManager appParts)
-        {
-            appParts
-                .AddFrameworkPart(typeof(Dashboard).Assembly)
-                .AddFrameworkPart(typeof(IDashboardGrain).Assembly);
         }
 
         public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)

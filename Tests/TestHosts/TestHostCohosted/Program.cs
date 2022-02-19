@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans;
+using Orleans.Configuration;
 using Orleans.Hosting;
+using System.Net;
 
 namespace TestHostCohosted
 {
@@ -13,23 +15,41 @@ namespace TestHostCohosted
     {
         static void Main(string[] args)
         {
-            WebHost.CreateDefaultBuilder(args)
+            Host.CreateDefaultBuilder(args)
                 .ConfigureServices(services =>
                 {
                     services.AddServicesForSelfHostedDashboard(null, options =>
                     {
                         options.HideTrace = true;
                     });
+                    
+                    services.Configure<ClusterOptions>(options =>
+                    {
+                        options.ClusterId = "helloworldcluster";
+                        options.ServiceId = "1";
+                    });
+                })
+                .UseOrleans(options =>
+                {
+                    var siloPort = 11111;
+                    var siloAddress = IPAddress.Loopback;
 
-                    services.AddSingleton<SiloHost>();
-                    services.AddSingleton<IHostedService>(c => c.GetRequiredService<SiloHost>());
-                    services.AddSingleton(c => c.GetRequiredService<SiloHost>().GrainFactory);
+                    int gatewayPort = 30000;
+
+                    options
+                        .UseDashboard(options =>
+                         {
+                             options.HostSelf = false;
+                         })
+                        .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
+                        .UseInMemoryReminderService()
+                        .ConfigureEndpoints(siloAddress, siloPort, gatewayPort);
                 })
                 .ConfigureLogging(builder =>
                 {
                     builder.AddConsole();
                 })
-                .Configure(app =>
+                .ConfigureWebHost(app =>
                 {
                     app.UseOrleansDashboard();
 

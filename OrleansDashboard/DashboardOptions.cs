@@ -45,7 +45,6 @@
         /// </summary>
         public bool HostSelf { get; set; } = true;
 
-
         /// <summary>
         ///   Number of ms between counter samples.
         /// </summary>
