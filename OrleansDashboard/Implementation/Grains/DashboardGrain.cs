@@ -18,10 +18,9 @@ namespace OrleansDashboard
     [Reentrant]
     public class DashboardGrain : Grain, IDashboardGrain
     {
-        const int DefaultTimerIntervalMs = 1000; // 1 second
         private readonly ITraceHistory history = new TraceHistory();
         private readonly ISiloDetailsProvider siloDetailsProvider;
-        private readonly DashboardCounters counters = new DashboardCounters();
+        private readonly DashboardCounters counters;
         private readonly TimeSpan updateInterval;
         private bool isUpdating;
         private DateTime startTime = DateTime.UtcNow;
@@ -31,7 +30,10 @@ namespace OrleansDashboard
         {
             this.siloDetailsProvider = siloDetailsProvider;
 
-            updateInterval = TimeSpan.FromMilliseconds(Math.Max(options.Value.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
+            // Do not allow smaller timers than 1000ms = 1sec.
+            updateInterval = TimeSpan.FromMilliseconds(Math.Max(options.Value.CounterUpdateIntervalMs, 1000));
+
+            counters = new DashboardCounters(options.Value.HistoryLength);
         }
 
         private async Task EnsureCountersAreUpToDate()
@@ -142,22 +144,37 @@ namespace OrleansDashboard
             return history.QuerySilo(address).AsImmutable();
         }
 
-        public async Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods()
+        public async Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods(int take)
         {
             await EnsureCountersAreUpToDate();
 
-            const int numberOfResultsToReturn = 5;
-            
             var values = history.AggregateByGrainMethod().ToList();
-            
-            return new Dictionary<string, GrainMethodAggregate[]>
+
+            GrainMethodAggregate[] GetTotalCalls()
             {
-                { "calls", values.OrderByDescending(x => x.Count).Take(numberOfResultsToReturn).ToArray() },
-                { "latency", values.OrderByDescending(x => x.ElapsedTime / (double) x.Count).Take(numberOfResultsToReturn).ToArray() },
-                { "errors", values.Where(x => x.ExceptionCount > 0 && x.Count > 0).OrderByDescending(x => x.ExceptionCount / x.Count).Take(numberOfResultsToReturn).ToArray() },
-            }.AsImmutable();
+                return values.OrderByDescending(x => x.Count).Take(take).ToArray();
+            }
+
+            GrainMethodAggregate[] GetLatency()
+            {
+                return values.OrderByDescending(x => x.Count).Take(take).ToArray();
+            }
+
+            GrainMethodAggregate[] GetErrors()
+            {
+                return values.Where(x => x.ExceptionCount > 0 && x.Count > 0).OrderByDescending(x => x.ExceptionCount / x.Count).Take(take).ToArray();
+            }
+
+            var result = new Dictionary<string, GrainMethodAggregate[]>
+            {
+                { "calls", GetTotalCalls() },
+                { "latency", GetLatency() },
+                { "errors", GetErrors() },
+            };
+
+            return result.AsImmutable();
         }
-      
+
         public Task Init()
         {
             // just used to activate the grain

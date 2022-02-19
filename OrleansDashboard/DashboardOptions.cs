@@ -51,6 +51,11 @@
         public int CounterUpdateIntervalMs { get; set; } = 1000;
 
         /// <summary>
+        ///   The length of the history.
+        /// </summary>
+        public int HistoryLength { get; set; } = 100;
+
+        /// <summary>
         ///   The port number the dashboard will use for self-hosting.
         /// </summary>
         public int Port { get; set; } = 8080;
