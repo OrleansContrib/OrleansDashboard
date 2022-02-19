@@ -29,10 +29,11 @@ namespace OrleansDashboard.Metrics.Grains
 
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            foreach (var x in Enumerable.Range(1, Dashboard.HistoryLength))
+            foreach (var x in Enumerable.Range(1, options.HistoryLength))
             {
                 stats.Enqueue(null);
             }
+
             var updateInterval =  TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
             
             try
@@ -58,7 +59,7 @@ namespace OrleansDashboard.Metrics.Grains
 
                 stats.Enqueue(results);
 
-                while (stats.Count > Dashboard.HistoryLength)
+                while (stats.Count > options.HistoryLength)
                 {
                     stats.Dequeue();
                 }
