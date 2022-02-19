@@ -18,7 +18,7 @@ namespace OrleansDashboard
     [Reentrant]
     public class DashboardGrain : Grain, IDashboardGrain
     {
-        private readonly ITraceHistory history = new TraceHistory();
+        private readonly ITraceHistory history;
         private readonly ISiloDetailsProvider siloDetailsProvider;
         private readonly DashboardCounters counters;
         private readonly TimeSpan updateInterval;
@@ -34,6 +34,8 @@ namespace OrleansDashboard
             updateInterval = TimeSpan.FromMilliseconds(Math.Max(options.Value.CounterUpdateIntervalMs, 1000));
 
             counters = new DashboardCounters(options.Value.HistoryLength);
+
+            history = new TraceHistory(options.Value.HistoryLength);
         }
 
         private async Task EnsureCountersAreUpToDate()
