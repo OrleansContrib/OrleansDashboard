@@ -103,8 +103,8 @@ namespace OrleansDashboard.Metrics.History
                     Grain = entry.Grain,
                     Method = entry.Method,
                     Period = now,
+                    PeriodKey = periodKey,
                     SiloAddress = siloAddress,
-                    PeriodKey = periodKey
                 };
 
                 if (!allMethods.Contains(newEntry))
@@ -116,8 +116,8 @@ namespace OrleansDashboard.Metrics.History
                         Grain = newEntry.Grain,
                         Method = newEntry.Method,
                         Period = now,
-                        SiloAddress = siloAddress,
-                        PeriodKey = periodKey
+                        PeriodKey = periodKey,
+                        SiloAddress = siloAddress
                     });
                 }
 
@@ -144,18 +144,21 @@ namespace OrleansDashboard.Metrics.History
 
         public IEnumerable<TraceAggregate> GroupByGrainAndSilo()
         {
-            return history.GroupBy(x => (x.Grain, x.SiloAddress)).Select(group => {
+            return history.GroupBy(x => (x.Grain, x.SiloAddress)).Select(group => 
+            {
                 var result = new TraceAggregate
                 {
                     SiloAddress = group.Key.SiloAddress,
                     Grain = group.Key.Grain
                 };
+
                 foreach (var record in group)
                 {
                     result.Count += record.Count;
                     result.ExceptionCount += record.ExceptionCount;
                     result.ElapsedTime += record.ElapsedTime;
                 }
+
                 return result;
             });
         }
@@ -164,19 +167,22 @@ namespace OrleansDashboard.Metrics.History
         {
             return history
                 .GroupBy(x => (x.Grain, x.Method))
-                .Select(x => {
+                .Select(x =>
+                {
                     var aggregate = new GrainMethodAggregate
                     {
                         Grain = x.Key.Grain,
                         Method = x.Key.Method,
                         NumberOfSamples = HistoryDurationInSeconds // this will give the wrong answer during the first 100 seconds
                     };
+
                     foreach (var value in x)
                     {
                         aggregate.Count += value.Count;
                         aggregate.ElapsedTime += value.ElapsedTime;
                         aggregate.ExceptionCount += value.ExceptionCount;
                     }
+
                     return aggregate;
                 });
         }
