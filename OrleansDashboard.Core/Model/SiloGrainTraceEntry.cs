@@ -2,7 +2,7 @@
 
 namespace OrleansDashboard.Model
 {
-    // [GenerateSerializer]
+    [GenerateSerializer]
     public class SiloGrainTraceEntry
     {
         [Id(0)]
