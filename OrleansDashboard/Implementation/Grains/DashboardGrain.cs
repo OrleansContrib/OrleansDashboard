@@ -35,7 +35,7 @@ namespace OrleansDashboard
 
             counters = new DashboardCounters(options.Value.HistoryLength);
 
-            history = new TraceHistory(options.Value.HistoryLength);
+            history = new TraceHistoryV2(options.Value.HistoryLength);
         }
 
         private async Task EnsureCountersAreUpToDate()
