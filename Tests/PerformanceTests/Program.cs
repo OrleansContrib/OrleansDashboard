@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Running;
 
 namespace PerformanceTests
 {
@@ -6,7 +7,9 @@ namespace PerformanceTests
     {
         private static void Main()
         {
-            BenchmarkRunner.Run<DashboardGrainBenchmark>();
+            BenchmarkRunner.Run<DashboardGrainBenchmark>(
+                ManualConfig.Create(DefaultConfig.Instance)
+                    .WithOptions(ConfigOptions.DisableOptimizationsValidator));
         }
     }
 }

@@ -7,6 +7,8 @@ namespace OrleansDashboard
 {
     public static class Extensions
     {
+        private static readonly DateTime UnixStart = new DateTime(1970, 1, 1);
+
         public static string PrimaryKeyAsString(this GrainReference grainRef)
         {
             if (grainRef.IsPrimaryKeyBasedOnLong()) // Long
@@ -31,6 +33,11 @@ namespace OrleansDashboard
         public static string ToPeriodString(this DateTime value)
         {
             return value.ToString("yyyy-MM-ddTHH:mm:ss");
+        }
+
+        public static long ToPeriodNumber(this DateTime value)
+        {
+            return (long)value.Subtract(UnixStart).TotalSeconds;
         }
 
         public static string ToISOString(this DateTime value)
