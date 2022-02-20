@@ -8,7 +8,6 @@ namespace OrleansDashboard.Metrics.History
 {
     public sealed class TraceHistoryV2 : ITraceHistory
     {
-        private const string SEPARATOR = ".";
         private readonly Dictionary<HistoryKey, RingBuffer<HistoryEntry>> history = new Dictionary<HistoryKey, RingBuffer<HistoryEntry>>(100);
         private readonly int capacity;
 
@@ -23,7 +22,7 @@ namespace OrleansDashboard.Metrics.History
 
             foreach (var group in history.Where(x => x.Key.Grain == grain).GroupBy(x => (x.Key.Grain, x.Key.Method)))
             {
-                var grainMethodKey = string.Join(SEPARATOR, group.Key.Grain, group.Key.Method);
+                var grainMethodKey = $"{group.Key.Grain}.{group.Key.Method}";
 
                 results[grainMethodKey] = GetTracings(group);
             }
@@ -64,7 +63,9 @@ namespace OrleansDashboard.Metrics.History
                 {
                     var buffer = traceList.Value;
 
-                    for (var j = 0; j < buffer.Count; j++)
+                    var count = buffer.Count;
+
+                    for (var j = 0; j < count; j++)
                     {
                         var trace = buffer[i];
 
@@ -86,7 +87,6 @@ namespace OrleansDashboard.Metrics.History
 
         public void Add(DateTime now, string siloAddress, SiloGrainTraceEntry[] grainTrace)
         {
-            var period = now;
             var periodNumber = now.ToPeriodNumber();
 
             foreach (var trace in grainTrace)
@@ -101,7 +101,7 @@ namespace OrleansDashboard.Metrics.History
 
                 historyBuffer.Add(new HistoryEntry
                 {
-                    Period = period,
+                    Period = now,
                     PeriodNumber = periodNumber,
                     ExceptionCount = trace.ExceptionCount,
                     ElapsedTime = trace.ElapsedTime,
@@ -129,7 +129,9 @@ namespace OrleansDashboard.Metrics.History
                 {
                     var buffer = traceList.Value;
 
-                    for (var i = 0; i < buffer.Count; i++)
+                    var count = buffer.Count;
+
+                    for (var i = 0; i < count; i++)
                     {
                         var record = buffer[i];
 
@@ -158,7 +160,9 @@ namespace OrleansDashboard.Metrics.History
                 {
                     var buffer = traceList.Value;
 
-                    for (var i = 0; i < buffer.Count; i++)
+                    var count = buffer.Count;
+
+                    for (var i = 0; i < count; i++)
                     {
                         var record = buffer[i];
 
