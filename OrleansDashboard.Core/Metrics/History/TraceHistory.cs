@@ -13,7 +13,7 @@ namespace OrleansDashboard.Metrics.History
         private readonly HashSet<GrainTraceEntry> allMethods = new HashSet<GrainTraceEntry>(GrainTraceEqualityComparer.ByGrainAndMethodAndSilo);
         private readonly int historyLength;
 
-        public TraceHistory(int historyLength)
+        public TraceHistory(int historyLength = 100)
         {
             this.historyLength = historyLength;
         }

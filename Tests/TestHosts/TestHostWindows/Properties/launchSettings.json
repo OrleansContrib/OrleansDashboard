@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "TestHost": {
-      "commandName": "Project",
-      "workingDirectory": "$(OutputPath)"
-    }
-  }
-}

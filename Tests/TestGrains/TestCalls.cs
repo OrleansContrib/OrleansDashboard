@@ -7,7 +7,7 @@ namespace TestGrains
 {
     public static class TestCalls
     {
-        public static Task Make(IClusterClient client, CancellationTokenSource tokenSource)
+        public static Task Run(IGrainFactory client, CancellationToken cancellationToken)
         {
             return Task.Run(async () =>
             {
@@ -25,7 +25,7 @@ namespace TestGrains
 
                 var random = new Random();
 
-                while (!tokenSource.IsCancellationRequested)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     try
                     {
