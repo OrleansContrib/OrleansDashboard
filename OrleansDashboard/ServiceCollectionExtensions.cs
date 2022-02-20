@@ -64,30 +64,32 @@ namespace Orleans
 
         public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)
         {
-            if (string.IsNullOrEmpty(options?.BasePath) || options.BasePath == "/")
+            var basePath = options?.BasePath;
+
+            if (string.IsNullOrEmpty(basePath) || basePath == "/")
             {
                 app.UseMiddleware<DashboardMiddleware>();
             }
             else
             {
-                // Make sure there is a leading slash
-                var basePath = options.BasePath.StartsWith("/") ? options.BasePath : $"/{options.BasePath}";
+                // Make sure there is a leading slash                
+                if (!basePath.StartsWith("/"))
+                {
+                    basePath = $"/{options.BasePath}";
+                }
 
-                app.Map(basePath, a => a.UseMiddleware<DashboardMiddleware>());
+                app.Map(basePath, app =>
+                {
+                    app.UseMiddleware<DashboardMiddleware>();
+                });
             }
 
             return app;
         }
 
-        public static IServiceCollection AddServicesForSelfHostedDashboard(this IServiceCollection services, IClusterClient client = null,
+        public static IServiceCollection AddServicesForSelfHostedDashboard(this IServiceCollection services,
             Action<DashboardOptions> configurator = null)
         {
-            if (client != null)
-            {
-                services.AddSingleton(client);
-                services.AddSingleton<IGrainFactory>(c => c.GetRequiredService<IClusterClient>());
-            }
-
             services.Configure(configurator ?? (x => { }));
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
