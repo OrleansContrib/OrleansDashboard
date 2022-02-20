@@ -1,4 +1,4 @@
 ﻿namespace OrleansDashboard.Metrics.History
 {
-    public sealed record HistoryKey(string SiloAddress, string Grain, string Method);
+    public record struct HistoryKey(string SiloAddress, string Grain, string Method);
 }
