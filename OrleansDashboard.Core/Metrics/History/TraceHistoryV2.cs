@@ -134,13 +134,12 @@ namespace OrleansDashboard.Metrics.History
 
                 foreach (var traceList in group)
                 {
-                    var buffer = traceList.Value;
+                    var bufferList = traceList.Value;
+                    var bufferCount = bufferList.Count;
 
-                    var count = buffer.Count;
-
-                    for (var i = 0; i < count; i++)
+                    for (var i = 0; i < bufferCount; i++)
                     {
-                        var record = buffer[i];
+                        var record = bufferList[i];
 
                         result.Count += record.Count;
                         result.ExceptionCount += record.ExceptionCount;
@@ -165,13 +164,12 @@ namespace OrleansDashboard.Metrics.History
 
                 foreach (var traceList in group)
                 {
-                    var buffer = traceList.Value;
+                    var bufferList = traceList.Value;
+                    var bufferCount = bufferList.Count;
 
-                    var count = buffer.Count;
-
-                    for (var i = 0; i < count; i++)
+                    for (var i = 0; i < bufferCount; i++)
                     {
-                        var record = buffer[i];
+                        var record = bufferList[i];
 
                         result.Count += record.Count;
                         result.ExceptionCount += record.ExceptionCount;
