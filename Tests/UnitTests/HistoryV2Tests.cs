@@ -2,11 +2,11 @@
 
 namespace UnitTests
 {
-    public class HistoryTests : TraceHistoryTestBase
+    public class HistoryV2Tests : TraceHistoryTestBase
     {
         protected override ITraceHistory CreateHistory()
         {
-            return new TraceHistory(100);
+            return new TraceHistoryV2(100);
         }
     }
 }
