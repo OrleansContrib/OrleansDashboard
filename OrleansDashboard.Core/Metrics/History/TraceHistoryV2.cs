@@ -32,17 +32,45 @@ namespace OrleansDashboard.Metrics.History
 
         public Dictionary<string, GrainTraceEntry> QueryAll()
         {
-            return GetTracings(history);
+            return GetTracings(history.ToList());
         }
 
         public Dictionary<string, GrainTraceEntry> QuerySilo(string siloAddress)
         {
-            return GetTracings(history.Where(x => string.Equals(x.Key.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase)));
+            return GetTracings(history.Where(x => string.Equals(x.Key.SiloAddress, siloAddress, StringComparison.OrdinalIgnoreCase)).ToList());
         }
 
         private Dictionary<string, GrainTraceEntry> GetTracings(IEnumerable<KeyValuePair<HistoryKey, RingBuffer<HistoryEntry>>> traces)
         {
             var time = GetRetirementWindow(DateTime.UtcNow);
+
+            var periodStart = time.ToPeriodNumber();
+
+            var aggregations = new GrainTraceEntry[capacity];
+
+            foreach (var traceList in traces)
+            {
+                var bufferList = traceList.Value;
+                var bufferCount = bufferList.Count;
+
+                for (var j = 0; j < bufferCount; j++)
+                {
+                    var trace = bufferList[j];
+
+                    var resultIndex = trace.PeriodNumber - periodStart;
+
+                    if (resultIndex >= 0 && resultIndex < capacity)
+                    {
+                        var entry = aggregations[resultIndex] ?? new GrainTraceEntry();
+
+                        entry.Count += trace.Count;
+                        entry.ElapsedTime += trace.ElapsedTime;
+                        entry.ExceptionCount += trace.ExceptionCount;
+
+                        aggregations[resultIndex] = entry;
+                    }
+                }
+            }
 
             var result = new Dictionary<string, GrainTraceEntry>(capacity);
 
@@ -51,32 +79,11 @@ namespace OrleansDashboard.Metrics.History
                 time = time.AddSeconds(1);
 
                 var periodKey = time.ToPeriodString();
-                var periodNumber = time.ToPeriodNumber();
 
-                var entry = new GrainTraceEntry
-                {
-                    Period = time,
-                    PeriodKey = periodKey
-                };
+                var entry = aggregations[i] ??= new GrainTraceEntry();
 
-                foreach (var traceList in traces)
-                {
-                    var buffer = traceList.Value;
-
-                    var count = buffer.Count;
-
-                    for (var j = 0; j < count; j++)
-                    {
-                        var trace = buffer[i];
-
-                        if (trace.PeriodNumber == periodNumber)
-                        {
-                            entry.Count += trace.Count;
-                            entry.ElapsedTime += trace.ElapsedTime;
-                            entry.ExceptionCount += trace.ExceptionCount;
-                        }
-                    }
-                }
+                entry.Period = time;
+                entry.PeriodKey = periodKey;
 
                 result[periodKey] = entry;
             }
