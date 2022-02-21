@@ -15,6 +15,8 @@ namespace OrleansDashboard
         [OneWay]
         Task ReportCounters(Immutable<StatCounter[]> stats);
 
+        Task Enable(bool enabled);
+
         Task<Immutable<Dictionary<string,string>>> GetExtendedProperties();
 
         Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics();

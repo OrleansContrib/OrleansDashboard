@@ -24,7 +24,6 @@ namespace OrleansDashboard.Metrics
             Func<IIncomingGrainCallContext, string> oldFormatMethodName)
         {
             this.profiler = profiler;
-            this.logger = logger;
 
             if (oldFormatMethodName != NoopOldGrainMethodFormatter)
             {
@@ -34,10 +33,18 @@ namespace OrleansDashboard.Metrics
             {
                 this.formatMethodName = formatMethodName ?? DefaultGrainMethodFormatter;
             }
+
+            this.logger = logger;
         }
 
         public async Task Invoke(IIncomingGrainCallContext context)
         {
+            if (!profiler.IsEnabled)
+            {
+                await context.Invoke();
+                return;
+            }
+
             if (ShouldSkipProfiling(context))
             {
                 await context.Invoke();

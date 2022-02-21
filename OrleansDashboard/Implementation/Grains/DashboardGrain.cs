@@ -12,6 +12,7 @@ using OrleansDashboard.Metrics.Details;
 using OrleansDashboard.Metrics.History;
 using OrleansDashboard.Metrics.TypeFormatting;
 using System.Threading;
+using OrleansDashboard.Metrics;
 
 namespace OrleansDashboard
 {
@@ -21,21 +22,82 @@ namespace OrleansDashboard
         private readonly ITraceHistory history;
         private readonly ISiloDetailsProvider siloDetailsProvider;
         private readonly DashboardCounters counters;
+        private readonly GrainProfilerOptions grainProfilerOptions;
         private readonly TimeSpan updateInterval;
         private bool isUpdating;
         private DateTime startTime = DateTime.UtcNow;
         private DateTime lastRefreshTime = DateTime.UtcNow;
+        private DateTime lastQuery = DateTime.UtcNow;
+        private bool isEnabled = false;
 
-        public DashboardGrain(IOptions<DashboardOptions> options, ISiloDetailsProvider siloDetailsProvider)
+        public DashboardGrain(
+            IOptions<DashboardOptions> options,
+            IOptions<GrainProfilerOptions> grainProfilerOptions,
+            ISiloDetailsProvider siloDetailsProvider)
         {
             this.siloDetailsProvider = siloDetailsProvider;
+
+            // Store the options to bypass the broadcase of the isEnabled flag.
+            this.grainProfilerOptions = grainProfilerOptions.Value;
 
             // Do not allow smaller timers than 1000ms = 1sec.
             updateInterval = TimeSpan.FromMilliseconds(Math.Max(options.Value.CounterUpdateIntervalMs, 1000));
 
+            // Make the history configurable.
             counters = new DashboardCounters(options.Value.HistoryLength);
 
             history = new TraceHistoryV2(options.Value.HistoryLength);
+        }
+
+        public override Task OnActivateAsync(CancellationToken cancellationToken)
+        {
+            startTime = DateTime.UtcNow;
+
+            if (!grainProfilerOptions.TraceAlways)
+            {
+                var interval = TimeSpan.FromMinutes(1);
+
+                RegisterTimer(async x =>
+                {
+                    var timeSinceLastQuery = DateTimeOffset.UtcNow - lastQuery;
+
+                    if (timeSinceLastQuery > grainProfilerOptions.DeactivationTime && isEnabled)
+                    {
+                        isEnabled = false;
+                        await BroadcaseEnabled();
+                    }
+                }, null, interval, interval);
+            }
+
+            return base.OnActivateAsync(cancellationToken);
+        }
+
+        private Task EnsureIsActive()
+        {
+            lastQuery = DateTime.UtcNow;
+
+            if (!isEnabled)
+            {
+                isEnabled = true;
+                _ = BroadcaseEnabled();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private async Task BroadcaseEnabled()
+        {
+            if (grainProfilerOptions.TraceAlways)
+            {
+                return;
+            }
+
+            var silos = await siloDetailsProvider.GetSiloDetails();
+
+            foreach (var siloAddress in silos.Select(x => x.SiloAddress))
+            {
+                await GrainFactory.GetGrain<ISiloGrain>(siloAddress).Enable(isEnabled);
+            }
         }
 
         private async Task EnsureCountersAreUpToDate()
@@ -111,15 +173,9 @@ namespace OrleansDashboard
             }).ToArray();
         }
 
-        public override Task OnActivateAsync(CancellationToken cancellationToken)
-        {
-            startTime = DateTime.UtcNow;
-
-            return base.OnActivateAsync(cancellationToken);
-        }
-
         public async Task<Immutable<DashboardCounters>> GetCounters()
         {
+            await EnsureIsActive();
             await EnsureCountersAreUpToDate();
 
             return counters.AsImmutable();
@@ -127,6 +183,7 @@ namespace OrleansDashboard
 
         public async Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(string grain)
         {
+            await EnsureIsActive();
             await EnsureCountersAreUpToDate();
 
             return history.QueryGrain(grain).AsImmutable();
@@ -134,6 +191,7 @@ namespace OrleansDashboard
 
         public async Task<Immutable<Dictionary<string, GrainTraceEntry>>> GetClusterTracing()
         {
+            await EnsureIsActive();
             await EnsureCountersAreUpToDate();
 
             return history.QueryAll().AsImmutable();
@@ -141,6 +199,7 @@ namespace OrleansDashboard
 
         public async Task<Immutable<Dictionary<string, GrainTraceEntry>>> GetSiloTracing(string address)
         {
+            await EnsureIsActive();
             await EnsureCountersAreUpToDate();
 
             return history.QuerySilo(address).AsImmutable();
@@ -148,6 +207,7 @@ namespace OrleansDashboard
 
         public async Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods(int take)
         {
+            await EnsureIsActive();
             await EnsureCountersAreUpToDate();
 
             var values = history.AggregateByGrainMethod().ToList();

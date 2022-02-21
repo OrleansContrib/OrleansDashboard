@@ -8,30 +8,45 @@ using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
+using OrleansDashboard.Implementation;
 using OrleansDashboard.Model;
 
 namespace OrleansDashboard.Metrics.Grains
 {
-    public class SiloGrain : Grain, ISiloGrain
+    [LocalPlacement]
+    public sealed class SiloGrain : Grain, ISiloGrain
     {
-        const int DefaultTimerIntervalMs = 1000; // 1 second
-        private readonly Queue<SiloRuntimeStatistics> stats = new Queue<SiloRuntimeStatistics>();
+        private const int DefaultTimerIntervalMs = 1000; // 1 second
+        private readonly Queue<SiloRuntimeStatistics> statistics = new Queue<SiloRuntimeStatistics>();
         private readonly Dictionary<string, StatCounter> counters = new Dictionary<string, StatCounter>();
+        private readonly DashboardOptions options;
+        private readonly ILocalSiloDetails silo;
+        private readonly IGrainProfiler profiler;
         private IDisposable timer;
         private string versionOrleans;
         private string versionHost;
-        private readonly DashboardOptions options;
 
-        public SiloGrain(IOptions<DashboardOptions> options)
+        public SiloGrain(ILocalSiloDetails silo, IGrainProfiler profiler, IOptions<DashboardOptions> options)
         {
+            this.silo = silo;
+            this.profiler = profiler;
             this.options = options.Value;
         }
 
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
+            var id = this.GetPrimaryKeyString();
+
+            // Ensure that the grain is not activated on another silo.
+            if (!string.Equals(id, silo.SiloAddress.ToParsableString()))
+            {
+                DeactivateOnIdle();
+                return;
+            }
+
             foreach (var x in Enumerable.Range(1, options.HistoryLength))
             {
-                stats.Enqueue(null);
+                statistics.Enqueue(null);
             }
 
             var updateInterval =  TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
@@ -39,6 +54,7 @@ namespace OrleansDashboard.Metrics.Grains
             try
             {
                 timer = RegisterTimer(x => CollectStatistics((bool)x), true, updateInterval, updateInterval);
+
                 await CollectStatistics(false);
             }
             catch (InvalidOperationException)
@@ -51,17 +67,18 @@ namespace OrleansDashboard.Metrics.Grains
 
         private async Task CollectStatistics(bool canDeactivate)
         {
-            var siloAddress = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
             var managementGrain = GrainFactory.GetGrain<IManagementGrain>(0);
             try
             {
+                var siloAddress = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
+
                 var results = (await managementGrain.GetRuntimeStatistics(new[] { siloAddress })).FirstOrDefault();
 
-                stats.Enqueue(results);
+                statistics.Enqueue(results);
 
-                while (stats.Count > options.HistoryLength)
+                while (statistics.Count > options.HistoryLength)
                 {
-                    stats.Dequeue();
+                    statistics.Dequeue();
                 }
             }
             catch (Exception)
@@ -75,11 +92,6 @@ namespace OrleansDashboard.Metrics.Grains
                     DeactivateOnIdle();
                 }
             }
-        }
-
-        public Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics()
-        {
-            return Task.FromResult(stats.ToArray().AsImmutable());
         }
 
         public Task SetVersion(string orleans, string host)
@@ -114,9 +126,21 @@ namespace OrleansDashboard.Metrics.Grains
             return Task.CompletedTask;
         }
 
+        public Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics()
+        {
+            return Task.FromResult(statistics.ToArray().AsImmutable());
+        }
+
         public Task<Immutable<StatCounter[]>> GetCounters()
         {
             return Task.FromResult(counters.Values.OrderBy(x => x.Name).ToArray().AsImmutable());
+        }
+
+        public Task Enable(bool enabled)
+        {
+            profiler.Enable(enabled);
+
+            return Task.CompletedTask;
         }
     }
 }
