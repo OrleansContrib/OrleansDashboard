@@ -147,7 +147,7 @@ namespace OrleansDashboard.Metrics.History
             return now.AddSeconds(-historyLength);
         }
 
-        public IEnumerable<TraceAggregate> GroupByGrainAndSilo()
+        public IEnumerable<TraceAggregate>  GroupByGrainAndSilo()
         {
             return history.GroupBy(x => (x.Grain, x.SiloAddress)).Select(group => 
             {
