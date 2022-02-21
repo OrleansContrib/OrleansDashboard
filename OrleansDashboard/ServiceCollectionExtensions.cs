@@ -23,6 +23,8 @@ namespace Orleans
         public static ISiloBuilder UseDashboard(this ISiloBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
+            builder.AddPlacementDirector<LocalPlacementStrategy, LocalPlacementDirector>();
+
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
 
@@ -34,6 +36,7 @@ namespace Orleans
         {
             services.Configure(configurator ?? (x => { }));
             services.Configure<TelemetryOptions>(options => options.AddConsumer<DashboardTelemetryConsumer>());
+            services.AddOptions<GrainProfilerOptions>();
 
             services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
