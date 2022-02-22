@@ -14,6 +14,12 @@ namespace OrleansDashboard.Metrics
 
         public static async Task TrackAsync<T>(this IGrainProfiler profiler, Func<Task> handler, [CallerMemberName] string methodName = null)
         {
+            if (!profiler.IsEnabled)
+            {
+                await handler();
+                return;
+            }
+
             var stopwatch = Stopwatch.StartNew();
 
             try

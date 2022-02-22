@@ -10,6 +10,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Orleans.Serialization.TypeSystem;
 
 namespace OrleansDashboard.Metrics
 {
@@ -17,19 +19,25 @@ namespace OrleansDashboard.Metrics
     {
         private readonly ILogger<GrainProfiler> logger;
         private readonly ILocalSiloDetails localSiloDetails;
+        private readonly IOptions<GrainProfilerOptions> options;
         private readonly IGrainFactory grainFactory;
         private ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new ConcurrentDictionary<string, SiloGrainTraceEntry>();
         private Timer timer;
         private string siloAddress;
+        private bool isEnabled;
         private IDashboardGrain dashboardGrain;
 
-        public GrainProfiler(IGrainFactory grainFactory, ILogger<GrainProfiler> logger, ILocalSiloDetails localSiloDetails)
+        public bool IsEnabled
+        {
+            get => options.Value.TraceAlways || isEnabled;
+        }
+
+        public GrainProfiler(IGrainFactory grainFactory, ILogger<GrainProfiler> logger, ILocalSiloDetails localSiloDetails, IOptions<GrainProfilerOptions> options)
         {
             this.grainFactory = grainFactory;
-
             this.logger = logger;
             this.localSiloDetails = localSiloDetails;
-
+            this.options = options;
         }
 
         public void Participate(ISiloLifecycle lifecycle)
@@ -51,26 +59,6 @@ namespace OrleansDashboard.Metrics
             return Task.CompletedTask;
         }
 
-        // Taken from https://github.com/dotnet/orleans/blob/b279a53197a0de2926eb9fae312bc9e66cd117e1/src/Orleans.Core/CodeGeneration/TypeUtils.cs#L311-L326
-        // This is the method that Orleans uses to convert a grain type into the grain type name when calling the GetSimpleGrainStatistics method
-        static string GetFullName(Type t)
-        {
-            if (t == null) throw new ArgumentNullException(nameof(t));
-            if (t.IsNested && !t.IsGenericParameter)
-            {
-                return t.Namespace + "." + t.DeclaringType.Name + "." + t.Name;
-            }
-            if (t.IsArray)
-            {
-                return GetFullName(t.GetElementType())
-                       + "["
-                       + new string(',', t.GetArrayRank() - 1)
-                       + "]";
-            }
-            return t.FullName ?? (t.IsGenericParameter ? t.Name : t.Namespace + "." + t.Name);
-        }
-
-
         public void Track(double elapsedMs, Type grainType, [CallerMemberName] string methodName = null, bool failed = false)
         {
             if (grainType == null)
@@ -83,13 +71,18 @@ namespace OrleansDashboard.Metrics
                 throw new ArgumentException("Method name cannot be null or empty.", nameof(methodName));
             }
 
-            var grainName = GetFullName(grainType);
+            if (!IsEnabled)
+            {
+                return;
+            }
 
-            var key = $"{grainName}.{methodName}";
+            // This is the method that Orleans uses to convert a grain type into the grain type name when calling the GetSimpleGrainStatistics method
+            var grainName = RuntimeTypeNameFormatter.Format(grainType);
+            var grainMethodKey = $"{grainName}.{methodName}";
 
             var exceptionCount = (failed ? 1 : 0);
 
-            grainTrace.AddOrUpdate(key, _ =>
+            grainTrace.AddOrUpdate(grainMethodKey, _ =>
                 new SiloGrainTraceEntry
                 {
                     Count = 1,
@@ -114,6 +107,11 @@ namespace OrleansDashboard.Metrics
 
         private void ProcessStats(object state)
         {
+            if (!IsEnabled)
+            {
+                return;
+            }
+
             var currentTrace = Interlocked.Exchange(ref grainTrace, new ConcurrentDictionary<string, SiloGrainTraceEntry>());
 
             if (!currentTrace.IsEmpty)
@@ -141,6 +139,11 @@ namespace OrleansDashboard.Metrics
                     logger.LogWarning(100001, ex, "Exception thrown sending tracing to dashboard grain");
                 }
             }
+        }
+
+        public void Enable(bool enabled)
+        {
+            isEnabled = enabled;
         }
     }
 }
