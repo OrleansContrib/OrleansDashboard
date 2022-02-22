@@ -1,7 +1,7 @@
 function makeRequest<T>(method: 'GET' | 'POST', uri: string, body?: any) {
   return new Promise<T>((resolve, reject) => {
     const xhr = new XMLHttpRequest()
-    xhr.open(method, uri, true)
+    xhr.open(method, `http://localhost:8080/${uri}`, true)
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) return
       if (xhr.status < 400 && xhr.status > 0)

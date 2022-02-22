@@ -7,7 +7,7 @@ interface IValue {
 
 interface IProps {
   values: IValue[]
-  valueFormatter: (value: IValue) => string
+  valueFormatter: (value: any) => string
 }
 
 export default class GrainMethodTable extends React.Component<IProps> {
