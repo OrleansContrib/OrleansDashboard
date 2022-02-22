@@ -1,12 +1,6 @@
-;(function (root, factory) {
+;(function (_, factory) {
   if (typeof exports === 'object') {
     module.exports = factory(window)
-  } else if (typeof define === 'function' && define.amd) {
-    define([], function () {
-      return (root.routie = factory(window))
-    })
-  } else {
-    root.routie = factory(window)
   }
 })(this, function (w) {
   var routes = []
@@ -30,7 +24,7 @@
   Route.prototype.removeHandler = function (fn) {
     for (var i = 0, c = this.fns.length; i < c; i++) {
       var f = this.fns[i]
-      if (fn == f) {
+      if (fn === f) {
         this.fns.splice(i, 1)
         return
       }
@@ -68,7 +62,7 @@
       path = path.replace('/:' + param, '/' + params[param])
     }
     path = path.replace(/\/:.*\?/g, '/').replace(/\?/g, '')
-    if (path.indexOf(':') != -1) {
+    if (path.indexOf(':') !== -1) {
       throw new Error('missing parameters for url: ' + path)
     }
     return path
@@ -98,7 +92,7 @@
           )
         }
       )
-      .replace(/([\/.])/g, '\\$1')
+      .replace(/([.])/g, '\\$1')
       .replace(/__plus__/g, '(.+)')
       .replace(/\*/g, '(.*)')
     return new RegExp('^' + path + '$', sensitive ? '' : 'i')
@@ -106,8 +100,8 @@
 
   var addHandler = function (path, fn) {
     var s = path.split(' ')
-    var name = s.length == 2 ? s[0] : null
-    path = s.length == 2 ? s[1] : s[0]
+    var name = s.length === 2 ? s[0] : null
+    path = s.length === 2 ? s[1] : s[0]
 
     if (!map[path]) {
       map[path] = new Route(path, name)
@@ -133,7 +127,7 @@
   routie.lookup = function (name, obj) {
     for (var i = 0, c = routes.length; i < c; i++) {
       var route = routes[i]
-      if (route.name == name) {
+      if (route.name === name) {
         return route.toURL(obj)
       }
     }

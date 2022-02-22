@@ -3,16 +3,18 @@ import CounterWidget from '../components/counter-widget'
 import Panel from '../components/panel'
 import Chart from '../components/time-series-chart'
 import GrainMethodTable from '../components/grain-method-table'
+import { DashboardCounters } from '../models/dashboardCounters'
+import { ClusterStats } from '../models/clusterStats'
+import { TopGrainMethods } from '../models/topGrainMethods'
 
 interface IProps {
   stats: any
-  dashboardCounters: {
-    simpleGrainStats: any[]
-    totalActiveHostCount: number
-  }
+  dashboardCounters: DashboardCounters
+  clusterStats: ClusterStats
+  grainMethodStats: TopGrainMethods
 }
 
-class ClusterGraph extends React.Component<IProps>{
+export class ClusterGraph extends React.Component<{stats:any}>{
 
   render() {
     const {stats} = this.props
@@ -46,7 +48,7 @@ class ClusterGraph extends React.Component<IProps>{
   }
 }
 
-export default class Overview extends React.Component {
+export default class Overview extends React.Component<IProps> {
   render() {
     var stats = {
       totalActivationCount: 0,
@@ -69,7 +71,7 @@ export default class Overview extends React.Component {
           <div className="col-md-6">
             <CounterWidget
               icon="cubes"
-              counter={stats.totalActivationCount}
+              counter={`${stats.totalActivationCount}`}
               title="Total Activations"
               link="#/grains"
             />
@@ -77,7 +79,7 @@ export default class Overview extends React.Component {
           <div className="col-md-6">
             <CounterWidget
               icon="database"
-              counter={this.props.dashboardCounters.totalActiveHostCount}
+              counter={`${this.props.dashboardCounters.totalActiveHostCount}`}
               title="Active Silos"
               link="#/silos"
             />
@@ -177,5 +179,4 @@ export default class Overview extends React.Component {
       </div>
     )
   }
-}
 }

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
@@ -49,17 +50,28 @@ namespace OrleansDashboard
                             .ConfigureServices(services =>
                             {
                                 services.AddServicesForHostedDashboard(grainFactory, dashboardOptions);
+                                services.AddCors(options => {
+                                    options.AddDefaultPolicy(policy => policy
+                                        .WithOrigins("http://localhost:3000")
+                                        .AllowAnyHeader()
+                                        .WithMethods("GET")
+                                        .Build());
+                                });
+                                
                             })
                             .Configure(app =>
                             {
+                                app.UseCors();
+
                                 if (dashboardOptions.HasUsernameAndPassword())
                                 {
                                     // only when usename and password are configured
                                     // do we inject basicauth middleware in the pipeline
                                     app.UseMiddleware<BasicAuthMiddleware>();
                                 }
-
+                                
                                 app.UseOrleansDashboard(dashboardOptions);
+                                
                             })
                             .UseKestrel()
                             .UseUrls($"http://{dashboardOptions.Host}:{dashboardOptions.Port}")
