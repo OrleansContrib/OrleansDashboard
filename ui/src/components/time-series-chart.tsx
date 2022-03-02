@@ -33,7 +33,7 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
       labels: this.props.timepoints.map(timepoint => {
         if (timepoint) {
           try {
-            if (new Date(timepoint).getSeconds() % 30 == 0) {
+            if (new Date(timepoint).getSeconds() % 30 === 0) {
               return new Date(timepoint).toLocaleTimeString()
             }
           } catch (e) {
