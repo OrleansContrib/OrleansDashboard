@@ -6,16 +6,19 @@ import GrainMethodTable from '../components/grain-method-table'
 import { DashboardCounters } from '../models/dashboardCounters'
 import { ClusterStats } from '../models/clusterStats'
 import { TopGrainMethods } from '../models/topGrainMethods'
+import setIntervalDebounced from '../lib/setIntervalDebounced'
+import { getClusterStats, getTopGrainMethods } from '../lib/api'
 
 interface IProps {
-  stats: any
   dashboardCounters: DashboardCounters
+}
+
+interface IState {
   clusterStats: ClusterStats
   grainMethodStats: TopGrainMethods
 }
 
-export class ClusterGraph extends React.Component<{stats:any}>{
-
+class ClusterGraph extends React.Component<{stats:any}>{
   render() {
     const {stats} = this.props
     const values = []
@@ -35,10 +38,10 @@ export class ClusterGraph extends React.Component<{stats:any}>{
     const series0:any[] = []
     const series1:any[] = []
     const series2:any[] = []
-    values.map(z => {
-      series0.push(z.exceptionCount),
-        series1.push(z.count),
-        series2.push(z.count === 0 ? 0 : z.elapsedTime / z.count)
+    values.forEach(z => {
+      series0.push(z.exceptionCount)
+      series1.push(z.count)
+      series2.push(z.count === 0 ? 0 : z.elapsedTime / z.count)
     })
     return (
       <div>
@@ -48,7 +51,34 @@ export class ClusterGraph extends React.Component<{stats:any}>{
   }
 }
 
-export default class Overview extends React.Component<IProps> {
+export default class Overview extends React.Component<IProps, IState> {
+  state:IState = {
+    clusterStats: { },
+    grainMethodStats: {
+      calls: [],
+      latency: [],
+      errors: []
+    }
+  }
+  cancel?: () => void
+  
+  componentDidMount() {
+    this.cancel = setIntervalDebounced(this.loadDataOnSchedule, 1000)
+  }
+
+  componentWillUnmount(){
+    if (this.cancel) this.cancel()
+  }
+
+
+
+  loadDataOnSchedule = async () => {
+    const clusterStats = await getClusterStats()
+    const grainMethodStats = await getTopGrainMethods()
+    this.setState({ clusterStats, grainMethodStats })
+  }
+
+
   render() {
     var stats = {
       totalActivationCount: 0,
@@ -139,7 +169,7 @@ export default class Overview extends React.Component<IProps> {
                   </strong>{' '}
                   average latency in milliseconds
                 </span>
-                <ClusterGraph stats={this.props.clusterStats} />
+                <ClusterGraph stats={this.state.clusterStats} />
               </div>
             </Panel>
           </div>
@@ -148,7 +178,7 @@ export default class Overview extends React.Component<IProps> {
           <div className="col-md-4">
             <Panel title="Methods with Most Calls">
               <GrainMethodTable
-                values={this.props.grainMethodStats.calls}
+                values={this.state.grainMethodStats.calls}
                 valueFormatter={x =>
                   `${(x.count / x.numberOfSamples).toFixed(2)}req/sec`
                 }
@@ -158,7 +188,7 @@ export default class Overview extends React.Component<IProps> {
           <div className="col-md-4">
             <Panel title="Methods with Most Exceptions">
               <GrainMethodTable
-                values={this.props.grainMethodStats.errors}
+                values={this.state.grainMethodStats.errors}
                 valueFormatter={x =>
                   `${((100 * x.exceptionCount) / x.count).toFixed(2)}%`
                 }
@@ -168,7 +198,7 @@ export default class Overview extends React.Component<IProps> {
           <div className="col-md-4">
             <Panel title="Methods with Highest Latency">
               <GrainMethodTable
-                values={this.props.grainMethodStats.latency}
+                values={this.state.grainMethodStats.latency}
                 valueFormatter={x =>
                   `${(x.elapsedTime / x.count).toFixed(2)}ms/req`
                 }

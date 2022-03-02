@@ -1,18 +1,21 @@
 import React from 'react'
 import './App.css'
+import Menu from './components/menu'
 import { getDashboardCounters } from './lib/api'
 import routie from './lib/routie'
 import setIntervalDebounced from './lib/setIntervalDebounced'
 import { DashboardCounters } from './models/dashboardCounters'
+import Overview from './overview/overview'
 
-interface IState { 
+interface IState {
   renderMethod: () => JSX.Element
   dashboardCounters: DashboardCounters
+  activeMenuItem: string
 }
 
 export default class App extends React.Component<{}, IState> {
 
-  state:IState = {
+  state: IState = {
     renderMethod: () => <div>Loading...</div>,
     dashboardCounters: {
       simpleGrainStats: [],
@@ -21,7 +24,8 @@ export default class App extends React.Component<{}, IState> {
       totalActiveHostCount: 0,
       totalActiveHostCountHistory: [],
       hosts: []
-    }
+    },
+    activeMenuItem: '#/'
   }
 
   cancel?: () => void
@@ -31,18 +35,18 @@ export default class App extends React.Component<{}, IState> {
 
     routie('', () => {
       const renderMethod = () => {
-        return <div>Home <a href="#/grains">Grains</a></div>
+        return <Overview dashboardCounters={this.state.dashboardCounters} />
       }
-      
-      this.setState({renderMethod})
+
+      this.setState({ renderMethod, activeMenuItem: '#/' })
     })
 
     routie('/grains', () => {
       const renderMethod = () => {
         return <div>grains</div>
       }
-      
-      this.setState({renderMethod})
+
+      this.setState({ renderMethod, activeMenuItem: '#/grains' })
     })
 
 
@@ -59,7 +63,35 @@ export default class App extends React.Component<{}, IState> {
   }
 
   render() {
-    return this.state.renderMethod()
+    return <>
+      <div id="error-message-content" className="error-container"></div>
+      <div className="wrapper">
+        <aside className="main-sidebar">
+          <div style={{ padding: 10 }}>
+            <a href="#">
+              <h1 style={{ color: '#b8c7ce', fontWeight: 500, marginTop: 5, fontSize: 26 }}>
+                OrleansDashboard
+              </h1>
+            </a>
+            <div id="version-content" style={{ color: '#b8c7ce', marginTop: 5, marginBottom: 25 }}></div>
+          </div>
+
+          <section className="sidebar">
+            <div id="menu">
+              <Menu activeMenuItem={this.state.activeMenuItem} />
+            </div>
+          </section>
+        </aside>
+
+        <div className="content-wrapper" id="content">
+          <section className="content" style={{ height: '100vh' }}>
+            {this.state.renderMethod()}
+          </section>
+        </div>
+        <div className="control-sidebar-bg"></div>
+      </div>
+    </>
+
   }
 
 }

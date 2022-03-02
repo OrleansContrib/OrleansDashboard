@@ -6,7 +6,6 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using System.Net;
-using TestGrains;
 
 namespace TestHostCohosted2
 {

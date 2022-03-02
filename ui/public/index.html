@@ -1,35 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport" />
+  <link rel="stylesheet" href="assets/bootstrap.css" />
+  <link rel="stylesheet" href="assets/font-awesome.css" />
+  <link rel="stylesheet" href="assets/admin-lte.css" />
+  <link rel="stylesheet" href="assets/skin-purple.css" />
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <meta name="theme-color" content="#000000" />
+  <title>Orleans Dashboard</title>
+
+  <style>
+    .log {
+      height: 100%;
+    }
+
+    .log-filter {
+      padding-left: 20px;
+      border: 0;
+      background: #f5f5f5;
+      z-index: 1;
+      outline: none;
+      box-shadow: 4px -2px 5px 5px #d8d9da;
+    }
+
+    .error-container {
+      position: fixed;
+      z-index: 10000;
+      width: 400px;
+      top: 20px;
+      left: 100%;
+      margin-left: -420px;
+    }
+
+    .log {
+      position: absolute;
+      top: 50px;
+      left: 230px;
+      right: 0;
+      border: 0;
+      bottom: 0;
+      margin: 0;
+    }
+
+    .box {
+      border-top: none;
+    }
+
+    .main-sidebar {
+      padding-top: 0 !important;
+    }
+
+    .content-wrapper {
+      padding-top: 0 !important;
+    }
+
+    h1 {
+      font-weight: 100;
+    }
+
+    h2 {
+      font-weight: 100;
+    }
+
+    h3 {
+      font-weight: 100;
+    }
+  </style>
+
+  <style id="dark-theme-style" media="">
+    .log {
+      background: #1e282c;
+      border: 1px solid #333;
+      color: silver;
+    }
+
+    .form-control {
+      background: #222d32;
+      border: 1px solid #333;
+    }
+
+    .log-filter {
+      background: #222d32;
+      box-shadow: 4px -2px 5px 5px #444c52;
+    }
+
+    .content-wrapper {
+      background: #1e282c;
+      color: silver;
+    }
+
+    .info-box {
+      background: #222d32;
+      color: silver;
+    }
+
+    .box {
+      background: #222d32;
+      color: silver;
+      border-top-color: #444;
+    }
+
+    .table>thead>tr>th,
+    .table>tbody>tr>th,
+    .table>tfoot>tr>th,
+    .table>thead>tr>td,
+    .table>tbody>tr>td,
+    .table>tfoot>tr>td {
+      border-top: 1px solid #333;
+      border-bottom: 1px solid #333;
+    }
+
+    .table-bordered>thead>tr>th,
+    .table-bordered>tbody>tr>th,
+    .table-bordered>tfoot>tr>th,
+    .table-bordered>thead>tr>td,
+    .table-bordered>tbody>tr>td,
+    .table-bordered>tfoot>tr>td {
+      border: 1px solid #333;
+    }
+
+    .box-header.with-border {
+      border-bottom: 1px solid #444;
+    }
+
+    .box-header {
+      color: silver;
+    }
+
+    .well {
+      background: #1e282c;
+      border: 1px solid #333;
+    }
+  </style>
+
+</head>
+
+<body class="hold-transition skin-purple sidebar-mini fixed" id="body">
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root">
+
+    <div class="content-wrapper" id="content">
+      <section class="content" style="height:100vh">
+        <span style="padding-top: 25px;"><span><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading...</span></span>
+      </section>
+    </div>
+
+  </div>
+  <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
 
@@ -39,5 +161,9 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-  </body>
+  <script>
+    var hideTrace = {{HIDE_TRACE}};
+  </script>
+</body>
+
 </html>

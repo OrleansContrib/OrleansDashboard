@@ -1,5 +1,49 @@
 import React from 'react'
 
+
+function getMenu() {
+  var result:IMenuItem[] = [
+    {
+      name: 'Overview',
+      path: '#/',
+      icon: 'fa fa-tachometer-alt'
+    },
+    {
+      name: 'Grains',
+      path: '#/grains',
+      icon: 'fa fa-cubes'
+    },
+    {
+      name: 'Silos',
+      path: '#/silos',
+      icon: 'fa fa-database'
+    },
+    {
+      name: 'Reminders',
+      path: '#/reminders',
+      icon: 'fa fa-calendar'
+    }
+  ]
+
+  if (!(window as any).hideTrace) {
+    result.push({
+      name: 'Log Stream',
+      path: '#/trace',
+      icon: 'fa fa-bars'
+    })
+  }
+
+  result.push({
+    name: 'Preferences',
+    path: '#/preferences',
+    icon: 'fa fa-gear',
+    style: { position: 'absolute', bottom: 0, left: 0, right: 0 }
+  })
+
+  return result
+}
+
+
 interface ISectionProps {
   style: React.CSSProperties
   active: boolean
@@ -26,28 +70,27 @@ const MenuSection = class extends React.Component<ISectionProps> {
 
 interface IMenuItem {
   name: string
-  active: boolean
   icon: string
   path: string
-  style: React.CSSProperties
+  style?: React.CSSProperties
 }
 
 interface IProps {
-  menu: IMenuItem[]
+  activeMenuItem: string
 }
 
 export default class Menu extends React.Component<IProps> {
   render() {
     return (
       <ul className="sidebar-menu">
-        {this.props.menu.map(x => (
+        {getMenu().map(x => (
           <MenuSection
             key={x.name}
-            active={x.active}
+            active={x.path === this.props.activeMenuItem}
             icon={x.icon}
             name={x.name}
             path={x.path}
-            style={x.style}
+            style={x.style || {}}
           />
         ))}
       </ul>
