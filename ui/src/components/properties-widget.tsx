@@ -4,7 +4,7 @@ interface IProps {
   data: any
 }
 
-module.exports = class extends React.Component<IProps> {
+export default class PropertiesWidget extends React.Component<IProps> {
   renderRow = (key: string) => {
     return (
       <tr key={key}>

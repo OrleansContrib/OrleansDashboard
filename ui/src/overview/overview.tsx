@@ -4,7 +4,7 @@ import Panel from '../components/panel'
 import Chart from '../components/time-series-chart'
 import GrainMethodTable from '../components/grain-method-table'
 import { DashboardCounters } from '../models/dashboardCounters'
-import { ClusterStats } from '../models/clusterStats'
+import { Stats } from '../models/stats'
 import { TopGrainMethods } from '../models/topGrainMethods'
 import setIntervalDebounced from '../lib/setIntervalDebounced'
 import { getClusterStats, getTopGrainMethods } from '../lib/api'
@@ -14,7 +14,7 @@ interface IProps {
 }
 
 interface IState {
-  clusterStats: ClusterStats
+  clusterStats: Stats
   grainMethodStats: TopGrainMethods
 }
 

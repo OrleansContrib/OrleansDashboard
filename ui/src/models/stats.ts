@@ -9,6 +9,6 @@ export interface Stat {
   elapsedTime: number;
 }
 
-export interface ClusterStats {
+export interface Stats {
   [key: string]: Stat
 }

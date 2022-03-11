@@ -12,7 +12,7 @@ interface IStat {
 
 interface IProps {
   data: IStat[]
-  silo: string
+  silo?: string
 }
 
 interface IState {

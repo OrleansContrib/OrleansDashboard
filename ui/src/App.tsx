@@ -6,6 +6,9 @@ import routie from './lib/routie'
 import setIntervalDebounced from './lib/setIntervalDebounced'
 import { DashboardCounters } from './models/dashboardCounters'
 import Overview from './overview/overview'
+import Grains from './grains/grains'
+import Grain from './grains/grain'
+import Silos from './silos/silos'
 
 interface IState {
   renderMethod: () => JSX.Element
@@ -43,12 +46,24 @@ export default class App extends React.Component<{}, IState> {
 
     routie('/grains', () => {
       const renderMethod = () => {
-        return <div>grains</div>
+        return <Grains dashboardCounters={this.state.dashboardCounters} />
       }
-
       this.setState({ renderMethod, activeMenuItem: '#/grains' })
     })
 
+    routie('/grain/:grainType', (grainType: string) => {
+      const renderMethod = () => {
+        return <Grain grainType={grainType} dashboardCounters={this.state.dashboardCounters} />
+      }
+      this.setState({ renderMethod, activeMenuItem: '#/grains' })
+    })
+
+    routie('/silos', () => {
+      const renderMethod = () => {
+        return <Silos dashboardCounters={this.state.dashboardCounters} />
+      }
+      this.setState({ renderMethod, activeMenuItem: '#/silos' })
+    })
 
     routie.reload()
   }
