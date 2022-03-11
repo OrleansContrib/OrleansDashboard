@@ -10,6 +10,7 @@
     "@types/node": "^12.20.24",
     "@types/react": "^17.0.20",
     "@types/react-dom": "^17.0.9",
+    "humanize-duration": "^3.27.1",
     "react": "^17.0.2",
     "react-chartjs": "^1.2.0",
     "react-dom": "^17.0.2",
@@ -50,6 +51,7 @@
     "arrowParens": "avoid"
   },
   "devDependencies": {
+    "@types/humanize-duration": "^3.27.1",
     "prettier": "^2.3.2"
   }
 }
