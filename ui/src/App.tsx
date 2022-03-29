@@ -1,7 +1,7 @@
 import React from 'react'
 import './App.css'
 import Menu from './components/menu'
-import { getDashboardCounters } from './lib/api'
+import { getDashboardCounters, getReminders } from './lib/api'
 import routie from './lib/routie'
 import setIntervalDebounced from './lib/setIntervalDebounced'
 import { DashboardCounters } from './models/dashboardCounters'
@@ -9,6 +9,8 @@ import Overview from './overview/overview'
 import Grains from './grains/grains'
 import Grain from './grains/grain'
 import Silos from './silos/silos'
+import Reminders from './reminders/reminders'
+import Loading from './components/loading'
 
 interface IState {
   renderMethod: () => JSX.Element
@@ -63,6 +65,25 @@ export default class App extends React.Component<{}, IState> {
         return <Silos dashboardCounters={this.state.dashboardCounters} />
       }
       this.setState({ renderMethod, activeMenuItem: '#/silos' })
+    })
+
+    routie('/reminders/:page?', async (page: string) => {
+      const pageNumber = parseInt(page || '1')
+      const activeMenuItem = '#/reminders'
+      this.setState({ renderMethod: () => <Loading />, activeMenuItem })
+
+      // TODO: move this api request into the state of the reminder page.
+
+      const reminderData = await getReminders(pageNumber)
+
+      const renderMethod = () => {
+        return <Reminders page={pageNumber} remindersData={reminderData} />
+      }
+
+      this.setState({
+        activeMenuItem,
+        renderMethod
+      })
     })
 
     routie.reload()

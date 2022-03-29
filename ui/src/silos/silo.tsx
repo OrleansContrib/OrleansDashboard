@@ -7,7 +7,10 @@ import Panel from '../components/panel'
 import Chart from '../components/time-series-chart'
 import { DashboardCounters } from '../models/dashboardCounters'
 import { Properties } from '../models/properties'
-import { getSiloProperties } from '../lib/api'
+import { getHistoricalStats, getSiloProperties, getSiloStats } from '../lib/api'
+import setIntervalDebounced from '../lib/setIntervalDebounced'
+import { HistoricalStat } from '../models/historicalStat'
+import { Stat, Stats } from '../models/stats'
 
 interface ISiloGraphProps {
   stats: {
@@ -55,6 +58,8 @@ interface IProps {
 
 interface IState {
   siloProperties: Properties
+  historicalStats: HistoricalStat[]
+  stats: Stats
 }
 
 export default class Silo extends React.Component<IProps, IState> {
@@ -62,11 +67,23 @@ export default class Silo extends React.Component<IProps, IState> {
     siloProperties: {
       HostVersion: '',
       OrleansVersion: ''
-    }
+    },
+    historicalStats: [],
+    stats: {}
   }
+
+  cancel?: () => void
 
   componentDidMount() {
     this.loadInitialData();
+    this.cancel = setIntervalDebounced(this.loadDataOnSchedule, 1000)
+  }
+
+  loadDataOnSchedule = async () => {
+    const stats = await getSiloStats(this.props.silo)
+    const historicalStats = await getHistoricalStats(this.props.silo)
+    this.setState({ stats, historicalStats })
+
   }
 
   loadInitialData = async () => {
@@ -74,35 +91,32 @@ export default class Silo extends React.Component<IProps, IState> {
     this.setState({ siloProperties })
   }
 
-  hasData(value: []) {
+  hasData = (value: any[]) => {
     for (var i = 0; i < value.length; i++) {
       if (value[i] !== null) return true
     }
     return false
   }
 
-  querySeries(lambda: (x: any) => number) {
-    return this.props.data.map(function (x) {
+  querySeries = (lambda: (x: HistoricalStat) => number) => {
+    return this.state.historicalStats.map(x => {
       if (!x) return 0
-      return lambda(x)
+      return `${lambda(x)}`
     })
   }
 
-  hasSeries(lambda) {
-    var hasValue = false
-
-    for (var key in this.props.data) {
-      var value = this.props.data[key]
+  hasSeries = (lambda: (value: Stat) => boolean) => {
+    for (var key in this.state.stats) {
+      var value = this.state.stats[key]
       if (value && lambda(value)) {
-        hasValue = true
+        return true
       }
     }
-
-    return hasValue
+    return false
   }
 
   render() {
-    if (!this.hasData(this.props.data)) {
+    if (!this.hasData(this.state.historicalStats)) {
       return (
         <Panel title="Error">
           <div>
@@ -115,7 +129,7 @@ export default class Silo extends React.Component<IProps, IState> {
       )
     }
 
-    var last = this.props.data[this.props.data.length - 1]
+    var last = this.state.historicalStats[this.state.historicalStats.length - 1]
     var properties = {
       Clients: last.clientCount || '0',
       'Messages recieved': last.receivedMessages || '0',
@@ -129,7 +143,6 @@ export default class Silo extends React.Component<IProps, IState> {
       this.props.dashboardCounters.simpleGrainStats || []
     ).filter(x => x.siloAddress === this.props.silo)
 
-    var status = (this.props.dashboardCounters.hosts || {})[this.props.silo]
     var silo =
       this.props.dashboardCounters.hosts.filter(
         x => x.siloAddress === this.props.silo

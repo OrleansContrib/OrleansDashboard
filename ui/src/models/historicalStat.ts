@@ -10,5 +10,8 @@ export interface HistoricalStat {
   receivedMessages: number;
   sentMessages: number;
   dateTime: Date;
+  receiveQueueLength?: number;
+  requestQueueLength?: number;
+  sendQueueLength?: number;
 }
 
