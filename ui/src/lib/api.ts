@@ -4,6 +4,7 @@ import { HistoricalStat } from "../models/historicalStat";
 import { TopGrainMethods } from "../models/topGrainMethods";
 import { get } from "./http";
 import { Properties } from "../models/properties";
+import { ReminderData } from "../models/reminder";
 
 export const getDashboardCounters = () => get<DashboardCounters>('DashboardCounters')
 
@@ -15,6 +16,8 @@ export const getGrainStats = (grainType: string) => get<Stats>(`GrainStats/${gra
 
 export const getHistoricalStats = (host: string) => get<HistoricalStat[]>(`HistoricalStats/${host}`)
 
-export const getSiloState = (host: string) => get<Stats>(`SiloStats/${host}`)
+export const getSiloStats = (host: string) => get<Stats>(`SiloStats/${host}`)
 
 export const getSiloProperties = (host: string) => get<Properties>(`SiloProperties/${host}`)
+
+export const getReminders = (page:number) => get<ReminderData>(`Reminders/${page}`)

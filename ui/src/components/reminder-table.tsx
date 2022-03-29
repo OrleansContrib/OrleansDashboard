@@ -1,13 +1,5 @@
 import React from 'react'
-
-interface IReminder {
-  period: string
-  grainReference: string
-  primaryKey: string
-  activationCount: number
-  name: string
-  startAt: string
-}
+import { IReminder } from '../models/reminder'
 
 interface IProps {
   data: IReminder[]
