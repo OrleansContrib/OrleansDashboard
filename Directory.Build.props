@@ -1,10 +1,10 @@
 <Project>
   <PropertyGroup>
-    <OrleansPackageVersion Condition="'$(OrleansPackageVersion)'==''">3.1.6</OrleansPackageVersion>
+    <OrleansPackageVersion Condition="'$(OrleansPackageVersion)'==''">3.1.7</OrleansPackageVersion>
     <AssemblyVersion>$(DashboardVersion)</AssemblyVersion>
     <Authors>OrleansContrib</Authors>
     <Company>OrleansContrib</Company>
-    <Copyright>Copyright © 2019</Copyright>
+    <Copyright>Copyright © 2022</Copyright>
     <Description>An admin dashboard for Microsoft Orleans</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageIcon>OrleansLogo.png</PackageIcon>
