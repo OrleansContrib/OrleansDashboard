@@ -33,6 +33,12 @@ export default class HostTable extends React.Component<IProps> {
           <SiloState status={silo.status} />
         </td>
         <td>
+          {silo.siloName}
+        </td>
+        <td>
+          {silo.hostName}
+        </td>        
+        <td>
           {silo.startTime ? (
             <span>
               up for{' '}
