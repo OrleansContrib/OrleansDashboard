@@ -7,13 +7,14 @@ import Page from '../components/page'
 import { DashboardCounters, SimpleGrainStat } from '../models/dashboardCounters'
 import setIntervalDebounced from '../lib/setIntervalDebounced'
 import { getGrainStats } from '../lib/api'
+import { Stats } from '../models/stats'
 
 interface IGrainGraphProps {
-  stats:any
+  stats: any
   grainMethod: string
 }
 
-const GrainGraph = (props:IGrainGraphProps) => {
+const GrainGraph = (props: IGrainGraphProps) => {
   const values = []
   const timepoints = []
   Object.keys(props.stats).forEach(key => {
@@ -51,24 +52,24 @@ interface IProps {
 }
 
 interface IState {
-  grainStats?: SimpleGrainStat
+  grainStats?: Stats
 }
 
 // add multiple axis to the chart
 // https://jsfiddle.net/devonuto/pa7k6xn9/
 export default class Grain extends React.Component<IProps, IState> {
 
-  state:IState = {
-
+  state: IState = {
+    grainStats: {}
   }
 
   cancel?: () => void
 
-  componentDidMount(){
+  componentDidMount() {
     this.cancel = setIntervalDebounced(this.loadDataOnSchedule, 1000)
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     if (this.cancel) this.cancel()
   }
 
@@ -76,7 +77,7 @@ export default class Grain extends React.Component<IProps, IState> {
     const grainStats = await getGrainStats(this.props.grainType)
     this.setState({ grainStats })
   }
-  
+
   renderEmpty() {
     return <span>No messages recorded</span>
   }
@@ -119,9 +120,9 @@ export default class Grain extends React.Component<IProps, IState> {
                   stats.totalCalls === 0
                     ? '0.00'
                     : (
-                        (100 * stats.totalExceptions) /
-                        stats.totalCalls
-                      ).toFixed(2) + '%'
+                      (100 * stats.totalExceptions) /
+                      stats.totalCalls
+                    ).toFixed(2) + '%'
                 }
                 title="Error Rate"
               />
@@ -140,7 +141,7 @@ export default class Grain extends React.Component<IProps, IState> {
                   stats.totalCalls === 0
                     ? '0'
                     : (stats.totalAwaitTime / stats.totalCalls).toFixed(2) +
-                      'ms'
+                    'ms'
                 }
                 title="Average response time"
               />
@@ -195,7 +196,7 @@ export default class Grain extends React.Component<IProps, IState> {
   }
 }
 
-function getName(value:string) {
+function getName(value: string) {
   var parts = value.split('.')
   return parts[parts.length - 1]
 }
