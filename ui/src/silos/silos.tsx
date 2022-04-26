@@ -20,7 +20,7 @@ export default class Silos extends React.Component<IProps> {
             <div className="info-box">
               <CounterWidget
                 icon="database"
-                counter={this.props.dashboardCounters.totalActiveHostCount}
+                counter={`${this.props.dashboardCounters.totalActiveHostCount}`}
                 title="Active Silos"
               />
             </div>
@@ -29,7 +29,7 @@ export default class Silos extends React.Component<IProps> {
             <div className="info-box" style={{ padding: '5px' }}>
               <ChartWidget
                 series={[
-                  this.props.dashboardCounters.totalActiveHostCountHistory
+                  this.props.dashboardCounters.totalActiveHostCountHistory.map(x => `${x}`)
                 ]}
               />
             </div>

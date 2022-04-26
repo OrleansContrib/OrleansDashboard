@@ -2,7 +2,7 @@ import React, { createRef } from 'react'
 import { Line } from 'react-chartjs'
 
 interface IProps {
-  timepoints: string[]
+  timepoints: number[]
   series: any[][]
 }
 
@@ -30,7 +30,7 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
     }
 
     var data = {
-      labels: this.props.timepoints.map((timepoint:string) => {
+      labels: this.props.timepoints.map((timepoint:number) => {
         if (timepoint) {
           try {
             if (new Date(timepoint).getSeconds() % 30 === 0) {

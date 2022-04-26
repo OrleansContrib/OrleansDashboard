@@ -40,7 +40,7 @@ const SiloGraph = (props: ISiloGraphProps) => {
   return (
     <div>
       <Chart
-        timepoints={timepoints}
+        timepoints={timepoints.map(x => parseFloat(x || '0'))}
         series={[
           values.map(z => z.exceptionCount),
           values.map(z => z.count),
@@ -54,6 +54,11 @@ const SiloGraph = (props: ISiloGraphProps) => {
 interface IProps {
   dashboardCounters: DashboardCounters
   silo: string
+  siloStats: {
+    [key: string]: {
+      period: number
+    }
+  }
 }
 
 interface IState {
@@ -98,14 +103,14 @@ export default class Silo extends React.Component<IProps, IState> {
     return false
   }
 
-  querySeries = (lambda: (x: HistoricalStat) => number) => {
+  querySeries = (lambda: (x: any) => number) => {
     return this.state.historicalStats.map(x => {
       if (!x) return 0
       return `${lambda(x)}`
     })
   }
 
-  hasSeries = (lambda: (value: Stat) => boolean) => {
+  hasSeries = (lambda: (value: any) => boolean) => {
     for (var key in this.state.stats) {
       var value = this.state.stats[key]
       if (value && lambda(value)) {
@@ -132,7 +137,7 @@ export default class Silo extends React.Component<IProps, IState> {
     var last = this.state.historicalStats[this.state.historicalStats.length - 1]
     var properties = {
       Clients: last.clientCount || '0',
-      'Messages recieved': last.receivedMessages || '0',
+      'Messages received': last.receivedMessages || '0',
       'Messages sent': last.sentMessages || '0',
       'Receive queue': last.receiveQueueLength || '0',
       'Request queue': last.requestQueueLength || '0',
@@ -179,7 +184,7 @@ export default class Silo extends React.Component<IProps, IState> {
             title="CPU Usage"
             description={Math.floor(last.cpuUsage) + '% utilisation'}
           />
-          <ChartWidget series={[this.querySeries(x => x.cpuUsage)]} />
+          <ChartWidget series={[this.querySeries(x => x.cpuUsage).map(x => `${x}`)]} />
         </div>
       )
     } else {
@@ -210,7 +215,7 @@ export default class Silo extends React.Component<IProps, IState> {
             series={[
               this.querySeries(
                 x => (x.totalPhysicalMemory - x.availableMemory) / (1024 * 1024)
-              )
+              ).map(x => `${x}`)
             ]}
           />
         </div>
@@ -248,8 +253,8 @@ export default class Silo extends React.Component<IProps, IState> {
               />
               <ChartWidget
                 series={[
-                  this.querySeries(x => x.activationCount),
-                  this.querySeries(x => x.recentlyUsedActivationCount)
+                  this.querySeries(x => x.activationCount).map(x => `${x}`),
+                  this.querySeries(x => x.recentlyUsedActivationCount).map(x => `${x}`)
                 ]}
               />
             </div>

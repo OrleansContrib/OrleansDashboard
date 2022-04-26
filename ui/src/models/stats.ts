@@ -12,3 +12,7 @@ export interface Stat {
 export interface Stats {
   [key: string]: Stat
 }
+
+export interface GrainStats {
+  cpuGauge: number;
+}
