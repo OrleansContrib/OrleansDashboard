@@ -11,6 +11,7 @@ import Grain from './grains/grain'
 import Silos from './silos/silos'
 import Reminders from './reminders/reminders'
 import Loading from './components/loading'
+import Silo from './silos/silo'
 
 interface IState {
   renderMethod: () => JSX.Element
@@ -67,6 +68,13 @@ export default class App extends React.Component<{}, IState> {
       this.setState({ renderMethod, activeMenuItem: '#/silos' })
     })
 
+    routie('/host/:host', (host: string) => {
+      const renderMethod = () => {
+        return <Silo dashboardCounters={this.state.dashboardCounters} silo={host} />
+      }
+      this.setState({ renderMethod, activeMenuItem: '#/silos' })
+    })
+
     routie('/reminders/:page?', async (page: string) => {
       const pageNumber = parseInt(page || '1')
       const activeMenuItem = '#/reminders'
@@ -99,6 +107,7 @@ export default class App extends React.Component<{}, IState> {
   }
 
   render() {
+
     return <>
       <div id="error-message-content" className="error-container"></div>
       <div className="wrapper">

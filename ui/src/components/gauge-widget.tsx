@@ -46,7 +46,7 @@ export default class GaugeWidget extends React.Component<IProps, IState> {
 
     return (
       <Doughnut
-        data={data}
+        data={[data]}
         options={options}
         width={this.state.width}
         height={200}

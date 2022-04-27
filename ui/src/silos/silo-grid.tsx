@@ -29,7 +29,7 @@ export default class SiloGrid extends React.Component<IProps> {
   render() {
     var hosts = this.props.dashboardCounters.hosts || []
 
-    if (hosts.length == 0) return <span>no data</span>
+    if (hosts.length === 0) return <span>no data</span>
 
     var updateZones = hosts
       .map(x => x.updateZone)
