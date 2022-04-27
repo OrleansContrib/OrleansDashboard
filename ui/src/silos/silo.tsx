@@ -10,14 +10,10 @@ import { Properties } from '../models/properties'
 import { getHistoricalStats, getSiloProperties, getSiloStats } from '../lib/api'
 import setIntervalDebounced from '../lib/setIntervalDebounced'
 import { HistoricalStat } from '../models/historicalStat'
-import { Stat, Stats } from '../models/stats'
+import { Stats } from '../models/stats'
 
 interface ISiloGraphProps {
-  stats: {
-    [key: string]: {
-      period: number
-    }
-  }
+  stats: Stats
 }
 
 const SiloGraph = (props: ISiloGraphProps) => {
@@ -54,11 +50,6 @@ const SiloGraph = (props: ISiloGraphProps) => {
 interface IProps {
   dashboardCounters: DashboardCounters
   silo: string
-  siloStats: {
-    [key: string]: {
-      period: number
-    }
-  }
 }
 
 interface IState {
@@ -251,12 +242,14 @@ export default class Silo extends React.Component<IProps, IState> {
                   '% recently used'
                 }
               />
+              
               <ChartWidget
                 series={[
                   this.querySeries(x => x.activationCount).map(x => `${x}`),
                   this.querySeries(x => x.recentlyUsedActivationCount).map(x => `${x}`)
                 ]}
               />
+              
             </div>
           </div>
         </Panel>
@@ -276,7 +269,7 @@ export default class Silo extends React.Component<IProps, IState> {
               <strong style={{ color: '#EC971F', fontSize: '25px' }}>/</strong>{' '}
               average latency in milliseconds
             </span>
-            <SiloGraph stats={this.props.siloStats} />
+            <SiloGraph stats={this.state.stats} />
           </div>
         </Panel>
 
@@ -305,26 +298,3 @@ export default class Silo extends React.Component<IProps, IState> {
     )
   }
 }
-/*
-
-dateTime: "2015-12-30T17:02:32.6695724Z"
-
-cpuUsage: 11.8330326
-activationCount: 4
-availableMemory: 4301320000
-totalPhysicalMemory: 8589934592
-memoryUsage: 8618116
-recentlyUsedActivationCount: 2
-
-
-clientCount: 0
-isOverloaded: false
-
-receiveQueueLength: 0
-requestQueueLength: 0
-sendQueueLength: 0
-
-receivedMessages: 0
-sentMessages: 0
-
-*/

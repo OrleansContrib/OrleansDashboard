@@ -15,7 +15,7 @@ interface IProps {
   grainType: string
 }
 
-export default class extends React.Component<IProps> {
+export default class SiloTable extends React.Component<IProps> {
   renderStat(stat:ISiloStat) {
     return (
       <tr key={stat.siloAddress}>
