@@ -2,13 +2,11 @@ import React from 'react'
 import ThemeButtons from './theme-buttons'
 import CheckboxFilter, { ISettings } from './checkbox-filter'
 import Panel from './panel'
+import { get, put } from '../lib/storage'
 
 interface IProps {
-  light: () => void
-  dark: () => void
   changeSettings: (newSettings: Partial<ISettings>) => void
   settings: ISettings
-  defaultTheme: 'light' | 'dark'
 }
 
 export default class Preferences extends React.Component<IProps> {
@@ -62,9 +60,9 @@ export default class Preferences extends React.Component<IProps> {
             </div>
             <div>
               <ThemeButtons
-                defaultTheme={props.defaultTheme}
-                light={props.light}
-                dark={props.dark}
+                defaultTheme={get('theme')}
+                light={light}
+                dark={dark}
               />
             </div>
           </div>
@@ -73,3 +71,23 @@ export default class Preferences extends React.Component<IProps> {
     )
   }
 }
+
+
+export function light() {
+  // Save preference to localStorage.
+  put('theme', 'light')
+
+  // Disable dark theme (which falls back to light theme).
+  document.getElementById('dark-theme-style')?.setAttribute('media', 'none')
+}
+
+export function dark() {
+  // Save preference to localStorage.
+  put('theme', 'dark')
+
+  // Enable dark theme.
+  document.getElementById('dark-theme-style')?.setAttribute('media', '')
+}
+
+
+get('theme') === 'dark' ? dark() : light()

@@ -60,7 +60,7 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
               return new Date(timepoint).toLocaleTimeString()
             }
           } catch (e) {
-            console.log({e})
+            console.log({ e })
             // not a valid date string
           }
         }
@@ -158,7 +158,8 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
           plugins: {
             legend: {
               display: false
-            }
+            },
+            tooltip: { enabled: false }
           },
           maintainAspectRatio: false,
           animation: false,
@@ -168,11 +169,15 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
               type: "linear",
               display: true,
               position: 'left',
+              grid: { display: false },
+              ticks: { display: true }
             },
             y2: {
               type: 'linear',
               display: true,
-              position: 'right'
+              position: 'right',
+              grid: { display: false },
+              ticks: { display: true }
             }
           }
         }}
