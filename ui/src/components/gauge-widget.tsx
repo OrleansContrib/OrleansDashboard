@@ -40,19 +40,13 @@ export default class GaugeWidget extends React.Component<IProps, IState> {
       ]
     }
 
-    var options = {
-      legend: { display: false },
-      animation: false,
-      showTooltips: false,
-      cutoutPercentage: 92
-    }
-
     return (
       <Doughnut
         data={data}
         options={{
           animation: false,
           plugins: {
+            tooltip: { enabled: false },
             legend: { display: false }
           },
           cutout: '92%'

@@ -23,7 +23,8 @@ export function get<T>(url: string) {
 
 export const stream = (url: string) => {
   var xhr = new XMLHttpRequest()
-  xhr.open('GET', url, true)
+  xhr.open('GET', `http://localhost:8080/${url}`, true)
+  //xhr.open('GET', url, true)
   xhr.send()
   return xhr
 }

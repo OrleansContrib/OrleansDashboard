@@ -12,6 +12,9 @@ import Silos from './silos/silos'
 import Reminders from './reminders/reminders'
 import Loading from './components/loading'
 import Silo from './silos/silo'
+import Preferences from './components/preferences'
+import LogStream from './logstream/log-stream'
+import { stream } from './lib/http'
 
 interface IState {
   renderMethod: () => JSX.Element
@@ -90,6 +93,29 @@ export default class App extends React.Component<{}, IState> {
 
       this.setState({
         activeMenuItem,
+        renderMethod
+      })
+    })
+
+    routie('/trace', () => {
+      var xhr = stream('Trace')
+
+      const renderMethod = () => {
+        return <LogStream xhr={xhr} />
+      }
+      this.setState({
+        activeMenuItem: '#/trace',
+        renderMethod
+      })
+    })
+
+    routie('/preferences', () => {
+      const renderMethod = () => {
+        return <Preferences changeSettings={() => {}} settings={{ dashboardGrainsHidden: false, systemGrainsHidden: false}} />
+      }
+
+      this.setState({
+        activeMenuItem: '#/preferences',
         renderMethod
       })
     })

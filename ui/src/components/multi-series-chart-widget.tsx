@@ -58,9 +58,8 @@ export default class MultiSeriesChartWidget extends React.Component<
         var colourString = colours[index % colours.length].join()
         return {
           label: '',
-
-          fillColor: `rgba(${colourString},0.1)`,
-          strokeColor: `rgba(${colourString},1)`,
+          backgroundColor: `rgba(${colourString},0.1)`,
+          borderColor: `rgba(${colourString},1)`,
           data: data,
           pointRadius: 0
         }
@@ -74,8 +73,18 @@ export default class MultiSeriesChartWidget extends React.Component<
           animation: false,
           maintainAspectRatio: false,
           responsive: true,
-          plugins: { legend: { display: false } },
-          scales: { yAxes: { ticks: {} } }
+          plugins: {
+            tooltip: { enabled: false },
+            legend: { display: false }
+          },
+          scales: {
+            xAxes: {
+              ticks: { display: true }
+            },
+            yAxes: {
+              ticks: { display: true }
+            }
+          }
         }}
         width={this.state.width}
         height={80}
