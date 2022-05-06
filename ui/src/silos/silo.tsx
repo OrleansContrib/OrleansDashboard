@@ -36,7 +36,7 @@ const SiloGraph = (props: ISiloGraphProps) => {
   return (
     <div>
       <Chart
-        timepoints={timepoints.map(x => parseFloat(x || '0'))}
+        timepoints={timepoints}
         series={[
           values.map(z => z.exceptionCount),
           values.map(z => z.count),

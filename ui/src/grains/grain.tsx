@@ -15,8 +15,8 @@ interface IGrainGraphProps {
 }
 
 const GrainGraph = (props: IGrainGraphProps) => {
-  const values = []
-  const timepoints = []
+  const values:any[] = []
+  const timepoints:string[] = []
   Object.keys(props.stats).forEach(key => {
     values.push(props.stats[key])
     timepoints.push(props.stats[key].period)
@@ -35,7 +35,7 @@ const GrainGraph = (props: IGrainGraphProps) => {
     <div>
       <h4>{props.grainMethod}</h4>
       <Chart
-        timepoints={timepoints.map(x => parseFloat(x))}
+        timepoints={timepoints}
         series={[
           values.map(z => z.exceptionCount),
           values.map(z => z.count),

@@ -22,7 +22,7 @@ class ClusterGraph extends React.Component<{stats:any}>{
   render() {
     const {stats} = this.props
     const values = []
-    const timepoints:number[] = []
+    const timepoints:string[] = []
     Object.keys(stats).forEach(key => {
       values.push(stats[key])
       timepoints.push(stats[key].period)
@@ -33,7 +33,7 @@ class ClusterGraph extends React.Component<{stats:any}>{
 
     while (values.length < 100) {
       values.unshift({ count: 0, elapsedTime: 0, period: 0, exceptionCount: 0 })
-      timepoints.unshift(0)
+      timepoints.unshift('')
     }
     const series0:any[] = []
     const series1:any[] = []
