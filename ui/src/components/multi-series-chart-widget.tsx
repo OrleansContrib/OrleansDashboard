@@ -1,5 +1,26 @@
 import React, { createRef } from 'react'
-import { Line } from 'react-chartjs'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
 
 const colours = [
   [120, 57, 136],
@@ -38,8 +59,8 @@ export default class MultiSeriesChartWidget extends React.Component<
         return {
           label: '',
 
-          backgroundColor: `rgba(${colourString},0.1)`,
-          borderColor: `rgba(${colourString},1)`,
+          fillColor: `rgba(${colourString},0.1)`,
+          strokeColor: `rgba(${colourString},1)`,
           data: data,
           pointRadius: 0
         }
@@ -51,11 +72,10 @@ export default class MultiSeriesChartWidget extends React.Component<
         data={data}
         options={{
           animation: false,
-          legend: { display: false },
           maintainAspectRatio: false,
           responsive: true,
-          showTooltips: false,
-          scales: { yAxes: [{ ticks: { beginAtZero: true } }] }
+          plugins: { legend: { display: false } },
+          scales: { yAxes: { ticks: {} } }
         }}
         width={this.state.width}
         height={80}

@@ -1,8 +1,30 @@
 import React, { createRef } from 'react'
-import { Line } from 'react-chartjs'
+
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+import { Line } from 'react-chartjs-2'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface IProps {
-  timepoints: number[]
+  timepoints: string[]
   series: any[][]
 }
 
@@ -30,13 +52,15 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
     }
 
     var data = {
-      labels: this.props.timepoints.map((timepoint:number) => {
+      labels: this.props.timepoints.map((timepoint: string) => {
         if (timepoint) {
           try {
-            if (new Date(timepoint).getSeconds() % 30 === 0) {
+            console.log(timepoint)
+            if ((new Date().getTime() / 1000) % 10 === 0) {
               return new Date(timepoint).toLocaleTimeString()
             }
           } catch (e) {
+            console.log({e})
             // not a valid date string
           }
         }
@@ -45,12 +69,12 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
       }),
       datasets: [
         {
-          label: 'y2',
-          backgroundColor: `rgba(236,151,31,0)`,
-          borderColor: `rgba(236,151,31,0.8)`,
-          data: this.props.series[2],
+          label: 'y1',
+          backgroundColor: `rgba(120,57,136,0.8)`,
+          borderColor: `rgba(120,57,136,0)`,
+          data: this.props.series[1],
           pointRadius: 0,
-          yAxisID: 'y2'
+          yAxisID: 'y1'
         },
         {
           label: 'y1',
@@ -61,12 +85,12 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
           yAxisID: 'y1'
         },
         {
-          label: 'y1',
-          backgroundColor: `rgba(120,57,136,0.8)`,
-          borderColor: `rgba(120,57,136,0)`,
-          data: this.props.series[1],
+          label: 'y2',
+          backgroundColor: `rgba(236,151,31,0)`,
+          borderColor: `rgba(236,151,31,0.8)`,
+          data: this.props.series[2],
           pointRadius: 0,
-          yAxisID: 'y1'
+          yAxisID: 'y2'
         }
       ]
     }
@@ -79,47 +103,79 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
       responsive: true,
       hoverMode: 'label',
       stacked: false,
+      pointDot: false,
       scales: {
-        xAxes: [
-          {
-            display: true,
-            gridLines: {
-              offsetGridLines: false,
-              drawOnChartArea: false
-            },
-            ticks: {
-              autoSkip: false,
-              maxRotation: 0,
-              minRotation: 0,
-              fontSize: 9
-            }
-          }
-        ],
-        yAxes: [
-          {
-            type: 'linear',
-            display: true,
-            position: 'left',
-            id: 'y1',
-            gridLines: { drawOnChartArea: false },
-            ticks: { beginAtZero: true }
-          },
-          {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            id: 'y2',
-            gridLines: { drawOnChartArea: false },
-            ticks: { beginAtZero: true }
-          }
-        ]
+        // xAxes: [
+        //   {
+        //     display: true,
+        //     gridLines: {
+        //       offsetGridLines: false,
+        //       drawOnChartArea: false
+        //     },
+        //     ticks: {
+        //       autoSkip: false,
+        //       maxRotation: 0,
+        //       minRotation: 0,
+        //       fontSize: 9
+        //     }
+        //   }
+        // ],
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+        },
+        y2: {
+          type: 'linear',
+          display: true,
+          position: 'right'
+        }
+        // yAxes: [
+        //   {
+        //     type: 'linear',
+        //     display: true,
+        //     position: 'left',
+        //     id: 'y1',
+        //     gridLines: { drawOnChartArea: false },
+        //     ticks: { beginAtZero: true }
+        //   },
+        //   {
+        //     type: 'linear',
+        //     display: true,
+        //     position: 'right',
+        //     id: 'y2',
+        //     gridLines: { drawOnChartArea: false },
+        //     ticks: { beginAtZero: true }
+        //   }
+        // ]
       }
     }
 
     return (
       <Line
         data={data}
-        options={options}
+        options={{
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          maintainAspectRatio: false,
+          animation: false,
+          responsive: true,
+          scales: {
+            y1: {
+              type: "linear",
+              display: true,
+              position: 'left',
+            },
+            y2: {
+              type: 'linear',
+              display: true,
+              position: 'right'
+            }
+          }
+        }}
         width={this.state.width}
         height={180}
       />
