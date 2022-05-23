@@ -24,4 +24,4 @@ jobs:
     - name: Publish
       run: |
         dotnet nuget push **/Release/*.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }} --skip-duplicate
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/4.0'
