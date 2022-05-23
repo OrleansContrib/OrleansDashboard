@@ -1,7 +1,8 @@
 # Orleans Dashboard
 
-![](https://github.com/OrleansContrib/OrleansDashboard/workflows/Node%20CI/badge.svg?branch=master) ![](https://github.com/OrleansContrib/OrleansDashboard/workflows/.NET%20Core/badge.svg?branch=master)
-![Nuget](https://img.shields.io/nuget/v/OrleansDashboard)
+[![.NET Core](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/dotnetcore.yml/badge.svg)](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/dotnetcore.yml)
+[![Node CI](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/nodejs.yml/badge.svg)](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/nodejs.yml)
+[![Nuget](https://img.shields.io/nuget/v/OrleansDashboard)](https://www.nuget.org/packages/OrleansDashboard/)
 
 A dashboard for Microsoft Orleans which provides some simple metrics and insights into what is happening inside your Orleans appliction.
 
