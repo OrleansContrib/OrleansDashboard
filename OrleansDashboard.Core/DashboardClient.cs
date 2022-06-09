@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Concurrency;
@@ -69,6 +72,57 @@ namespace OrleansDashboard
         private ISiloGrain Silo(string siloAddress)
         {
             return grainFactory.GetGrain<ISiloGrain>(siloAddress);
+        }
+
+        public async Task<ExpandoObject> GetGrainState(string id, string grainType)
+        {
+            var result = new ExpandoObject();
+            try
+            {
+                var implementationType = AppDomain.CurrentDomain.GetAssemblies()
+                                    .SelectMany(s => s.GetTypes())
+                                    .Where(w => w.Name.Equals(grainType))
+                                    .FirstOrDefault();
+
+                var interfaceTypes = implementationType.GetInterfaces();
+
+                foreach (var interfaceType in interfaceTypes)
+                {
+                    try
+                    {
+                        var grain = grainFactory.GetGrain(interfaceType, id);
+
+                        var methods = interfaceType.GetMethods().Where(w => w.GetParameters().Length == 0);
+
+                        foreach (var method in methods)
+                        {
+                            try
+                            {
+                                var task = (method.Invoke(grain, null) as Task);
+                                var resultProperty = task.GetType().GetProperty("Result");
+
+                                if (resultProperty == null)
+                                    continue;
+
+                                await task.ConfigureAwait(false);
+
+                                result.TryAdd(method.Name, resultProperty.GetValue(task));
+                            }
+                            catch (Exception ex)
+                            {
+                            }
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+            
+
+            return result;
         }
     }
 }
