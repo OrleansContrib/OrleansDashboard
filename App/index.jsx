@@ -5,6 +5,7 @@ const routie = require('./lib/routie')
 const Silo = require('./silos/silo.jsx')
 const events = require('eventthing')
 const Grain = require('./grains/grain.jsx')
+const GrainState = require('./grains/grainState.jsx')
 const Page = require('./components/page.jsx')
 const Loading = require('./components/loading.jsx')
 const Menu = require('./components/menu.jsx')
@@ -343,6 +344,39 @@ routie('/grain/:grainType', function(grainType) {
 
   events.on('dashboard-counters', render)
   events.on('refresh', loadData)
+
+  loadData()
+})
+
+
+routie('/grainState/:grainType/:grainId', function(grainType, grainId) {
+  var thisRouteIndex = ++routeIndex
+  events.clearAll()
+  scroll()
+  renderLoading()
+
+  var grainState = {}
+  var loadDataIsPending = false;
+  var loadData = function(cb) {
+    if (!loadDataIsPending) {
+      http.get('GrainState?grainId=' + grainId + '&grainType='+ grainType, function(err, data) {
+        grainState = data
+        render()
+      }).finally(() => loadDataIsPending = false);
+    }
+  }
+
+  render = function() {
+    if (routeIndex != thisRouteIndex) return
+    renderPage(
+      <GrainState
+        grainType={grainType}
+        grainId={grainId}
+        state={grainState}
+      />,
+      '#/grainState'
+    )
+  }
 
   loadData()
 })
