@@ -53,7 +53,8 @@ namespace OrleansDashboard.Metrics.TypeFormatting
 
                 }
             }
-            return builder.ToString();
+            var result = builder.ToString();
+            return result;
         }
    
         private static IEnumerable<Token> Tokenise(string value)
@@ -121,6 +122,10 @@ namespace OrleansDashboard.Metrics.TypeFormatting
                             yield return new Token(TokenType.TypeSectionSeparator, ",");
                             buffer.Clear();
                             break;
+                        }
+                        if (state == ParseState.TypeNameSection)
+                        {
+                            yield return new Token(TokenType.TypeNameSection, buffer.ToString());
                         }
                         Console.WriteLine("unknown comma: " + value);
                         buffer.Clear();
