@@ -6,6 +6,14 @@ const Panel = require('../components/panel.jsx')
 const Page = require('../components/page.jsx')
 
 module.exports = class GrainState extends React.Component {
+
+
+  updateTextArea() {
+    const textArea = document.getElementById("txtGrainState");
+    const scrollHeight = textArea.scrollHeight;
+    textArea.style.height = (scrollHeight + 5) + "px";
+  }
+
   renderEmpty() {
     return <span>No state retrieved</span>
   }
@@ -20,9 +28,9 @@ module.exports = class GrainState extends React.Component {
         <div>
           <div className="row">
             <div className="col-md-12">
-                <p>
+                <textarea id="txtGrainState" disabled style={{width: "100%"}}>
                 {JSON.stringify(this.props.state, null, "\t")}
-                </p>
+                </textarea>
             </div>
             
           </div>
@@ -32,6 +40,9 @@ module.exports = class GrainState extends React.Component {
   }
 
   render() {
+
+    setTimeout(this.updateTextArea,100);
+
     if (Object.keys(this.props.state).length === 0)
         return this.renderEmpty()
     return this.renderState()

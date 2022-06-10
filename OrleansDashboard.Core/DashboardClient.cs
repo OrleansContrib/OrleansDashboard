@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Concurrency;
+using Orleans.Core;
 using Orleans.Runtime;
 using OrleansDashboard.Model;
 using OrleansDashboard.Model.History;
@@ -84,6 +86,20 @@ namespace OrleansDashboard
                                     .Where(w => w.Name.Equals(grainType))
                                     .FirstOrDefault();
 
+                var impProperties = implementationType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+
+                var impFields = implementationType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+
+
+                var filterProps = impProperties
+                                    .Where(w => w.PropertyType.IsAssignableTo(typeof(IStorage)))
+                                    .Select(s => s.PropertyType.GetGenericArguments().First());
+
+                var filterFields = impFields
+                                    .Where(w => w.FieldType.IsAssignableTo(typeof(IStorage)))
+                                    .Select(s => s.FieldType.GetGenericArguments().First());
+
+
                 var interfaceTypes = implementationType.GetInterfaces();
 
                 foreach (var interfaceType in interfaceTypes)
@@ -92,21 +108,35 @@ namespace OrleansDashboard
                     {
                         var grain = grainFactory.GetGrain(interfaceType, id);
 
-                        var methods = interfaceType.GetMethods().Where(w => w.GetParameters().Length == 0);
+                        var methods = interfaceType.GetMethods()
+                            .Where(w => w.GetParameters().Length == 0
+                            );
 
                         foreach (var method in methods)
                         {
                             try
                             {
-                                var task = (method.Invoke(grain, null) as Task);
-                                var resultProperty = task.GetType().GetProperty("Result");
+                                if (method.ReturnType.IsAssignableTo(typeof(Task)) 
+                                    &&
+                                    (
+                                        method.ReturnType.GetGenericArguments()
+                                                    .Any(a => filterProps.Any(f => f == a))
+                                        ||
+                                        method.ReturnType.GetGenericArguments()
+                                                    .Any(a => filterFields.Any(f => f == a))
+                                    )
+                                )
+                                {
+                                    var task = (method.Invoke(grain, null) as Task);
+                                    var resultProperty = task.GetType().GetProperty("Result");
 
-                                if (resultProperty == null)
-                                    continue;
+                                    if (resultProperty == null)
+                                        continue;
 
-                                await task.ConfigureAwait(false);
+                                    await task.ConfigureAwait(false);
 
-                                result.TryAdd(method.Name, resultProperty.GetValue(task));
+                                    result.TryAdd(method.Name, resultProperty.GetValue(task));
+                                }
                             }
                             catch (Exception ex)
                             {
