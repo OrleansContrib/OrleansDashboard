@@ -19,7 +19,7 @@ namespace TestGrains
         private readonly IPersistentState<CounterState> _counter;
 
         public TestStateGrain(
-            [PersistentState("profile")]IPersistentState <CounterState> counter)
+            [PersistentState("counter")]IPersistentState <CounterState> counter)
         {
             _counter = counter;
         }
