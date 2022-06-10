@@ -41,6 +41,10 @@ namespace TestGrains
                         await genericClient.Echo("hello world");
 
                         await genericClient.EchoNoProfiling("hello world");
+
+                        var testStateGrain = client.GetGrain<ITestStateGrain>(random.Next(500));
+
+                        await testStateGrain.GetState();
                     }
                     catch
                     {

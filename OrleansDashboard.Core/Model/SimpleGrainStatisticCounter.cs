@@ -1,4 +1,6 @@
 ﻿using Orleans;
+using Orleans.Runtime;
+using System;
 
 namespace OrleansDashboard.Model
 {
@@ -28,5 +30,15 @@ namespace OrleansDashboard.Model
 
         [Id(7)]
         public long TotalExceptions { get; set; }
+
+        [Id(8)]
+        public ActivationDetails[] Activations { get; set; }
+    }
+
+    public sealed class ActivationDetails
+    {
+        public GrainId GrainId { get; set; }
+        public Guid? GuidId { get; set; }
+        public long? IntId { get; set; }
     }
 }
