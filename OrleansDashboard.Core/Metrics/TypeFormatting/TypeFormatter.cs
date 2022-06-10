@@ -53,8 +53,7 @@ namespace OrleansDashboard.Metrics.TypeFormatting
 
                 }
             }
-            var result = builder.ToString();
-            return result;
+            return builder.ToString();
         }
    
         private static IEnumerable<Token> Tokenise(string value)

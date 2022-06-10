@@ -121,10 +121,11 @@ namespace OrleansDashboard
                 var activationCountTask = metricsGrain.GetTotalActivationCount();
                 var simpleGrainStatsTask = metricsGrain.GetSimpleGrainStatistics();
                 var siloDetailsTask = siloDetailsProvider.GetSiloDetails();
+                var detailGrainStatsTask = metricsGrain.GetDetailedGrainStatistics();
 
-                await Task.WhenAll(activationCountTask, simpleGrainStatsTask, siloDetailsTask);
+                await Task.WhenAll(activationCountTask, simpleGrainStatsTask, siloDetailsTask, detailGrainStatsTask);
 
-                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result);
+                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result, detailGrainStatsTask.Result);
 
                 lastRefreshTime = now;
             }
@@ -135,7 +136,7 @@ namespace OrleansDashboard
         }
 
         internal void RecalculateCounters(int activationCount, SiloDetails[] hosts,
-            IList<SimpleGrainStatistic> simpleGrainStatistics)
+            IList<SimpleGrainStatistic> simpleGrainStatistics, DetailedGrainStatistic[] detailGrainStatistics)
         {
             counters.TotalActivationCount = activationCount;
 
@@ -159,7 +160,24 @@ namespace OrleansDashboard
                     ActivationCount = x.ActivationCount,
                     GrainType = grainName,
                     SiloAddress = siloAddress,
-                    TotalSeconds = elapsedTime
+                    TotalSeconds = elapsedTime,
+                    Activations = detailGrainStatistics.Where(w => w.GrainType == x.GrainType)
+                                    .Select(s =>
+                                    {
+                                        var stringId = s.GrainId.ToString();
+
+                                        var isGuid = s.GrainId.TryGetGuidKey(out var guidId, out var guidIdExt);
+
+                                        var isInt = s.GrainId.TryGetIntegerKey(out var intId, out var intIdExt);
+
+                                        return new ActivationDetails
+                                        {
+                                            GrainId = s.GrainId,
+                                            GuidId = isGuid ?guidId: null,
+                                            IntId = isInt? intId: null
+                                        };
+                                    })
+                                    .ToArray()
                 };
 
                 foreach (var item in aggregatedTotals[(grainName, siloAddress)])

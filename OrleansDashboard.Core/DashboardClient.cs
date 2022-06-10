@@ -106,7 +106,12 @@ namespace OrleansDashboard
                 {
                     try
                     {
-                        var grain = grainFactory.GetGrain(interfaceType, id);
+                        var getGrainMethod = grainFactory.GetType().GetMethods()
+                                             .First( w => w.Name == "GetGrain"
+                                                    && w.ContainsGenericParameters
+                                                    && w.GetParameters().Any(a => a.ParameterType == typeof(GrainId)));
+
+                        var grain = getGrainMethod.MakeGenericMethod(interfaceType).Invoke(grainFactory, new object[] { GrainId.Parse(id.Replace("_", "/")) });
 
                         var methods = interfaceType.GetMethods()
                             .Where(w => w.GetParameters().Length == 0
@@ -143,7 +148,9 @@ namespace OrleansDashboard
                             }
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    { 
+                    }
                 }
             }
             catch (Exception)
