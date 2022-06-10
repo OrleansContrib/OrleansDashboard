@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Client" Version="4.0.0-preview1" />
     <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="4.0.0-preview1" />
+    <PackageReference Include="Microsoft.Orleans.Persistence.Memory" Version="4.0.0-preview1" />
   </ItemGroup>
 
   <ItemGroup>
