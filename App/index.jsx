@@ -349,7 +349,7 @@ routie('/grain/:grainType', function(grainType) {
 })
 
 
-routie('/grainState/:grainType/:grainId', function(grainType, grainId) {
+routie('/grainState/:grainType/:grainId/:grainDisplayId', function(grainType, grainId, grainDisplayId) {
   var thisRouteIndex = ++routeIndex
   events.clearAll()
   scroll()
@@ -372,6 +372,7 @@ routie('/grainState/:grainType/:grainId', function(grainType, grainId) {
       <GrainState
         grainType={grainType}
         grainId={grainId}
+        grainDisplayId={grainDisplayId}
         state={grainState}
       />,
       '#/grainState'
