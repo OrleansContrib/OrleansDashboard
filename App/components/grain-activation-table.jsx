@@ -11,9 +11,9 @@ module.exports = class GrainActivationTable extends React.Component {
   renderRow(value) {
     return (
       <tr key={`${value.grainId}`}>
-        <td style={{ wordWrap: 'break-word' }}>
+        <td style={{ wordWrap: 'break-word'}}>
           <span className="pull-left">
-            <a href={`#/grainState/${getName(this.props.grainType)}/${transformUrlId(value.grainId)}`}> <strong>{getId(value)}</strong> </a>
+            <a href={`#/grainState/${getName(this.props.grainType)}/${transformUrlId(value.grainId)}/${getId(value)}`}> <strong>{getId(value)}</strong> </a>
           </span>
         </td>
       </tr>
@@ -33,10 +33,15 @@ module.exports = class GrainActivationTable extends React.Component {
 
     return (
       <table className="table" style={{ tableLayout: 'fixed', width: '100%'  }}>
-          <tbody style={{overflowX: 'auto' }}>
+          <thead>
+            <th>
+              <td>Grain Id</td>
+            </th>
+          </thead>
+          <tbody style={{overflowY: 'auto', display: 'block', maxHeight: '250px' }}>
             {activations.map(this.renderRow)}
             {activations.length === 0 &&
-              <tr>
+              <tr >
                 <td>
                   <i>No data</i>
                 </td>

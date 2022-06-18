@@ -23,7 +23,7 @@ module.exports = class GrainState extends React.Component {
     return (
       <Page
         title={getName(this.props.grainType)}
-        subTitle={this.props.grainId}
+        subTitle={this.props.grainDisplayId}
       >
         <div>
           <div className="row">
