@@ -13,6 +13,9 @@ using OrleansDashboard.Metrics.History;
 using OrleansDashboard.Metrics.TypeFormatting;
 using System.Threading;
 using OrleansDashboard.Metrics;
+using System.Dynamic;
+using System.Reflection;
+using Orleans.Core;
 
 namespace OrleansDashboard
 {
@@ -266,6 +269,94 @@ namespace OrleansDashboard
             history.Add(DateTime.UtcNow, siloAddress, grainTrace.Value);
 
             return Task.CompletedTask;
+        }
+
+        public async Task<Immutable<string>> GetGrainState(string id, string grainType)
+        {
+            var result = new ExpandoObject();
+            try
+            {
+                var implementationType = AppDomain.CurrentDomain.GetAssemblies()
+                                    .SelectMany(s => s.GetTypes())
+                                    .Where(w => w.Name.Equals(grainType))
+                                    .FirstOrDefault();
+
+                var impProperties = implementationType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+
+                var impFields = implementationType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+
+
+                var filterProps = impProperties
+                                    .Where(w => w.PropertyType.IsAssignableTo(typeof(IStorage)))
+                                    .Select(s => s.PropertyType.GetGenericArguments().First());
+
+                var filterFields = impFields
+                                    .Where(w => w.FieldType.IsAssignableTo(typeof(IStorage)))
+                                    .Select(s => s.FieldType.GetGenericArguments().First());
+
+
+                var interfaceTypes = implementationType.GetInterfaces();
+
+                foreach (var interfaceType in interfaceTypes)
+                {
+                    try
+                    {
+                        var getGrainMethod = GrainFactory.GetType().GetMethods()
+                                             .First(w => w.Name == "GetGrain"
+                                                   && w.ContainsGenericParameters
+                                                   && w.GetParameters().Any(a => a.ParameterType == typeof(GrainId)));
+
+                        var grain = getGrainMethod.MakeGenericMethod(interfaceType).Invoke(GrainFactory, new object[] { GrainId.Parse(id.Replace("_", "/")) });
+
+                        var methods = interfaceType.GetMethods()
+                            .Where(w => w.GetParameters().Length == 0
+                            );
+
+                        foreach (var method in methods)
+                        {
+                            try
+                            {
+                                if (method.ReturnType.IsAssignableTo(typeof(Task))
+                                    &&
+                                    (
+                                        method.ReturnType.GetGenericArguments()
+                                                    .Any(a => filterProps.Any(f => f == a))
+                                        ||
+                                        method.ReturnType.GetGenericArguments()
+                                                    .Any(a => filterFields.Any(f => f == a))
+                                    )
+                                )
+                                {
+                                    var task = (method.Invoke(grain, null) as Task);
+                                    var resultProperty = task.GetType().GetProperty("Result");
+
+                                    if (resultProperty == null)
+                                        continue;
+
+                                    await task.ConfigureAwait(false);
+
+                                    result.TryAdd(method.Name, resultProperty.GetValue(task));
+                                }
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+
+            return System.Text.Json.JsonSerializer.Serialize(result,options: new System.Text.Json.JsonSerializerOptions()
+            {
+                WriteIndented = true,
+            }).AsImmutable();
         }
     }
 }
