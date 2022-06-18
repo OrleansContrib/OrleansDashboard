@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Dynamic;
 using System.Threading.Tasks;
 using Orleans.Concurrency;
 using Orleans.Runtime;
@@ -28,6 +27,6 @@ namespace OrleansDashboard
 
         Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods(int take);
 
-        Task<ExpandoObject> GetGrainState(string id,string grainType);
+        Task<Immutable<string>> GetGrainState(string id,string grainType);
     }
 }

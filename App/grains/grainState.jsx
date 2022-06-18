@@ -29,7 +29,7 @@ module.exports = class GrainState extends React.Component {
           <div className="row">
             <div className="col-md-12">
                 <textarea id="txtGrainState" disabled style={{width: "100%"}}>
-                {JSON.stringify(this.props.state, null, "\t")}
+                {this.props.state.value}
                 </textarea>
             </div>
             
