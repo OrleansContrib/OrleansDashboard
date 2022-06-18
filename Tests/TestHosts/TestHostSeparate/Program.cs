@@ -29,6 +29,7 @@ namespace TestHostSeparate
                     {
                         builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(SiloAddress, SiloPort));
                         builder.UseInMemoryReminderService();
+                        builder.AddMemoryGrainStorageAsDefault();
                         builder.ConfigureEndpoints(SiloAddress, SiloPort, GatewayPort);
                         builder.Configure<ClusterOptions>(options =>
                         {
