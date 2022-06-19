@@ -16,6 +16,7 @@ using OrleansDashboard.Metrics;
 using System.Dynamic;
 using System.Reflection;
 using Orleans.Core;
+using System.Text.Json;
 
 namespace OrleansDashboard
 {
@@ -285,7 +286,6 @@ namespace OrleansDashboard
 
                 var impFields = implementationType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
 
-
                 var filterProps = impProperties
                                     .Where(w => w.PropertyType.IsAssignableTo(typeof(IStorage)))
                                     .Select(s => s.PropertyType.GetGenericArguments().First());
@@ -293,7 +293,6 @@ namespace OrleansDashboard
                 var filterFields = impFields
                                     .Where(w => w.FieldType.IsAssignableTo(typeof(IStorage)))
                                     .Select(s => s.FieldType.GetGenericArguments().First());
-
 
                 var interfaceTypes = implementationType.GetInterfaces();
 
@@ -340,20 +339,22 @@ namespace OrleansDashboard
                             }
                             catch
                             {
+                                // Because we got all the interfaces errors may happen with invocations 
                             }
                         }
                     }
                     catch
                     {
+                        // Because we got all the interfaces errors may happen when try to get the grain
                     }
                 }
             }
             catch
             {
+                // The idea is don't throw errors, that may happen
             }
 
-
-            return System.Text.Json.JsonSerializer.Serialize(result,options: new System.Text.Json.JsonSerializerOptions()
+            return JsonSerializer.Serialize(result,options: new JsonSerializerOptions()
             {
                 WriteIndented = true,
             }).AsImmutable();
