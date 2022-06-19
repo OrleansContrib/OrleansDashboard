@@ -11,8 +11,6 @@ namespace TestGrains
         Task ExampleMethod1();
 
         Task ExampleMethod2();
-
-        Task<int> ExampleMethod3();
     }
 
     public class TestGrain : Grain, ITestGrain, IRemindable
@@ -32,11 +30,6 @@ namespace TestGrains
             }
 
             return Task.CompletedTask;
-        }
-
-        public Task<int> ExampleMethod3()
-        {
-            return Task.FromResult(random.Next(100));
         }
 
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
