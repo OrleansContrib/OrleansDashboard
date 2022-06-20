@@ -23,7 +23,7 @@ jobs:
         
     - name: Build
       run: |
-        dotnet build ./OrleansDashboard/OrleansDashboard.csproj --configuration Release
+        dotnet build ./OrleansDashboard.sln --configuration Release
   
     - name: Publish
       run: |
