@@ -9,18 +9,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.100
+        
     - name: Test
       run: |
         cd Tests/UnitTests
         dotnet test
         cd ../../
+        
     - name: Build
       run: |
         dotnet build ./OrleansDashboard/OrleansDashboard.csproj --configuration Release
+  
     - name: Publish
       run: |
         dotnet nuget push **/Release/*.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }} --skip-duplicate
