@@ -28,8 +28,5 @@ namespace OrleansDashboard.Model
 
         [Id(7)]
         public long TotalExceptions { get; set; }
-
-        [Id(8)]
-        public ActivationDetails[] Activations { get; set; }
     }
 }

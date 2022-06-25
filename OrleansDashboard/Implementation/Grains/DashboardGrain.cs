@@ -165,23 +165,6 @@ namespace OrleansDashboard
                     GrainType = grainName,
                     SiloAddress = siloAddress,
                     TotalSeconds = elapsedTime,
-                    Activations = detailGrainStatistics.Where(w => w.GrainType == x.GrainType)
-                                    .Select(s =>
-                                    {
-                                        var stringId = s.GrainId.ToString();
-
-                                        var isGuid = s.GrainId.TryGetGuidKey(out var guidId, out var guidIdExt);
-
-                                        var isInt = s.GrainId.TryGetIntegerKey(out var intId, out var intIdExt);
-
-                                        return new ActivationDetails
-                                        {
-                                            GrainId = s.GrainId,
-                                            GuidId = isGuid ?guidId: null,
-                                            IntId = isInt? intId: null
-                                        };
-                                    })
-                                    .ToArray()
                 };
 
                 foreach (var item in aggregatedTotals[(grainName, siloAddress)])
@@ -275,12 +258,36 @@ namespace OrleansDashboard
         public async Task<Immutable<string>> GetGrainState(string id, string grainType)
         {
             var result = new ExpandoObject();
+            
+
             try
             {
-                var implementationType = AppDomain.CurrentDomain.GetAssemblies()
+
+                var _interfaceType = AppDomain.CurrentDomain.GetAssemblies()
                                     .SelectMany(s => s.GetTypes())
                                     .Where(w => w.Name.Equals(grainType))
                                     .FirstOrDefault();
+
+                var implementationType = AppDomain.CurrentDomain.GetAssemblies()
+                                    .SelectMany(s => s.GetTypes())
+                                    .Where(w => w.IsAssignableTo(_interfaceType) && 
+                                                w.IsClass &&
+                                                !w.Name.StartsWith("Proxy_")
+                                                )
+                                    .FirstOrDefault();
+
+                object grainId = null;
+
+                if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerKey)))
+                {
+                    grainId = Convert.ToInt64(id);
+                } else if (implementationType.IsAssignableTo(typeof(IGrainWithGuidKey)))
+                {
+                    grainId = Guid.Parse(id);
+                } else if (implementationType.IsAssignableTo(typeof(IGrainWithStringKey)))
+                {
+                    grainId = id;
+                }
 
                 var impProperties = implementationType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
 
@@ -302,10 +309,11 @@ namespace OrleansDashboard
                     {
                         var getGrainMethod = GrainFactory.GetType().GetMethods()
                                              .First(w => w.Name == "GetGrain"
-                                                   && w.ContainsGenericParameters
-                                                   && w.GetParameters().Any(a => a.ParameterType == typeof(GrainId)));
+                                                   && w.GetParameters().Count() == 2
+                                                   && w.GetParameters()[0].ParameterType == typeof(Type)
+                                                   && w.GetParameters()[1].ParameterType == grainId.GetType());
 
-                        var grain = getGrainMethod.MakeGenericMethod(interfaceType).Invoke(GrainFactory, new object[] { GrainId.Parse(id.Replace("_", "/")) });
+                        var grain = getGrainMethod.Invoke(GrainFactory, new object[] { interfaceType, grainId });
 
                         var methods = interfaceType.GetMethods()
                             .Where(w => w.GetParameters().Length == 0
@@ -354,10 +362,23 @@ namespace OrleansDashboard
                 // The idea is don't throw errors, that may happen
             }
 
-            return JsonSerializer.Serialize(result,options: new JsonSerializerOptions()
+            return JsonSerializer.Serialize(result, options: new JsonSerializerOptions()
             {
                 WriteIndented = true,
             }).AsImmutable();
+        }
+
+        public Task<Immutable<IEnumerable<string>>> GetGrainTypes()
+        {
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                                     .SelectMany(s => s.GetTypes())
+                                     .Where(w => w.IsAssignableTo(typeof(IGrain))
+                                               && !w.Namespace.StartsWith("Orleans")
+                                               && w.IsClass);
+
+            return Task.FromResult(types
+                                     .Select(s => s.Namespace + "." + s.Name)
+                                     .AsImmutable());
         }
     }
 }

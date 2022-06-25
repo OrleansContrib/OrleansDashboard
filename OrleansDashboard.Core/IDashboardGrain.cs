@@ -27,5 +27,7 @@ namespace OrleansDashboard
         Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods(int take);
 
         Task<Immutable<string>> GetGrainState(string id, string grainType);
+
+        Task<Immutable<IEnumerable<string>>> GetGrainTypes();
     }
 }
