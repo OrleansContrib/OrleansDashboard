@@ -2,7 +2,6 @@ const React = require('react')
 const Chart = require('../components/time-series-chart.jsx')
 const CounterWidget = require('../components/counter-widget.jsx')
 const SiloBreakdown = require('./silo-table.jsx')
-const GrainActivationTable = require('../components/grain-activation-table.jsx')
 const Panel = require('../components/panel.jsx')
 const Page = require('../components/page.jsx')
 
@@ -144,13 +143,6 @@ module.exports = class Grain extends React.Component {
           <Panel title="Activations by Silo">
             <SiloBreakdown
               data={this.props.dashboardCounters.simpleGrainStats}
-              grainType={this.props.grainType}
-            />
-          </Panel>
-
-          <Panel title="Activations">
-            <GrainActivationTable
-              simpleGrainStats={this.props.dashboardCounters.simpleGrainStats}
               grainType={this.props.grainType}
             />
           </Panel>
