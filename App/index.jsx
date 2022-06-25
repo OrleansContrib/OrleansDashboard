@@ -349,18 +349,18 @@ routie('/grain/:grainType', function(grainType) {
 })
 
 
-routie('/grainState/:grainType/:grainId/:grainDisplayId', function(grainType, grainId, grainDisplayId) {
+routie('/grainState', function() {
   var thisRouteIndex = ++routeIndex
   events.clearAll()
   scroll()
   renderLoading()
 
-  var grainState = {}
+  var grainTypes = {}
   var loadDataIsPending = false;
   var loadData = function(cb) {
     if (!loadDataIsPending) {
-      http.get('GrainState?grainId=' + grainId + '&grainType='+ grainType, function(err, data) {
-        grainState = data
+      http.get('GrainTypes', function(err, data) {
+        grainTypes = data
         render()
       }).finally(() => loadDataIsPending = false);
     }
@@ -370,10 +370,7 @@ routie('/grainState/:grainType/:grainId/:grainDisplayId', function(grainType, gr
     if (routeIndex != thisRouteIndex) return
     renderPage(
       <GrainState
-        grainType={grainType}
-        grainId={grainId}
-        grainDisplayId={grainDisplayId}
-        state={grainState}
+        grainTypes={grainTypes}
       />,
       '#/grainState'
     )

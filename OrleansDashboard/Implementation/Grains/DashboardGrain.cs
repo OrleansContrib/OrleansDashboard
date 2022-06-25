@@ -262,18 +262,12 @@ namespace OrleansDashboard
 
             try
             {
+                var _grainType = grainType.Split(".").Last();
 
-                var _interfaceType = AppDomain.CurrentDomain.GetAssemblies()
-                                    .SelectMany(s => s.GetTypes())
-                                    .Where(w => w.Name.Equals(grainType))
-                                    .FirstOrDefault();
 
                 var implementationType = AppDomain.CurrentDomain.GetAssemblies()
                                     .SelectMany(s => s.GetTypes())
-                                    .Where(w => w.IsAssignableTo(_interfaceType) && 
-                                                w.IsClass &&
-                                                !w.Name.StartsWith("Proxy_")
-                                                )
+                                    .Where(w => w.Name.Equals(_grainType))
                                     .FirstOrDefault();
 
                 object grainId = null;
