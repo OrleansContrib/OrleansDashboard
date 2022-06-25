@@ -223,6 +223,16 @@ namespace OrleansDashboard
                     return;
                 }
 
+                if (request.Path == "/GrainTypes")
+                {
+
+                    var result = await client.GetGrainTypes();
+
+                    await WriteJson(context, result);
+
+                    return;
+                }
+
                 if (request.Path == "/Trace")
                 {
                     await TraceAsync(context);
