@@ -270,17 +270,45 @@ namespace OrleansDashboard
                                     .FirstOrDefault();
 
                 object grainId = null;
+                string keyExtension = "";
+                var splitedGrainId = id.Split(",");
 
-                if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerKey)))
+                try
                 {
-                    grainId = Convert.ToInt64(id);
-                } else if (implementationType.IsAssignableTo(typeof(IGrainWithGuidKey)))
-                {
-                    grainId = Guid.Parse(id);
-                } else if (implementationType.IsAssignableTo(typeof(IGrainWithStringKey)))
-                {
-                    grainId = id;
+                    if (implementationType.IsAssignableTo(typeof(IGrainWithGuidCompoundKey)))
+                    {
+                        if (splitedGrainId.Length != 2)
+                            throw new InvalidOperationException("Inform grain id in format `{ id},{additionalKey}`");
+
+                        grainId = Guid.Parse(splitedGrainId.First());
+                        keyExtension = splitedGrainId.Last();
+                    }
+                    else if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerCompoundKey)))
+                    {
+                        if (splitedGrainId.Length != 2)
+                            throw new InvalidOperationException("Inform grain id in format {id},{additionalKey}");
+
+                        grainId = Convert.ToInt64(splitedGrainId.First());
+                        keyExtension = splitedGrainId.Last();
+                    }
+                    else if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerKey)))
+                    {
+                        grainId = Convert.ToInt64(id);
+                    }
+                    else if (implementationType.IsAssignableTo(typeof(IGrainWithGuidKey)))
+                    {
+                        grainId = Guid.Parse(id);
+                    }
+                    else if (implementationType.IsAssignableTo(typeof(IGrainWithStringKey)))
+                    {
+                        grainId = id;
+                    }
                 }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error when trying to convert grain Id", ex);
+                }
+                
 
                 var impProperties = implementationType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
 
@@ -296,17 +324,40 @@ namespace OrleansDashboard
 
                 var interfaceTypes = implementationType.GetInterfaces();
 
+                MethodInfo getGrainMethod = null;
+
+                if (string.IsNullOrWhiteSpace(keyExtension))
+                {
+                    getGrainMethod = GrainFactory.GetType().GetMethods()
+                                    .First(w => w.Name == "GetGrain"
+                                          && w.GetParameters().Count() == 2
+                                          && w.GetParameters()[0].ParameterType == typeof(Type)
+                                          && w.GetParameters()[1].ParameterType == grainId.GetType());
+                }
+                else
+                {
+                    getGrainMethod = GrainFactory.GetType().GetMethods()
+                                    .First(w => w.Name == "GetGrain"
+                                          && w.GetParameters().Count() == 3
+                                          && w.GetParameters()[0].ParameterType == typeof(Type)
+                                          && w.GetParameters()[1].ParameterType == grainId.GetType()
+                                          && w.GetParameters()[2].ParameterType == typeof(string));
+                }
+
                 foreach (var interfaceType in interfaceTypes)
                 {
                     try
                     {
-                        var getGrainMethod = GrainFactory.GetType().GetMethods()
-                                             .First(w => w.Name == "GetGrain"
-                                                   && w.GetParameters().Count() == 2
-                                                   && w.GetParameters()[0].ParameterType == typeof(Type)
-                                                   && w.GetParameters()[1].ParameterType == grainId.GetType());
+                        object grain = null;
 
-                        var grain = getGrainMethod.Invoke(GrainFactory, new object[] { interfaceType, grainId });
+                        if (string.IsNullOrWhiteSpace(keyExtension))
+                        {
+                            grain = getGrainMethod.Invoke(GrainFactory, new object[] { interfaceType, grainId });
+                        }
+                        else
+                        {
+                            grain = getGrainMethod.Invoke(GrainFactory, new object[] { interfaceType, grainId,keyExtension });
+                        }
 
                         var methods = interfaceType.GetMethods()
                             .Where(w => w.GetParameters().Length == 0
@@ -341,19 +392,19 @@ namespace OrleansDashboard
                             }
                             catch
                             {
-                                // Because we got all the interfaces errors may happen with invocations 
+                                // Because we got all the interfaces some errors with boxing and unboxing may happen with invocations 
                             }
                         }
                     }
                     catch
                     {
-                        // Because we got all the interfaces errors may happen when try to get the grain
+                        // Because we got all the interfaces some errors with boxing and unboxing may happen when try to get the grain
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // The idea is don't throw errors, that may happen
+                result.TryAdd("error", string.Concat( ex.Message , " - " , ex?.InnerException.Message));
             }
 
             return JsonSerializer.Serialize(result, options: new JsonSerializerOptions()
