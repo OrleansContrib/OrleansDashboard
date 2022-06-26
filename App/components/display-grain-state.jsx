@@ -9,8 +9,8 @@ module.exports = class DisplayGrainState extends React.Component {
         var ace = window.ace;
         ace.config.set('basePath', 'https://pagecdn.io/lib/ace/1.4.14/');
         const editor = ace.edit('editor_state');
-        editor.setTheme("ace/theme/monokai");
-        editor.getSession().setMode("ace/mode/javascript");
+        editor.setTheme("ace/theme/dracula");
+        editor.getSession().setMode("ace/mode/json");
         editor.setShowPrintMargin(false);
         editor.setOptions({ minLines: 25 });
         editor.setReadOnly(true);
