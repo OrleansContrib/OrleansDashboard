@@ -8,8 +8,7 @@ namespace TestGrains
 {
     public interface ITestStateGrain : IGrainWithIntegerKey
     {
-
-        Task<CounterState> GetState();
+        Task<CounterState> GetCounterState();
     }
 
     public class TestStateGrain : Grain, ITestStateGrain
@@ -24,7 +23,7 @@ namespace TestGrains
             _counter = counter;
         }
 
-        public async Task<CounterState> GetState()
+        public async Task<CounterState> GetCounterState()
         {
             _counter.State.Counter = random.Next(100);
             _counter.State.CurrentDateTime = DateTime.UtcNow;
