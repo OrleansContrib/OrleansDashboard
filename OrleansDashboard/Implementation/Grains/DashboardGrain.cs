@@ -258,7 +258,6 @@ namespace OrleansDashboard
         public async Task<Immutable<string>> GetGrainState(string id, string grainType)
         {
             var result = new ExpandoObject();
-            
 
             try
             {
@@ -324,7 +323,8 @@ namespace OrleansDashboard
                                                     .Any(a => filterProps.Any(f => f == a))
                                         ||
                                         method.ReturnType.GetGenericArguments()
-                                                    .Any(a => filterFields.Any(f => f == a))
+                                                    .Any(a => filterFields.Any(f => f == a)
+                                        || method.Name == "GetState")
                                     )
                                 )
                                 {
@@ -368,7 +368,8 @@ namespace OrleansDashboard
                                      .SelectMany(s => s.GetTypes())
                                      .Where(w => w.IsAssignableTo(typeof(IGrain))
                                                && !w.Namespace.StartsWith("Orleans")
-                                               && w.IsClass);
+                                               && w.IsClass
+                                               && !w.IsGenericType);
 
             return Task.FromResult(types
                                      .Select(s => s.Namespace + "." + s.Name)
