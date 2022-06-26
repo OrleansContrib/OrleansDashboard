@@ -55,7 +55,7 @@ module.exports = class GrainDetails extends React.Component {
       >
         <div>
 
-          <Panel title='Grain' subTitle="Only Non Generic Grains are supported">
+          <Panel title='Grain' subTitle="Only non generic grains are supported">
             <div className="row">
               <div className="col-md-12 pull-left">
                 <select value={this.state.grainType} style={inputStyle} onChange={this.handleGrainTypeChange}>
