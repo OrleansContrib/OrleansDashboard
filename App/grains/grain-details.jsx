@@ -47,8 +47,6 @@ module.exports = class GrainDetails extends React.Component {
       displayComponent = <div></div>;
     }
 
-    const inputStyle = { height: '25px', marginLeft: '5px' };
-
     return (
       <Page
         title="Grain Details"
@@ -57,20 +55,27 @@ module.exports = class GrainDetails extends React.Component {
 
           <Panel title='Grain' subTitle="Only non generic grains are supported">
             <div className="row">
-              <div className="col-md-12 pull-left">
-                <select value={this.state.grainType} style={inputStyle} onChange={this.handleGrainTypeChange}>
-                  <option disabled selected value=""> -- Select an grain type -- </option>
-                  {
-                    this.props.grainTypes.value.map((_item) => <option key={_item} value={_item}>{_item}</option>)
-                  }
-                </select>
-
-                <input type="text" placeholder='Grain Id' style={inputStyle}
-                  value={this.state.grainId} onChange={this.handleGrainIdChange} />
-
-                <input type="button" value="Show Details" style={inputStyle} onClick={this.handleSubmit} />
+              <div className="col-md-6">
+                <div class="input-group">
+                  <select value={this.state.grainType} className="form-control" onChange={this.handleGrainTypeChange}>
+                    <option disabled selected value=""> -- Select an grain type -- </option>
+                    {
+                      this.props.grainTypes.value.map((_item) => <option key={_item} value={_item}>{_item}</option>)
+                    }
+                  </select>
+                </div>
               </div>
-
+              <div className="col-md-4">
+                <div class="input-group">
+                  <input type="text" placeholder='Grain Id' className="form-control"
+                    value={this.state.grainId} onChange={this.handleGrainIdChange} />
+                </div>
+              </div>
+              <div className="col-md-2">
+                <div class="input-group">
+                  <input type="button" value="Show Details" className='btn' onClick={this.handleSubmit} />
+                </div>
+              </div>
             </div>
           </Panel>
 
