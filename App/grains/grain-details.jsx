@@ -55,7 +55,7 @@ module.exports = class GrainDetails extends React.Component {
 
           <Panel title='Grain' subTitle="Only non generic grains are supported">
             <div className="row">
-              <div className="col-md-6">
+              <div className="col-md-6 col-lg-6 col-xl-6">
                 <div class="input-group">
                   <select value={this.state.grainType} className="form-control" onChange={this.handleGrainTypeChange}>
                     <option disabled selected value=""> -- Select an grain type -- </option>
@@ -65,21 +65,21 @@ module.exports = class GrainDetails extends React.Component {
                   </select>
                 </div>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-4 col-lg-4 col-xl-5">
                 <div class="input-group">
                   <input type="text" placeholder='Grain Id' className="form-control"
                     value={this.state.grainId} onChange={this.handleGrainIdChange} />
                 </div>
               </div>
-              <div className="col-md-2">
+              <div className="col-md-2 col-lg-2 col-xl-1">
                 <div class="input-group">
-                  <input type="button" value="Show Details" className='btn' onClick={this.handleSubmit} />
+                  <input type="button" value="Show Details" className='btn btn-default btn-block' onClick={this.handleSubmit} />
                 </div>
               </div>
             </div>
           </Panel>
 
-          <Panel title='State'>
+          <Panel title='State' bodyPadding='0px'>
             <div className="row">
               <div className="col-md-12">
                 {displayComponent}
