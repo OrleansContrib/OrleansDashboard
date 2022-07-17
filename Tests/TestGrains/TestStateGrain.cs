@@ -9,6 +9,7 @@ namespace TestGrains
     public interface ITestStateGrain : IGrainWithIntegerKey
     {
         Task<CounterState> GetCounterState();
+        Task WriteCounterState(CounterState state);
     }
 
     public class TestStateGrain : Grain, ITestStateGrain
@@ -23,12 +24,23 @@ namespace TestGrains
             _counter = counter;
         }
 
-        public async Task<CounterState> GetCounterState()
+        public Task<CounterState> GetCounterState()
         {
+            return Task.FromResult(_counter.State);
+        }
+
+        public async Task WriteCounterState(CounterState state)
+        {
+            _counter.State = state;
+            await _counter.WriteStateAsync();
+        }
+
+        public override async Task OnActivateAsync(CancellationToken cancellationToken)
+        {
+            await base.OnActivateAsync(cancellationToken);
             _counter.State.Counter = random.Next(100);
             _counter.State.CurrentDateTime = DateTime.UtcNow;
             await _counter.WriteStateAsync();
-            return _counter.State;
         }
     }
 

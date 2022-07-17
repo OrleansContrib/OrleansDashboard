@@ -261,107 +261,31 @@ namespace OrleansDashboard
 
             try
             {
-                var _grainType = grainType.Split(".").Last();
+                var implementationType = GrainStateHelper.GetGrainType(grainType);
 
+                var mappedGrainId = GrainStateHelper.GetGrainId(id, implementationType);
+                object grainId = mappedGrainId.Item1;
+                string keyExtension = mappedGrainId.Item2;
 
-                var implementationType = AppDomain.CurrentDomain.GetAssemblies()
-                                    .SelectMany(s => s.GetTypes())
-                                    .Where(w => w.Name.Equals(_grainType))
-                                    .FirstOrDefault();
+                var propertiesAndFields = GrainStateHelper.GetPropertiesAndFieldsForGrainState(implementationType);
 
-                object grainId = null;
-                string keyExtension = "";
-                var splitedGrainId = id.Split(",");
-
-                try
-                {
-                    if (implementationType.IsAssignableTo(typeof(IGrainWithGuidCompoundKey)))
-                    {
-                        if (splitedGrainId.Length != 2)
-                            throw new InvalidOperationException("Inform grain id in format `{ id},{additionalKey}`");
-
-                        grainId = Guid.Parse(splitedGrainId.First());
-                        keyExtension = splitedGrainId.Last();
-                    }
-                    else if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerCompoundKey)))
-                    {
-                        if (splitedGrainId.Length != 2)
-                            throw new InvalidOperationException("Inform grain id in format {id},{additionalKey}");
-
-                        grainId = Convert.ToInt64(splitedGrainId.First());
-                        keyExtension = splitedGrainId.Last();
-                    }
-                    else if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerKey)))
-                    {
-                        grainId = Convert.ToInt64(id);
-                    }
-                    else if (implementationType.IsAssignableTo(typeof(IGrainWithGuidKey)))
-                    {
-                        grainId = Guid.Parse(id);
-                    }
-                    else if (implementationType.IsAssignableTo(typeof(IGrainWithStringKey)))
-                    {
-                        grainId = id;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error when trying to convert grain Id", ex);
-                }
-                
-
-                var impProperties = implementationType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-
-                var impFields = implementationType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-
-                var filterProps = impProperties
-                                    .Where(w => w.PropertyType.IsAssignableTo(typeof(IStorage)))
-                                    .Select(s => s.PropertyType.GetGenericArguments().First());
-
-                var filterFields = impFields
-                                    .Where(w => w.FieldType.IsAssignableTo(typeof(IStorage)))
-                                    .Select(s => s.FieldType.GetGenericArguments().First());
+                var getGrainMethod = GrainStateHelper.GenerateGetGrainMethod(GrainFactory, grainId, keyExtension);
 
                 var interfaceTypes = implementationType.GetInterfaces();
-
-                MethodInfo getGrainMethod = null;
-
-                if (string.IsNullOrWhiteSpace(keyExtension))
-                {
-                    getGrainMethod = GrainFactory.GetType().GetMethods()
-                                    .First(w => w.Name == "GetGrain"
-                                          && w.GetParameters().Count() == 2
-                                          && w.GetParameters()[0].ParameterType == typeof(Type)
-                                          && w.GetParameters()[1].ParameterType == grainId.GetType());
-                }
-                else
-                {
-                    getGrainMethod = GrainFactory.GetType().GetMethods()
-                                    .First(w => w.Name == "GetGrain"
-                                          && w.GetParameters().Count() == 3
-                                          && w.GetParameters()[0].ParameterType == typeof(Type)
-                                          && w.GetParameters()[1].ParameterType == grainId.GetType()
-                                          && w.GetParameters()[2].ParameterType == typeof(string));
-                }
 
                 foreach (var interfaceType in interfaceTypes)
                 {
                     try
                     {
-                        object grain = null;
-
+                        object[] grainMethodParameters;
                         if (string.IsNullOrWhiteSpace(keyExtension))
-                        {
-                            grain = getGrainMethod.Invoke(GrainFactory, new object[] { interfaceType, grainId });
-                        }
+                            grainMethodParameters = new object[] { interfaceType, grainId };
                         else
-                        {
-                            grain = getGrainMethod.Invoke(GrainFactory, new object[] { interfaceType, grainId,keyExtension });
-                        }
+                            grainMethodParameters = new object[] { interfaceType, grainId,keyExtension };
 
-                        var methods = interfaceType.GetMethods()
-                            .Where(w => w.GetParameters().Length == 0
-                            );
+                        var grain = getGrainMethod.Invoke(GrainFactory, grainMethodParameters);
+
+                        var methods = interfaceType.GetMethods().Where(w => w.GetParameters().Length == 0);
 
                         foreach (var method in methods)
                         {
@@ -371,10 +295,7 @@ namespace OrleansDashboard
                                     &&
                                     (
                                         method.ReturnType.GetGenericArguments()
-                                                    .Any(a => filterProps.Any(f => f == a))
-                                        ||
-                                        method.ReturnType.GetGenericArguments()
-                                                    .Any(a => filterFields.Any(f => f == a)
+                                                    .Any(a => propertiesAndFields.Any(f => f == a)
                                         || method.Name == "GetState")
                                     )
                                 )
@@ -415,16 +336,115 @@ namespace OrleansDashboard
 
         public Task<Immutable<IEnumerable<string>>> GetGrainTypes()
         {
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                                     .SelectMany(s => s.GetTypes())
-                                     .Where(w => w.IsAssignableTo(typeof(IGrain))
-                                               && !w.Namespace.StartsWith("Orleans")
-                                               && w.IsClass
-                                               && !w.IsGenericType);
-
-            return Task.FromResult(types
+            return Task.FromResult(GrainStateHelper.GetGrainTypes()
                                      .Select(s => s.Namespace + "." + s.Name)
                                      .AsImmutable());
+        }
+
+        internal static class GrainStateHelper
+        {
+            public static IEnumerable<Type> GetGrainTypes()
+            {
+                return AppDomain.CurrentDomain.GetAssemblies()
+                                         .SelectMany(s => s.GetTypes())
+                                         .Where(w => w.IsAssignableTo(typeof(IGrain))
+                                                   && !w.Namespace.StartsWith("Orleans")
+                                                   && w.IsClass
+                                                   && !w.IsGenericType);
+            }
+
+            public static  (object, string) GetGrainId(string id, Type implementationType)
+            {
+                object grainId = null;
+                string keyExtension = "";
+                var splitedGrainId = id.Split(",");
+
+                try
+                {
+                    if (implementationType.IsAssignableTo(typeof(IGrainWithGuidCompoundKey)))
+                    {
+                        if (splitedGrainId.Length != 2)
+                            throw new InvalidOperationException("Inform grain id in format `{ id},{additionalKey}`");
+
+                        grainId = Guid.Parse(splitedGrainId.First());
+                        keyExtension = splitedGrainId.Last();
+                    }
+                    else if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerCompoundKey)))
+                    {
+                        if (splitedGrainId.Length != 2)
+                            throw new InvalidOperationException("Inform grain id in format {id},{additionalKey}");
+
+                        grainId = Convert.ToInt64(splitedGrainId.First());
+                        keyExtension = splitedGrainId.Last();
+                    }
+                    else if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerKey)))
+                    {
+                        grainId = Convert.ToInt64(id);
+                    }
+                    else if (implementationType.IsAssignableTo(typeof(IGrainWithGuidKey)))
+                    {
+                        grainId = Guid.Parse(id);
+                    }
+                    else if (implementationType.IsAssignableTo(typeof(IGrainWithStringKey)))
+                    {
+                        grainId = id;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error when trying to convert grain Id", ex);
+                }
+
+                return (grainId, keyExtension);
+            }
+
+            public static IEnumerable<Type> GetPropertiesAndFieldsForGrainState(Type implementationType)
+            {
+                var impProperties = implementationType.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+
+                var impFields = implementationType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+
+                var filterProps = impProperties
+                                    .Where(w => w.PropertyType.IsAssignableTo(typeof(IStorage)))
+                                    .Select(s => s.PropertyType.GetGenericArguments().First());
+
+                var filterFields = impFields
+                                    .Where(w => w.FieldType.IsAssignableTo(typeof(IStorage)))
+                                    .Select(s => s.FieldType.GetGenericArguments().First());
+
+                return filterProps.Union(filterFields);
+            }
+
+            public static MethodInfo GenerateGetGrainMethod(IGrainFactory grainFactory,object grainId, string keyExtension)
+            {
+                if (string.IsNullOrWhiteSpace(keyExtension))
+                {
+                    return grainFactory.GetType().GetMethods()
+                                    .First(w => w.Name == "GetGrain"
+                                          && w.GetParameters().Count() == 2
+                                          && w.GetParameters()[0].ParameterType == typeof(Type)
+                                          && w.GetParameters()[1].ParameterType == grainId.GetType());
+                }
+                else
+                {
+                    return grainFactory.GetType().GetMethods()
+                                    .First(w => w.Name == "GetGrain"
+                                          && w.GetParameters().Count() == 3
+                                          && w.GetParameters()[0].ParameterType == typeof(Type)
+                                          && w.GetParameters()[1].ParameterType == grainId.GetType()
+                                          && w.GetParameters()[2].ParameterType == typeof(string));
+                }
+            }
+
+            public static Type GetGrainType(string grainType)
+            {
+                var _grainType = grainType.Split(".").Last();
+
+                return AppDomain.CurrentDomain.GetAssemblies()
+                                    .SelectMany(s => s.GetTypes())
+                                    .Where(w => w.Name.Equals(_grainType))
+                                    .FirstOrDefault();
+            }
         }
     }
 }
