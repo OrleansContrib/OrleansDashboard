@@ -12,6 +12,7 @@ using Orleans.Hosting;
 using Microsoft.Extensions.Hosting;
 using Orleans;
 using Newtonsoft.Json.Linq;
+using OrleansDashboard.Implementation.Helpers;
 
 namespace UnitTests
 {
@@ -34,7 +35,7 @@ namespace UnitTests
         [Fact]
         public void TestGetGrainsTypes()
         {
-            var types = DashboardGrain.GrainStateHelper.GetGrainTypes()
+            var types = GrainStateHelper.GetGrainTypes()
                         .Select(s => s.Namespace + "." + s.Name);
 
             Assert.Contains("TestGrains.TestStateInMemoryGrain", types);
