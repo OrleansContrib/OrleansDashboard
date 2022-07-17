@@ -20,12 +20,6 @@ const Reminders = require('./reminders/reminders.jsx')
 const Preferences = require('./components/preferences.jsx')
 const storage = require('./lib/storage')
 
-var ace_script = document.createElement('script');
-
-ace_script.setAttribute('src', 'https://pagecdn.io/lib/ace/1.4.14/ace.min.js');
-
-document.head.appendChild(ace_script);
-
 const target = document.getElementById('content')
 
 // Restore theme preference.
