@@ -16,7 +16,7 @@ for a production monitoring system.
 Using the Package Manager Console:
 
 ```
-PM> Install-Package OrleansDashboard
+dotnet add package OrleansDashboard
 ```
 
 Then add with programmatic configuration:
