@@ -22,8 +22,8 @@ dotnet add package OrleansDashboard
 Then add with programmatic configuration:
 
 ```c#
-new SiloHostBuilder()
-  .UseDashboard(options => { })
+new HostBuilder()
+  .UseOrleans(o => o.UseDashboard(options => { })
   .Build();
 ```
 
@@ -36,9 +36,11 @@ automatic discovery of grains in Orleans. To enable automatic discovery of the g
 the configuration to:
 
 ```c#
-new SiloHostBuilder()
-  .ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory())
-  .UseDashboard(options => { })
+new HostBuilder()
+  .UseOrleans(o => {
+    o.ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory());
+    o.UseDashboard(options => { });
+  })
   .Build();
 ```
 
@@ -73,14 +75,16 @@ The dashboard supports the following properties for the configuration:
 * `CounterUpdateIntervalMs` : The update interval in milliseconds between sampling counters (default is 1000).
 
 ```c#
-new SiloHostBuilder()
-  .UseDashboard(options => {
-    options.Username = "USERNAME";
-    options.Password = "PASSWORD";
-    options.Host = "*";
-    options.Port = 8080;
-    options.HostSelf = true;
-    options.CounterUpdateIntervalMs = 1000;
+new HostBuilder()
+  .UseOrleans(o => {
+    o.UseDashboard(options => {
+      options.Username = "USERNAME";
+      options.Password = "PASSWORD";
+      options.Host = "*";
+      options.Port = 8080;
+      options.HostSelf = true;
+      options.CounterUpdateIntervalMs = 1000;
+    })
   })
   .Build();
 ```
