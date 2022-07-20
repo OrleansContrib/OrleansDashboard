@@ -9,6 +9,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartData,
 } from 'chart.js';
 
 import { Line } from 'react-chartjs-2'
@@ -51,7 +52,7 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
       return setTimeout(this.getWidth, 0)
     }
 
-    var data = {
+    var data: ChartData<"line", any[], string> = {
       labels: this.props.timepoints.map((timepoint: string) => {
         if (timepoint) {
           try {
@@ -69,87 +70,38 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
       }),
       datasets: [
         {
-          label: 'y1',
-          backgroundColor: `rgba(120,57,136,0.8)`,
-          borderColor: `rgba(120,57,136,0)`,
-          data: this.props.series[1],
-          pointRadius: 0,
-          yAxisID: 'y1'
-        },
-        {
-          label: 'y1',
-          backgroundColor: `rgba(246,31,31,0.8)`,
-          borderColor: `rgba(246,31,31,0)`,
-          data: this.props.series[0],
-          pointRadius: 0,
-          yAxisID: 'y1'
-        },
-        {
-          label: 'y2',
           backgroundColor: `rgba(236,151,31,0)`,
           borderColor: `rgba(236,151,31,0.8)`,
-          data: this.props.series[2],
+          data: this.props.series[0],
           pointRadius: 0,
-          yAxisID: 'y2'
-        }
+          showLine: true,
+          fill: true,
+          yAxisID: 'y'
+        },
+        {
+          backgroundColor: `rgba(246,31,31,0.8)`,
+          borderColor: `rgba(246,31,31,0)`,
+          data: this.props.series[1],
+          pointRadius:10,
+          showLine: true,
+          fill: true,
+          borderWidth: 1,
+          yAxisID: 'y1'
+        },
+        {
+          backgroundColor: `rgba(120,57,136,0.8)`,
+          borderColor: `rgba(120,57,136,0)`,
+          data: this.props.series[2],
+          pointRadius: 10,
+          showLine: true,
+          fill: true,
+          borderWidth: 1,
+          yAxisID: 'y1'
+        },
+
       ]
     }
 
-    var options = {
-      legend: { display: false },
-      maintainAspectRatio: false,
-      animation: false,
-      showTooltips: false,
-      responsive: true,
-      hoverMode: 'label',
-      stacked: false,
-      pointDot: false,
-      scales: {
-        // xAxes: [
-        //   {
-        //     display: true,
-        //     gridLines: {
-        //       offsetGridLines: false,
-        //       drawOnChartArea: false
-        //     },
-        //     ticks: {
-        //       autoSkip: false,
-        //       maxRotation: 0,
-        //       minRotation: 0,
-        //       fontSize: 9
-        //     }
-        //   }
-        // ],
-        y1: {
-          type: 'linear',
-          display: true,
-          position: 'left',
-        },
-        y2: {
-          type: 'linear',
-          display: true,
-          position: 'right'
-        }
-        // yAxes: [
-        //   {
-        //     type: 'linear',
-        //     display: true,
-        //     position: 'left',
-        //     id: 'y1',
-        //     gridLines: { drawOnChartArea: false },
-        //     ticks: { beginAtZero: true }
-        //   },
-        //   {
-        //     type: 'linear',
-        //     display: true,
-        //     position: 'right',
-        //     id: 'y2',
-        //     gridLines: { drawOnChartArea: false },
-        //     ticks: { beginAtZero: true }
-        //   }
-        // ]
-      }
-    }
 
     return (
       <Line
@@ -165,19 +117,25 @@ export default class TimeSeriesChart extends React.Component<IProps, IState> {
           animation: false,
           responsive: true,
           scales: {
-            y1: {
+
+            y: {
+              axis: 'y',
               type: "linear",
               display: true,
               position: 'left',
-              grid: { display: false },
-              ticks: { display: true }
+              grid: { drawOnChartArea: false },
+              ticks: { display: true },
+              beginAtZero: true,
+              
             },
-            y2: {
+            y1: {
+              axis: 'y',
               type: 'linear',
               display: true,
               position: 'right',
-              grid: { display: false },
-              ticks: { display: true }
+              grid: { drawOnChartArea: false },
+              ticks: { display: true },
+              beginAtZero: true
             }
           }
         }}
