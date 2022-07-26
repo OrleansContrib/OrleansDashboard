@@ -13,6 +13,11 @@ using OrleansDashboard.Metrics.History;
 using OrleansDashboard.Metrics.TypeFormatting;
 using System.Threading;
 using OrleansDashboard.Metrics;
+using System.Dynamic;
+using System.Reflection;
+using Orleans.Core;
+using System.Text.Json;
+using OrleansDashboard.Implementation.Helpers;
 
 namespace OrleansDashboard
 {
@@ -121,10 +126,11 @@ namespace OrleansDashboard
                 var activationCountTask = metricsGrain.GetTotalActivationCount();
                 var simpleGrainStatsTask = metricsGrain.GetSimpleGrainStatistics();
                 var siloDetailsTask = siloDetailsProvider.GetSiloDetails();
+                var detailGrainStatsTask = metricsGrain.GetDetailedGrainStatistics();
 
-                await Task.WhenAll(activationCountTask, simpleGrainStatsTask, siloDetailsTask);
+                await Task.WhenAll(activationCountTask, simpleGrainStatsTask, siloDetailsTask, detailGrainStatsTask);
 
-                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result);
+                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result, detailGrainStatsTask.Result);
 
                 lastRefreshTime = now;
             }
@@ -135,7 +141,7 @@ namespace OrleansDashboard
         }
 
         internal void RecalculateCounters(int activationCount, SiloDetails[] hosts,
-            IList<SimpleGrainStatistic> simpleGrainStatistics)
+            IList<SimpleGrainStatistic> simpleGrainStatistics, DetailedGrainStatistic[] detailGrainStatistics)
         {
             counters.TotalActivationCount = activationCount;
 
@@ -159,7 +165,7 @@ namespace OrleansDashboard
                     ActivationCount = x.ActivationCount,
                     GrainType = grainName,
                     SiloAddress = siloAddress,
-                    TotalSeconds = elapsedTime
+                    TotalSeconds = elapsedTime,
                 };
 
                 foreach (var item in aggregatedTotals[(grainName, siloAddress)])
@@ -248,6 +254,92 @@ namespace OrleansDashboard
             history.Add(DateTime.UtcNow, siloAddress, grainTrace.Value);
 
             return Task.CompletedTask;
+        }
+
+        public async Task<Immutable<string>> GetGrainState(string id, string grainType)
+        {
+            var result = new ExpandoObject();
+
+            try
+            {
+                var implementationType = GrainStateHelper.GetGrainType(grainType);
+
+                var mappedGrainId = GrainStateHelper.GetGrainId(id, implementationType);
+                object grainId = mappedGrainId.Item1;
+                string keyExtension = mappedGrainId.Item2;
+
+                var propertiesAndFields = GrainStateHelper.GetPropertiesAndFieldsForGrainState(implementationType);
+
+                var getGrainMethod = GrainStateHelper.GenerateGetGrainMethod(GrainFactory, grainId, keyExtension);
+
+                var interfaceTypes = implementationType.GetInterfaces();
+
+                foreach (var interfaceType in interfaceTypes)
+                {
+                    try
+                    {
+                        object[] grainMethodParameters;
+                        if (string.IsNullOrWhiteSpace(keyExtension))
+                            grainMethodParameters = new object[] { interfaceType, grainId };
+                        else
+                            grainMethodParameters = new object[] { interfaceType, grainId,keyExtension };
+
+                        var grain = getGrainMethod.Invoke(GrainFactory, grainMethodParameters);
+
+                        var methods = interfaceType.GetMethods().Where(w => w.GetParameters().Length == 0);
+
+                        foreach (var method in methods)
+                        {
+                            try
+                            {
+                                if (method.ReturnType.IsAssignableTo(typeof(Task))
+                                    &&
+                                    (
+                                        method.ReturnType.GetGenericArguments()
+                                                    .Any(a => propertiesAndFields.Any(f => f == a)
+                                        || method.Name == "GetState")
+                                    )
+                                )
+                                {
+                                    var task = (method.Invoke(grain, null) as Task);
+                                    var resultProperty = task.GetType().GetProperty("Result");
+
+                                    if (resultProperty == null)
+                                        continue;
+
+                                    await task.ConfigureAwait(false);
+
+                                    result.TryAdd(method.Name, resultProperty.GetValue(task));
+                                }
+                            }
+                            catch
+                            {
+                                // Because we got all the interfaces some errors with boxing and unboxing may happen with invocations 
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Because we got all the interfaces some errors with boxing and unboxing may happen when try to get the grain
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.TryAdd("error", string.Concat( ex.Message , " - " , ex?.InnerException.Message));
+            }
+
+            return JsonSerializer.Serialize(result, options: new JsonSerializerOptions()
+            {
+                WriteIndented = true,
+            }).AsImmutable();
+        }
+
+        public Task<Immutable<IEnumerable<string>>> GetGrainTypes()
+        {
+            return Task.FromResult(GrainStateHelper.GetGrainTypes()
+                                     .Select(s => s.Namespace + "." + s.Name)
+                                     .AsImmutable());
         }
     }
 }

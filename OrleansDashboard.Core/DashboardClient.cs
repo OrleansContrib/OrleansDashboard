@@ -70,5 +70,15 @@ namespace OrleansDashboard
         {
             return grainFactory.GetGrain<ISiloGrain>(siloAddress);
         }
+
+        public async Task<Immutable<string>> GetGrainState(string id, string grainType)
+        {
+            return await dashboardGrain.GetGrainState(id, grainType);
+        }
+
+        public async Task<Immutable<IEnumerable<string>>> GetGrainTypes()
+        {
+            return await dashboardGrain.GetGrainTypes();
+        }
     }
 }

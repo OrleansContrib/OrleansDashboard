@@ -12,6 +12,10 @@ module.exports = class extends React.Component {
       var footer = null
     }
 
+    const bodyStyle = { };
+    if(this.props.bodyPadding){
+      bodyStyle.padding = this.props.bodyPadding;
+    }
     return (
       <div className="box">
         <div className="box-header with-border">
@@ -20,7 +24,7 @@ module.exports = class extends React.Component {
             <small style={{ marginLeft: '10px' }}>{this.props.subTitle}</small>
           </h3>
         </div>
-        <div className="box-body">{body}</div>
+        <div className="box-body" style={bodyStyle}>{body}</div>
         {footer}
       </div>
     )

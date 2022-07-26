@@ -122,6 +122,10 @@ namespace OrleansDashboard.Metrics.TypeFormatting
                             buffer.Clear();
                             break;
                         }
+                        if (state == ParseState.TypeNameSection)
+                        {
+                            yield return new Token(TokenType.TypeNameSection, buffer.ToString());
+                        }
                         Console.WriteLine("unknown comma: " + value);
                         buffer.Clear();
                         break;
