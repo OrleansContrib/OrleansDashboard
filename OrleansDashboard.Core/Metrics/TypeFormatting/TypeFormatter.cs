@@ -1,8 +1,6 @@
-﻿using System;
+﻿using Orleans.Serialization.TypeSystem;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace OrleansDashboard.Metrics.TypeFormatting
 {
@@ -11,135 +9,47 @@ namespace OrleansDashboard.Metrics.TypeFormatting
     /// </summary>
     public class TypeFormatter
     {
-        private static ConcurrentDictionary<string, string> cache = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> cache = new ConcurrentDictionary<string, string>();
 
         public static string Parse(string typeName)
         {
-            return cache.GetOrAdd(typeName, x => ToString(Tokenise(x)));
+            return cache.GetOrAdd(typeName, Format);
         }
 
-        private static string ToString(IEnumerable<Token> tokens)
+        private static string Format(string typeName)
         {
-            var builder = new StringBuilder();
-            var firstTypeNameSection = true;
-            var firstType = true;
-            foreach (var token in tokens)
-            {
-                switch (token.Type)
-                {
-                    case TokenType.TypeNameSection:
-                        if (firstType)
-                        {
-                            builder.Append(token.Value);
-                            firstTypeNameSection = false;
-                            firstType = false;
-                            break;
-                        }
-                        if (firstTypeNameSection)builder.Append(token.Value.Split('.').Last());
-                        firstTypeNameSection = false;
-                        break;
-                    case TokenType.GenericArrayStart:
-                        builder.Append('<');
-                        break;
-                    case TokenType.GenericArrayEnd:
-                        builder.Append('>');
-                        break;
-                    case TokenType.TypeArrayStart:
-                        firstTypeNameSection = true;
-                        break;
-                    case TokenType.GenericSeparator:
-                        builder.Append(", ");
-                        break;
+            var typeInfo = RuntimeTypeNameParser.Parse(typeName);
 
-                }
-            }
-            return builder.ToString();
+            return Format(typeInfo);
         }
-   
-        private static IEnumerable<Token> Tokenise(string value)
+
+        private static string Format(TypeSpec typeSpec)
         {
-            var buffer = new StringBuilder();
-            var state = ParseState.TypeNameSection;
-            foreach (var chr in value)
+            switch (typeSpec)
             {
-                switch (chr)
-                {
-                    case '`':
-                        yield return new Token(TokenType.TypeNameSection, buffer.ToString());
-                        buffer.Clear();
-                        state = ParseState.GenericCount;
-                        break;
-                    case '[':
-                        if (state == ParseState.GenericCount)
-                        {
-                            yield return new Token(TokenType.GenericCount, buffer.ToString());
-                            yield return new Token(TokenType.GenericArrayStart, "[");
-                            buffer.Clear();
-                            state = ParseState.GenericArray;
-                            break;
-                        }
-                        if (state == ParseState.GenericArray)
-                        {
-                            yield return new Token(TokenType.TypeArrayStart, "[");
-                            buffer.Clear();
-                            state = ParseState.TypeArray;
-                            break;
-                        }
-                        Console.WriteLine("unknown [");
-                        break;
-                    case ']':
-                        if (state == ParseState.TypeArray)
-                        {
-                            if (buffer.Length> 0) yield return new Token(TokenType.TypeNameSection, buffer.ToString());
-                            yield return new Token(TokenType.TypeArrayEnd, "]");
-                            state = ParseState.GenericArray;
-                            buffer.Clear();
-                            break;
-                        }
-                        if (state == ParseState.GenericArray)
-                        {
-                            yield return new Token(TokenType.GenericArrayEnd, "]");
-                            state = ParseState.TypeArray;
-                            buffer.Clear();
-                            break;
-                        }
-                        Console.WriteLine("unknown ]");
-                        break;
-                    case ' ':
-                        // no op
-                        break;
-                    case ',':
-                        if (state == ParseState.GenericArray)
-                        {
-                            yield return new Token(TokenType.GenericSeparator, ",");
-                            buffer.Clear();
-                            break;
-                        }
-                        if (state == ParseState.TypeArray)
-                        {
-                            yield return new Token(TokenType.TypeNameSection, buffer.ToString());
-                            yield return new Token(TokenType.TypeSectionSeparator, ",");
-                            buffer.Clear();
-                            break;
-                        }
-                        if (state == ParseState.TypeNameSection)
-                        {
-                            yield return new Token(TokenType.TypeNameSection, buffer.ToString());
-                        }
-                        Console.WriteLine("unknown comma: " + value);
-                        buffer.Clear();
-                        break;
-                    default:
-                        buffer.Append(chr);
-                        break;
-                }
-            }
+                case AssemblyQualifiedTypeSpec qualified:
+                    return Format(qualified.Type);
+                case ConstructedGenericTypeSpec constructed:
+                    return $"{Format(constructed.UnconstructedType)}<{string.Join(", ", constructed.Arguments.Select(Format))}>";
+                default:
+                    var name = typeSpec.Format();
 
-            if (state == ParseState.TypeNameSection && buffer.Length > 0)
-            {
-                yield return new Token(TokenType.TypeNameSection, buffer.ToString());
-            }
+                    const string SystemPrefix = "System.";
 
+                    if (name.StartsWith(SystemPrefix))
+                    {
+                        name = name[SystemPrefix.Length..];
+                    }
+
+                    var genericCardinalityIndex = name.IndexOf('`');
+
+                    if (genericCardinalityIndex > 0)
+                    {
+                        name = name[..genericCardinalityIndex];
+                    }
+
+                    return name;
+            }
         }
     }
 }

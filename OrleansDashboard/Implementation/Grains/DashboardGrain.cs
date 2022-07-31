@@ -18,6 +18,7 @@ using System.Reflection;
 using Orleans.Core;
 using System.Text.Json;
 using OrleansDashboard.Implementation.Helpers;
+using Orleans.Serialization.TypeSystem;
 
 namespace OrleansDashboard
 {
