@@ -14,7 +14,7 @@ namespace UnitTests
 
             var name = TypeFormatter.Parse(example);
 
-            Assert.Equal("System.String", name);
+            Assert.Equal("String", name);
         }
 
         [Fact]

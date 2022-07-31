@@ -59,7 +59,6 @@ namespace Orleans
                 return c.GetRequiredService<SiloStatusOracleSiloDetailsProvider>();
             });
 
-            services.TryAddSingleton(GrainProfilerFilter.NoopOldGrainMethodFormatter);
             services.TryAddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
 
             return services;
