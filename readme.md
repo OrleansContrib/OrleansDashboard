@@ -4,6 +4,10 @@
 [![Node CI](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/nodejs.yml/badge.svg)](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/nodejs.yml)
 [![Nuget](https://img.shields.io/nuget/v/OrleansDashboard)](https://www.nuget.org/packages/OrleansDashboard/)
 
+[Discuss on Discord](https://discord.com/channels/333727978460676096/1001528811256549396)
+
+---
+
 A dashboard for Microsoft Orleans which provides some simple metrics and insights into what is happening inside your Orleans appliction.
 
 The dashboard is simple to set up and is designed as a convenience for developers to use whilst building Orleans applications. It is not designed as a replacement
