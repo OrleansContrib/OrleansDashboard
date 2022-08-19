@@ -1,8 +1,4 @@
 import React, { createRef } from 'react'
-import { Doughnut } from 'react-chartjs-2'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-
-ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface IProps {
   value: number
@@ -40,20 +36,20 @@ export default class GaugeWidget extends React.Component<IProps, IState> {
       ]
     }
 
-    return (
-      <Doughnut
-        data={data}
-        options={{
-          animation: false,
-          plugins: {
-            tooltip: { enabled: false },
-            legend: { display: false }
-          },
-          cutout: '92%'
-        }}
-        width={this.state.width}
-        height={200}
-      />
+    return (<div>gauge</div>
+      // <Doughnut
+      //   data={data}
+      //   options={{
+      //     animation: false,
+      //     plugins: {
+      //       tooltip: { enabled: false },
+      //       legend: { display: false }
+      //     },
+      //     cutout: '92%'
+      //   }}
+      //   width={this.state.width}
+      //   height={200}
+      // />
     )
   }
 

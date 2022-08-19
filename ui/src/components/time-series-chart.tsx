@@ -1,151 +1,72 @@
-import React, { createRef } from 'react'
-
+import React from 'react'
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartData,
-} from 'chart.js';
-
-import { Line } from 'react-chartjs-2'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+  XAxis,
+  YAxis,
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  CartesianGrid
+} from 'recharts'
 
 interface IProps {
   timepoints: string[]
   series: any[][]
 }
 
-interface IState {
-  width: number
-}
-
 // this control is a bit of a temporary hack, until I have a multi-series chart widget
-export default class TimeSeriesChart extends React.Component<IProps, IState> {
-  state = {
-    width: 0
-  }
+export default class TimeSeriesChart extends React.Component<IProps> {
 
-  getWidth = () => {
-    if (!this.containerRef.current) return
+  render() {
 
-    this.setState({ width: this.containerRef.current.offsetWidth })
-  }
-
-  containerRef = createRef<HTMLDivElement>()
-
-  renderChart() {
-    if (this.state.width === 0) {
-      return setTimeout(this.getWidth, 0)
+    const data: any[] = []
+    for (let i = 0; i < this.props.timepoints.length; i++) {
+      data.push({
+        name: new Date(this.props.timepoints[i]).toLocaleTimeString(),
+        exceptions: this.props.series[0][i],
+        count: this.props.series[1][i],
+        latency: this.props.series[2][i]
+      })
     }
-
-    var data: ChartData<"line", any[], string> = {
-      labels: this.props.timepoints.map((timepoint: string) => {
-        if (timepoint) {
-          try {
-            console.log(timepoint)
-            if ((new Date().getTime() / 1000) % 10 === 0) {
-              return new Date(timepoint).toLocaleTimeString()
-            }
-          } catch (e) {
-            console.log({ e })
-            // not a valid date string
-          }
-        }
-
-        return ''
-      }),
-      datasets: [
-        {
-          backgroundColor: `rgba(236,151,31,0)`,
-          borderColor: `rgba(236,151,31,0.8)`,
-          data: this.props.series[0],
-          pointRadius: 0,
-          showLine: true,
-          fill: true,
-          yAxisID: 'y'
-        },
-        {
-          backgroundColor: `rgba(246,31,31,0.8)`,
-          borderColor: `rgba(246,31,31,0)`,
-          data: this.props.series[1],
-          pointRadius:10,
-          showLine: true,
-          fill: true,
-          borderWidth: 1,
-          yAxisID: 'y1'
-        },
-        {
-          backgroundColor: `rgba(120,57,136,0.8)`,
-          borderColor: `rgba(120,57,136,0)`,
-          data: this.props.series[2],
-          pointRadius: 10,
-          showLine: true,
-          fill: true,
-          borderWidth: 1,
-          yAxisID: 'y1'
-        },
-
-      ]
-    }
-
 
     return (
-      <Line
-        data={data}
-        options={{
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: { enabled: false }
-          },
-          maintainAspectRatio: false,
-          animation: false,
-          responsive: true,
-          scales: {
+      <ResponsiveContainer width="100%" height={180}>
+        <AreaChart data={data}>
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="rgba(128, 128, 128, 0.2)"
+          />
+          <XAxis dataKey="name" />
+          <YAxis yAxisId="left" />
+          <YAxis yAxisId="right" orientation="right" />
+          <Area
+            yAxisId="left"
+            type="monotone"
+            dataKey="count"
+            stroke="rgba(120,57,136,0)"
+            fill="rgba(120,57,136,0.8)"
+            isAnimationActive={false}
+          />
+          <Area
+            yAxisId="left"
+            type="monotone"
+            dataKey="exceptions"
+            stroke="rgba(246,31,31,0)"
+            fill="rgba(246,31,31,0.8)"
+            isAnimationActive={false}
+          />
+          <Area
+            yAxisId="right"
+            type="monotone"
+            dataKey="latency"
+            stroke="rgba(236,151,31,0.8)"
+            fill="rgba(236,151,31,0)"
+            isAnimationActive={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
 
-            y: {
-              axis: 'y',
-              type: "linear",
-              display: true,
-              position: 'left',
-              grid: { drawOnChartArea: false },
-              ticks: { display: true },
-              beginAtZero: true,
-              
-            },
-            y1: {
-              axis: 'y',
-              type: 'linear',
-              display: true,
-              position: 'right',
-              grid: { drawOnChartArea: false },
-              ticks: { display: true },
-              beginAtZero: true
-            }
-          }
-        }}
-        width={this.state.width}
-        height={180}
-      />
     )
   }
 
-  render() {
-    return <div ref={this.containerRef}>{this.renderChart()}</div>
-  }
+ 
 }
