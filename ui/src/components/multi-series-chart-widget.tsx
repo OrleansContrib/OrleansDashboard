@@ -1,25 +1,25 @@
 import React, { createRef } from 'react'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2'
+// import {
+//   Chart as ChartJS,
+//   CategoryScale,
+//   LinearScale,
+//   PointElement,
+//   LineElement,
+//   Title,
+//   Tooltip,
+//   Legend,
+// } from 'chart.js';
+// import { Line } from 'react-chartjs-2'
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+// ChartJS.register(
+//   CategoryScale,
+//   LinearScale,
+//   PointElement,
+//   LineElement,
+//   Title,
+//   Tooltip,
+//   Legend
+// );
 
 
 const colours = [
@@ -66,29 +66,29 @@ export default class MultiSeriesChartWidget extends React.Component<
       })
     }
 
-    return (
-      <Line
-        data={data}
-        options={{
-          animation: false,
-          maintainAspectRatio: false,
-          responsive: true,
-          plugins: {
-            tooltip: { enabled: false },
-            legend: { display: false }
-          },
-          scales: {
-            xAxes: {
-              ticks: { display: true }
-            },
-            yAxes: {
-              ticks: { display: true }
-            }
-          }
-        }}
-        width={this.state.width}
-        height={80}
-      />
+    return (<div>CHART</div>
+      // <Line
+      //   data={data}
+      //   options={{
+      //     animation: false,
+      //     maintainAspectRatio: false,
+      //     responsive: true,
+      //     plugins: {
+      //       tooltip: { enabled: false },
+      //       legend: { display: false }
+      //     },
+      //     scales: {
+      //       xAxes: {
+      //         ticks: { display: true }
+      //       },
+      //       yAxes: {
+      //         ticks: { display: true }
+      //       }
+      //     }
+      //   }}
+      //   width={this.state.width}
+      //   height={80}
+      // />
     )
   }
 
