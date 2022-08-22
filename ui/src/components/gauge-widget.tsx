@@ -1,4 +1,5 @@
 import React, { createRef } from 'react'
+import { PieChart, Pie, Cell } from "recharts";
 
 interface IProps {
   value: number
@@ -23,33 +24,29 @@ export default class GaugeWidget extends React.Component<IProps, IState> {
   renderChart = () => {
     if (this.state.width === 0) return setTimeout(this.getWidth, 0)
 
-    var data = {
-      labels: ['', ''],
-      datasets: [
-        {
-          data: [this.props.value, this.props.max - this.props.value],
-          backgroundColor: [this.getColour(1), this.getColour(0.2)],
-          hoverBackgroundColor: [this.getColour(1), this.getColour(0.2)],
-          borderWidth: [0, 0],
-          hoverBorderWidth: [0, 0]
-        }
-      ]
-    }
 
-    return (<div>gauge</div>
-      // <Doughnut
-      //   data={data}
-      //   options={{
-      //     animation: false,
-      //     plugins: {
-      //       tooltip: { enabled: false },
-      //       legend: { display: false }
-      //     },
-      //     cutout: '92%'
-      //   }}
-      //   width={this.state.width}
-      //   height={200}
-      // />
+    const data:any[] = [
+      { name: "", value: this.props.max - this.props.value  },
+      { name: "", value: this.props.value}
+    ];
+
+    return (
+    <PieChart width={this.state.width} height={200}>
+      <Pie
+        data={data}
+        innerRadius={98}
+        outerRadius={100}
+        paddingAngle={0}
+        dataKey="value"
+        startAngle={-90}
+        endAngle={270}
+        strokeOpacity={0}
+        fill="rgba(120, 57, 136, 0.8)"
+      >
+          <Cell key="1" fill="rgba(120, 57, 136, 0.2)" />
+          <Cell key="0" fill="rgba(120, 57, 136, 0.8)" />
+      </Pie>
+    </PieChart>
     )
   }
 
