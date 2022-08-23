@@ -139,7 +139,8 @@ export default class App extends React.Component<{}, IState> {
       <div className="wrapper">
         <aside className="main-sidebar">
           <div style={{ padding: 10 }}>
-            <a href="#">
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+            <a href="#" >
               <h1 style={{ color: '#b8c7ce', fontWeight: 500, marginTop: 5, fontSize: 26 }}>
                 OrleansDashboard
               </h1>

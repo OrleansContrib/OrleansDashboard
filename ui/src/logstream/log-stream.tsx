@@ -49,7 +49,7 @@ export default class LogStream extends React.Component<IProps, IState> {
 
   filterChanged = (event: any) => {
     this.setState({
-      filter: event.target.value,
+      filter: event.target.value
     })
   }
 
@@ -57,8 +57,7 @@ export default class LogStream extends React.Component<IProps, IState> {
     if (!this.state.filter) return this.state.log
 
     const regex = new RegExp(
-      `[^\s-]* (Trace|Debug|Information|Warning|Error):.*${this.state.filter
-      }.*`,
+      `[^-]* (Trace|Debug|Information|Warning|Error):.*${this.state.filter}.*`,
       'gmi'
     )
 
@@ -99,8 +98,7 @@ export default class LogStream extends React.Component<IProps, IState> {
         >
           {this.getFilteredLog()}
         </pre>
-        <a
-          href="javascript:void"
+        <button
           onClick={this.toggle}
           className="btn btn-default"
           style={{
@@ -111,7 +109,7 @@ export default class LogStream extends React.Component<IProps, IState> {
           }}
         >
           {this.state.scrollEnabled ? 'Pause' : 'Resume'}
-        </a>
+        </button>
       </div>
     )
   }
