@@ -22,7 +22,7 @@ namespace TestHost
             // In this sample we let the dashboard host kestrel and the backend services.
             // 
             Host.CreateDefaultBuilder(args)
-                .UseOrleans(builder =>
+                .UseOrleans((_, builder) =>
                 {
                     builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(SiloAddress, SiloPort));
                     builder.UseInMemoryReminderService();

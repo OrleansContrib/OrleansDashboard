@@ -25,7 +25,7 @@ namespace TestHostSeparate
             // 
             var siloHost =
                 Host.CreateDefaultBuilder(args)
-                    .UseOrleans(builder =>
+                    .UseOrleans((_, builder) =>
                     {
                         builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(SiloAddress, SiloPort));
                         builder.UseInMemoryReminderService();
@@ -53,7 +53,7 @@ namespace TestHostSeparate
             await Task.Delay(1000);
 
             Host.CreateDefaultBuilder(args)
-                .UseOrleansClient(builder =>
+                .UseOrleansClient((_, builder) =>
                 {
                     builder.UseStaticClustering(options => options.Gateways.Add((new IPEndPoint(SiloAddress, GatewayPort)).ToGatewayUri()));
                     builder.Configure<ClusterOptions>(options =>
