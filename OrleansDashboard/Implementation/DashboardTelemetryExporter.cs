@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
@@ -36,7 +36,7 @@ namespace OrleansDashboard.Implementation
             }
         }
 
-        private readonly ConcurrentDictionary<string, Value<double>> metrics = new ConcurrentDictionary<string, Value<double>>();
+        private readonly Dictionary<string, Value<double>> metrics = new Dictionary<string, Value<double>>();
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IGrainFactory grainFactory;
         private readonly ILogger<DashboardTelemetryExporter> logger;
@@ -122,7 +122,9 @@ namespace OrleansDashboard.Implementation
             foreach (var point in metric.GetMetricPoints())
             {
                 var value = getValue(point);
-                metrics.AddOrUpdate(metric.Name, new Value<double>(value), (_, current) => current.Update(value));
+                if (!metrics.ContainsKey(metric.Name))
+                    metrics[metric.Name] = new Value<double>(0);
+                metrics[metric.Name] = metrics[metric.Name].Update(value);
             }
         }
 
