@@ -19,7 +19,7 @@ namespace TestHostCohosted2
         static void Main(string[] args)
         {
             Host.CreateDefaultBuilder(args)
-                .UseOrleans(builder =>
+                .UseOrleans((_, builder) =>
                 {
                     builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(SiloAddress, SiloPort));
                     builder.UseInMemoryReminderService();

@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
 using OrleansDashboard;
@@ -35,9 +34,9 @@ namespace Orleans
             Action<DashboardOptions> configurator = null)
         {
             services.Configure(configurator ?? (x => { }));
-            services.Configure<TelemetryOptions>(options => options.AddConsumer<DashboardTelemetryConsumer>());
+            services.AddSingleton<DashboardTelemetryExporter>();
             services.AddOptions<GrainProfilerOptions>();
-
+            
             services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
@@ -60,7 +59,7 @@ namespace Orleans
             });
 
             services.TryAddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
-
+            
             return services;
         }
 
