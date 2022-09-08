@@ -50,5 +50,10 @@ namespace TestGrains
         {
             return Task.CompletedTask;
         }
+
+        public Task ThisMethodShouldNotAppearInTheDashboard()
+        {
+            return Task.CompletedTask;
+        }
     }
 }
