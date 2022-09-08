@@ -22,6 +22,11 @@ function getMenu() {
       name: 'Reminders',
       path: '#/reminders',
       icon: 'fa fa-calendar'
+    },
+    {
+      name: 'Grain Details',
+      path: '#/grainDetails',
+      icon: 'fa fa-cube'
     }
   ]
 

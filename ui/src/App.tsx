@@ -1,7 +1,7 @@
 import React from 'react'
 import './App.css'
 import Menu from './components/menu'
-import { getDashboardCounters, getReminders } from './lib/api'
+import { getDashboardCounters, getGrainTypes, getReminders } from './lib/api'
 import routie from './lib/routie'
 import setIntervalDebounced from './lib/setIntervalDebounced'
 import { DashboardCounters } from './models/dashboardCounters'
@@ -15,6 +15,7 @@ import Silo from './silos/silo'
 import Preferences from './components/preferences'
 import LogStream from './logstream/log-stream'
 import { stream } from './lib/http'
+import GrainDetails from './grains/grain-details'
 
 interface IState {
   renderMethod: () => JSX.Element
@@ -23,7 +24,6 @@ interface IState {
 }
 
 export default class App extends React.Component<{}, IState> {
-
   state: IState = {
     renderMethod: () => <div>Loading...</div>,
     dashboardCounters: {
@@ -59,7 +59,12 @@ export default class App extends React.Component<{}, IState> {
 
     routie('/grain/:grainType', (grainType: string) => {
       const renderMethod = () => {
-        return <Grain grainType={grainType} dashboardCounters={this.state.dashboardCounters} />
+        return (
+          <Grain
+            grainType={grainType}
+            dashboardCounters={this.state.dashboardCounters}
+          />
+        )
       }
       this.setState({ renderMethod, activeMenuItem: '#/grains' })
     })
@@ -73,7 +78,9 @@ export default class App extends React.Component<{}, IState> {
 
     routie('/host/:host', (host: string) => {
       const renderMethod = () => {
-        return <Silo dashboardCounters={this.state.dashboardCounters} silo={host} />
+        return (
+          <Silo dashboardCounters={this.state.dashboardCounters} silo={host} />
+        )
       }
       this.setState({ renderMethod, activeMenuItem: '#/silos' })
     })
@@ -111,11 +118,32 @@ export default class App extends React.Component<{}, IState> {
 
     routie('/preferences', () => {
       const renderMethod = () => {
-        return <Preferences changeSettings={() => {}} settings={{ dashboardGrainsHidden: false, systemGrainsHidden: false}} />
+        return (
+          <Preferences
+            changeSettings={() => {}}
+            settings={{
+              dashboardGrainsHidden: false,
+              systemGrainsHidden: false
+            }}
+          />
+        )
       }
 
       this.setState({
         activeMenuItem: '#/preferences',
+        renderMethod
+      })
+    })
+
+    routie('/grainDetails', async () => {
+      const grainTypes = await getGrainTypes()
+
+      const renderMethod = () => {
+        return <GrainDetails grainTypes={grainTypes.value} />
+      }
+
+      this.setState({
+        activeMenuItem: '#/grainDetails',
         renderMethod
       })
     })
@@ -133,38 +161,46 @@ export default class App extends React.Component<{}, IState> {
   }
 
   render() {
-
-    return <>
-      <div id="error-message-content" className="error-container"></div>
-      <div className="wrapper">
-        <aside className="main-sidebar">
-          <div style={{ padding: 10 }}>
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-            <a href="#" >
-              <h1 style={{ color: '#b8c7ce', fontWeight: 500, marginTop: 5, fontSize: 26 }}>
-                OrleansDashboard
-              </h1>
-            </a>
-            <div id="version-content" style={{ color: '#b8c7ce', marginTop: 5, marginBottom: 25 }}></div>
-          </div>
-
-          <section className="sidebar">
-            <div id="menu">
-              <Menu activeMenuItem={this.state.activeMenuItem} />
+    return (
+      <>
+        <div id="error-message-content" className="error-container"></div>
+        <div className="wrapper">
+          <aside className="main-sidebar">
+            <div style={{ padding: 10 }}>
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+              <a href="#">
+                <h1
+                  style={{
+                    color: '#b8c7ce',
+                    fontWeight: 500,
+                    marginTop: 5,
+                    fontSize: 26
+                  }}
+                >
+                  OrleansDashboard
+                </h1>
+              </a>
+              <div
+                id="version-content"
+                style={{ color: '#b8c7ce', marginTop: 5, marginBottom: 25 }}
+              ></div>
             </div>
-          </section>
-        </aside>
 
-        <div className="content-wrapper" id="content">
-          <section className="content" style={{ height: '100vh' }}>
-            {this.state.renderMethod()}
-          </section>
+            <section className="sidebar">
+              <div id="menu">
+                <Menu activeMenuItem={this.state.activeMenuItem} />
+              </div>
+            </section>
+          </aside>
+
+          <div className="content-wrapper" id="content">
+            <section className="content" style={{ height: '100vh' }}>
+              {this.state.renderMethod()}
+            </section>
+          </div>
+          <div className="control-sidebar-bg"></div>
         </div>
-        <div className="control-sidebar-bg"></div>
-      </div>
-    </>
-
+      </>
+    )
   }
-
 }
-
