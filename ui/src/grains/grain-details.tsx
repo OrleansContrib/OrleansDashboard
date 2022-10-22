@@ -3,9 +3,10 @@ import Page from '../components/page'
 import DisplayGrainState from '../components/display-grain-state'
 import Panel from '../components/panel'
 import { getGrainState } from '../lib/api'
+import { IGrainType } from '../models/grainType'
 
 interface IProps {
-  grainTypes: string[]
+  grainTypes: IGrainType[]
 }
 
 interface IState {
@@ -15,7 +16,7 @@ interface IState {
 }
 
 export default class GrainDetails extends React.Component<IProps, IState> {
-  state = { grainId: '', grainType: '', grainState: '' }
+  state = { grainId: '', grainType: '', grainState: [] }
 
   handleGrainIdChange = (event: any) => {
     this.setState({ grainId: event.target.value })
@@ -27,7 +28,9 @@ export default class GrainDetails extends React.Component<IProps, IState> {
   handleSubmit = async (event: any) => {
     event.preventDefault()
     const { grainId, grainType } = this.state
-    const grainState = await getGrainState(grainType, grainId)
+    const type = this.props.grainTypes[Number(grainType)]
+    
+    const grainState = await getGrainState([type.namespace, type.class, type.method].join(), grainId)
     this.setState({ grainState: grainState.value })
   }
 
@@ -38,7 +41,7 @@ export default class GrainDetails extends React.Component<IProps, IState> {
   renderState() {
     let displayComponent
 
-    if (this.state.grainState != '') {
+    if (!this.state.grainState) {
       displayComponent = <DisplayGrainState code={this.state.grainState} />
     } else {
       displayComponent = <div></div>
@@ -57,12 +60,11 @@ export default class GrainDetails extends React.Component<IProps, IState> {
                     onChange={this.handleGrainTypeChange}
                   >
                     <option disabled selected value="">
-                      {' '}
-                      -- Select an grain type --{' '}
+                      -- Select an grain type --
                     </option>
-                    {this.props.grainTypes.map(_item => (
-                      <option key={_item} value={_item}>
-                        {_item}
+                    {this.props.grainTypes.map((item, index) => (
+                      <option key={[item.namespace, item.class, item.method].join()} value={index}>
+                        {[item.namespace, item.class, item.method].join('.')}
                       </option>
                     ))}
                   </select>
@@ -83,7 +85,7 @@ export default class GrainDetails extends React.Component<IProps, IState> {
                 <div className="input-group">
                   <input
                     type="button"
-                    value="Show Details"
+                    value="Call Method"
                     className="btn btn-primary"
                     onClick={this.handleSubmit}
                   />

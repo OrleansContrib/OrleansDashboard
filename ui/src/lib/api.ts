@@ -5,6 +5,7 @@ import { TopGrainMethods } from '../models/topGrainMethods'
 import { get } from './http'
 import { Properties } from '../models/properties'
 import { ReminderData } from '../models/reminder'
+import { IGrainType } from '../models/grainType'
 
 export const getDashboardCounters = () =>
   get<DashboardCounters>('DashboardCounters')
@@ -30,4 +31,4 @@ export const getReminders = (page: number) =>
 export const getGrainState = (type: string, id: string) =>
   get<{value:string}>(`GrainState?grainType=${type}&grainId=${id}`)
 
-export const getGrainTypes = () => get<{ value: string[] }>('GrainTypes')
+export const getGrainTypes = () => get<{ value: IGrainType[] }>('GrainTypes')

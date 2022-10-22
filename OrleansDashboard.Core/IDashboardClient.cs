@@ -30,6 +30,6 @@ namespace OrleansDashboard
 
         Task<Immutable<string>> GetGrainState(string id,string grainType);
 
-        Task<Immutable<string[]>> GetGrainTypes();
+        Task<Immutable<CallableGrainMethod[]>> GetGrainTypes();
     }
 }

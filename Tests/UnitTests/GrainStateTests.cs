@@ -106,10 +106,7 @@ namespace UnitTests
     {
         var methods = GrainStateHelper.GetCallableGrainMethods().ToList();
         Assert.Equal(5, methods.Count());
-        foreach (var method in methods)
-        {
-            Console.WriteLine(method.DeclaringType.FullName + "." + method.Name);
-        }
+        Assert.False(methods.Select(x => x.Name).Contains("ThisMethodShouldNotAppearInTheDashboard"));
     }
 
   }

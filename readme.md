@@ -131,7 +131,7 @@ The dashboard will also relay trace information over http. You can view this in 
 
 For the state output we use some conventions:
 
-1. Looks for a parameter less method "GetState". Example: TestStateInMemoryGrain.cs
+1. Looks for a parameterless method "GetState". Example: TestStateInMemoryGrain.cs
 2. Looks for methods thats returns types that are declared as IPersistentState<T> property in the concret grain type. Example: TestStateGrain.cs
 
 For Compound Key grains pass the id in format "{id},{additionalKey}", example: 123,testing
