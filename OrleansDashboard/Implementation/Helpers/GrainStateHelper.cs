@@ -25,25 +25,25 @@ namespace OrleansDashboard.Implementation.Helpers
     {
       object grainId = null;
       string keyExtension = "";
-      var splitedGrainId = id.Split(",");
+      var compoundGrainId = id.Split(",");
 
       try
       {
         if (implementationType.IsAssignableTo(typeof(IGrainWithGuidCompoundKey)))
         {
-          if (splitedGrainId.Length != 2)
+          if (compoundGrainId.Length != 2)
             throw new InvalidOperationException("Inform grain id in format `{ id},{additionalKey}`");
 
-          grainId = Guid.Parse(splitedGrainId.First());
-          keyExtension = splitedGrainId.Last();
+          grainId = Guid.Parse(compoundGrainId.First());
+          keyExtension = compoundGrainId.Last();
         }
         else if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerCompoundKey)))
         {
-          if (splitedGrainId.Length != 2)
+          if (compoundGrainId.Length != 2)
             throw new InvalidOperationException("Inform grain id in format {id},{additionalKey}");
 
-          grainId = Convert.ToInt64(splitedGrainId.First());
-          keyExtension = splitedGrainId.Last();
+          grainId = Convert.ToInt64(compoundGrainId.First());
+          keyExtension = compoundGrainId.Last();
         }
         else if (implementationType.IsAssignableTo(typeof(IGrainWithIntegerKey)))
         {
@@ -60,7 +60,7 @@ namespace OrleansDashboard.Implementation.Helpers
       }
       catch (Exception ex)
       {
-        throw new Exception("Error when trying to convert grain Id", ex);
+        throw new Exception($"Error when trying to convert grain Id {id}, {implementationType}", ex);
       }
 
       return (grainId, keyExtension);
@@ -83,12 +83,12 @@ namespace OrleansDashboard.Implementation.Helpers
       return filterProps.Union(filterFields);
     }
 
-    public static MethodInfo GenerateGetGrainMethod(IGrainFactory grainFactory, object grainId, string keyExtension)
+    public static MethodInfo GenerateGetGrainMethod(IGrainFactory grainFactory, object grainId, string keyExtension, string methodName)
     {
       if (string.IsNullOrWhiteSpace(keyExtension))
       {
         return grainFactory.GetType().GetMethods()
-                        .First(w => w.Name == "GetGrain"
+                        .First(w => w.Name == methodName
                               && w.GetParameters().Count() == 2
                               && w.GetParameters()[0].ParameterType == typeof(Type)
                               && w.GetParameters()[1].ParameterType == grainId.GetType());
@@ -96,7 +96,7 @@ namespace OrleansDashboard.Implementation.Helpers
       else
       {
         return grainFactory.GetType().GetMethods()
-                        .First(w => w.Name == "GetGrain"
+                        .First(w => w.Name == methodName
                               && w.GetParameters().Count() == 3
                               && w.GetParameters()[0].ParameterType == typeof(Type)
                               && w.GetParameters()[1].ParameterType == grainId.GetType()
@@ -106,11 +106,15 @@ namespace OrleansDashboard.Implementation.Helpers
 
     public static Type GetGrainType(string grainType)
     {
-      var _grainType = grainType.Split(".").Last();
+      var typeParts = grainType.Split(",");
+      if (typeParts.Length != 2)
+        throw new ArgumentException("Grain type must be in format `Namespace, Class, Method`");
+      var @namespace = typeParts[0];
+      var @class = typeParts[1];
 
       return AppDomain.CurrentDomain.GetAssemblies()
                           .SelectMany(s => s.GetTypes())
-                          .Where(w => w.Name.Equals(_grainType))
+                          .Where(w => w.Name.Equals(@class) && w.Namespace.Equals(@namespace))
                           .FirstOrDefault();
     }
 
@@ -129,7 +133,7 @@ namespace OrleansDashboard.Implementation.Helpers
     {
       return GetCallableGrainTypes()
           .SelectMany(s => s.GetMethods())
-          .Where(w => w.GetParameters().Count() == 0);
+          .Where(w => !w.GetParameters().Any());
 
     }
 

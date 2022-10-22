@@ -8,6 +8,13 @@ using OrleansDashboard.Model.History;
 
 namespace OrleansDashboard
 {
+    public class CallableGrainMethod
+    {
+      public string Namespace { get; set; }
+      public string Class { get; set; }
+      public string Method { get; set; }
+    }
+
     public interface IDashboardGrain : IGrainWithIntegerKey
     {
         [OneWay]
@@ -28,6 +35,6 @@ namespace OrleansDashboard
 
         Task<Immutable<string>> GetGrainState(string id, string grainType);
 
-        Task<Immutable<IEnumerable<string>>> GetGrainTypes();
+        Task<Immutable<CallableGrainMethod[]>> GetGrainTypes();
     }
 }
