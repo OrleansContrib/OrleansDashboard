@@ -18,6 +18,5 @@ namespace OrleansDashboard
         Task<Immutable<StatCounter[]>> GetCounters(string siloAddress);
         Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GrainStats(string grainName);
         Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods();
-        Task<string> GetInteractionsGraph();
     }
 }
