@@ -35,8 +35,7 @@ namespace TestGrains
 
                         await testGrain.ExampleMethod1();
                         await testGrain.ExampleMethod2();
-                        await testGrain.ExampleMethod3();
-                        
+
                         var genericClient = client.GetGrain<IGenericGrain<string>>("foo");
 
                         await genericClient.Echo("hello world");

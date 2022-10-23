@@ -26,6 +26,8 @@ namespace Orleans
         {
             builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
             builder.ConfigureServices(services => services.AddDashboard(configurator));
+            builder.AddIncomingGrainCallFilter<GrainInteractionFilter>();
+            builder.AddOutgoingGrainCallFilter<GrainInteractionFilter>();
             builder.AddStartupTask<Dashboard>();
 
             return builder;
@@ -54,7 +56,6 @@ namespace Orleans
             services.AddSingleton<IGrainProfiler, GrainProfiler>();
             services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>)c.GetRequiredService<IGrainProfiler>());
             services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
-            services.AddSingleton<IOutgoingGrainCallFilter, GrainProfilerFilter>();
             services.TryAddSingleton<IAssetProvider, CDNAssetProvider>();
 
             services.AddSingleton<ISiloDetailsProvider>(c =>
