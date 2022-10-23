@@ -22,7 +22,7 @@ namespace TestHostCohosted2
 
                     int gatewayPort = 30000;
 
-                    builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort));
+                    builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort)); 
                     builder.UseInMemoryReminderService();
                     builder.ConfigureEndpoints(siloAddress, siloPort, gatewayPort);
                     builder.Configure<ClusterOptions>(options =>

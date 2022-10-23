@@ -54,6 +54,10 @@ namespace Orleans
             services.AddSingleton<IGrainProfiler, GrainProfiler>();
             services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>)c.GetRequiredService<IGrainProfiler>());
             services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
+            
+            services.AddSingleton<IIncomingGrainCallFilter, GrainCallProfilerFilter>();
+            services.AddSingleton<IOutgoingGrainCallFilter, GrainCallProfilerFilter>();
+            
             services.TryAddSingleton<IAssetProvider, CDNAssetProvider>();
 
             services.AddSingleton<ISiloDetailsProvider>(c =>
