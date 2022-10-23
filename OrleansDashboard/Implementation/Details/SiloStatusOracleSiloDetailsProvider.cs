@@ -31,7 +31,7 @@ namespace OrleansDashboard.Implementation.Details
                     Status = x.Value.ToString(),
                     SiloStatus = x.Value,
                     SiloAddress = x.Key.ToParsableString(),
-                    SiloName = x.Key.ToParsableString() //use the address for naming
+                    SiloName = x.Key.ToParsableString() // Use the address for naming
                 })
                 .ToArray());
         }

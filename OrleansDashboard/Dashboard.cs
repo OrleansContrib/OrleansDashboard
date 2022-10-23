@@ -49,7 +49,7 @@ namespace OrleansDashboard
                             {
                                 if (dashboardOptions.HasUsernameAndPassword())
                                 {
-                                    // only when usename and password are configured
+                                    // only when username and password are configured
                                     // do we inject basicauth middleware in the pipeline
                                     app.UseMiddleware<BasicAuthMiddleware>();
                                 }

@@ -32,6 +32,12 @@ module.exports = class extends React.Component {
           <SiloState status={silo.status} />
         </td>
         <td>
+          {silo.siloName}
+        </td>
+        <td>
+          {silo.hostName}
+        </td>
+        <td>
           {silo.startTime ? (
             <span>
               up for{' '}

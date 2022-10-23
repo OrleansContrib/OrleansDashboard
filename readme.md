@@ -1,7 +1,12 @@
 # Orleans Dashboard
 
-![](https://github.com/OrleansContrib/OrleansDashboard/workflows/Node%20CI/badge.svg?branch=master) ![](https://github.com/OrleansContrib/OrleansDashboard/workflows/.NET%20Core/badge.svg?branch=master)
-![Nuget](https://img.shields.io/nuget/v/OrleansDashboard)
+[![.NET Core](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/dotnetcore.yml/badge.svg)](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/dotnetcore.yml)
+[![Node CI](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/nodejs.yml/badge.svg)](https://github.com/OrleansContrib/OrleansDashboard/actions/workflows/nodejs.yml)
+[![Nuget](https://img.shields.io/nuget/v/OrleansDashboard)](https://www.nuget.org/packages/OrleansDashboard/)
+
+[Discuss on Discord](https://discord.com/channels/333727978460676096/1001528811256549396)
+
+---
 
 A dashboard for Microsoft Orleans which provides some simple metrics and insights into what is happening inside your Orleans appliction.
 
@@ -15,14 +20,14 @@ for a production monitoring system.
 Using the Package Manager Console:
 
 ```
-PM> Install-Package OrleansDashboard
+dotnet add package OrleansDashboard
 ```
 
 Then add with programmatic configuration:
 
 ```c#
-new SiloHostBuilder()
-  .UseDashboard(options => { })
+new HostBuilder()
+  .UseOrleans(o => o.UseDashboard(options => { })
   .Build();
 ```
 
@@ -35,9 +40,11 @@ automatic discovery of grains in Orleans. To enable automatic discovery of the g
 the configuration to:
 
 ```c#
-new SiloHostBuilder()
-  .ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory())
-  .UseDashboard(options => { })
+new HostBuilder()
+  .UseOrleans(o => {
+    o.ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory());
+    o.UseDashboard(options => { });
+  })
   .Build();
 ```
 
@@ -72,14 +79,16 @@ The dashboard supports the following properties for the configuration:
 * `CounterUpdateIntervalMs` : The update interval in milliseconds between sampling counters (default is 1000).
 
 ```c#
-new SiloHostBuilder()
-  .UseDashboard(options => {
-    options.Username = "USERNAME";
-    options.Password = "PASSWORD";
-    options.Host = "*";
-    options.Port = 8080;
-    options.HostSelf = true;
-    options.CounterUpdateIntervalMs = 1000;
+new HostBuilder()
+  .UseOrleans(o => {
+    o.UseDashboard(options => {
+      options.Username = "USERNAME";
+      options.Password = "PASSWORD";
+      options.Host = "*";
+      options.Port = 8080;
+      options.HostSelf = true;
+      options.CounterUpdateIntervalMs = 1000;
+    })
   })
   .Build();
 ```
