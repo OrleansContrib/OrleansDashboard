@@ -113,7 +113,7 @@ namespace OrleansDashboard
 
             return base.OnActivateAsync();
         }
-        
+
         public async Task<Immutable<DashboardCounters>> GetCounters()
         {
             await EnsureCountersAreUpToDate();
@@ -156,12 +156,7 @@ namespace OrleansDashboard
                 { "errors", values.Where(x => x.ExceptionCount > 0 && x.Count > 0).OrderByDescending(x => x.ExceptionCount / x.Count).Take(numberOfResultsToReturn).ToArray() },
             }.AsImmutable();
         }
-
-        public Task<string> GetInteractionsGraph()
-        {
-            return Task.FromResult(counters.InteractionsGraph);
-        }
-
+      
         public Task Init()
         {
             // just used to activate the grain
@@ -172,12 +167,6 @@ namespace OrleansDashboard
         {
             history.Add(DateTime.UtcNow, siloAddress, grainTrace.Value);
 
-            return Task.CompletedTask;
-        }
-        
-        public Task SubmitGrainInteraction(string interactionsGraph)
-        {
-            counters.InteractionsGraph = interactionsGraph;
             return Task.CompletedTask;
         }
     }
