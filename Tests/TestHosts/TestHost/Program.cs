@@ -64,6 +64,7 @@ namespace TestHost
             var cts = new CancellationTokenSource();
 
             TestCalls.Make(client, cts);
+            InteractionTestCalls.Make(client, cts);
 
             Console.WriteLine("Press key to exit...");
             Console.ReadLine();
