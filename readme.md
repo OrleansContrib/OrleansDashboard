@@ -48,6 +48,30 @@ new HostBuilder()
   .Build();
 ```
 
+### Self-Hosted Dashboard
+
+In some cases you may wish to disable the dashboard's own web server, and host the dashboard on your own web application.
+
+You can configure to include the dashboard as middleware:
+
+```c#
+using Microsoft.AspNetCore.Http.Extensions;
+using Orleans;
+using Orleans.Hosting;
+
+var builder = WebApplication.CreateBuilder();
+
+builder.Host.UseOrleans(siloBuilder =>
+{
+  siloBuilder.UseLocalhostClustering();
+  siloBuilder.UseDashboard(x => x.HostSelf = true);
+});
+
+var app = builder.Build();
+
+app.Map("/dashboard", x => x.UseOrleansDashboard());
+```
+
 ### CPU and Memory Metrics on Windows
 
 The CPU and Memory metrics are only enabled on Windows when you add the [Microsoft.Orleans.OrleansTelemetryConsumers.Counters](https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Counters/) package and have registered an implementation of  `IHostEnvironmentStatistics` such as with `builder.UsePerfCounterEnvironmentStatistics()` (currently Windows only).
