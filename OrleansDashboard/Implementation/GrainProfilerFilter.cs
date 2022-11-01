@@ -81,11 +81,11 @@ namespace OrleansDashboard.Metrics
         {
             var methodName = context.ImplementationMethod?.Name ?? "Unknown";
 
-            if (methodName == nameof(IRemindable.ReceiveReminder) && context.Arguments.Length == 2)
+            if (methodName == nameof(IRemindable.ReceiveReminder) && context.Request.GetArgumentCount() == 2)
             {
                 try 
                 {
-                    methodName = $"{methodName}({context.Arguments.GetArgument<string>(0)})";
+                    methodName = $"{methodName}({context.Request.GetArgument(0)})";
                 } 
                 catch
                 {
