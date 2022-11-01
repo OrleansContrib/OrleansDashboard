@@ -1,20 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
-    <AssemblyVersion>$(DashboardVersion)</AssemblyVersion>
-    <Authors>OrleansContrib</Authors>
-    <Company>OrleansContrib</Company>
-    <Copyright>Copyright © 2019</Copyright>
-    <Description>An admin dashboard for Microsoft Orleans</Description>
-    <FileVersion>$(DashboardVersion)</FileVersion>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageIcon>OrleansLogo.png</PackageIcon>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/OrleansContrib/OrleansDashboard</PackageProjectUrl>
-    <PackageTags>orleans dashboard metrics monitor</PackageTags>
-    <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
-    <Version>$(DashboardVersion)</Version>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   
   <ItemGroup>
@@ -38,9 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="4.0.0-preview2" />
-    <PackageReference Include="Microsoft.Orleans.Reminders" Version="4.0.0-preview2" />
-    <PackageReference Include="Microsoft.Orleans.Sdk" Version="4.0.0-preview2" />
+    <PackageReference Include="Microsoft.Orleans.Reminders" Version="7.0.0-rc2" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.0.0-rc2" />
     <PackageReference Include="OpenTelemetry" Version="1.3.0" />
   </ItemGroup>
 

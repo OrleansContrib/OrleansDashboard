@@ -2,12 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
+	  <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Client" Version="4.0.0-preview2" />
-    <PackageReference Include="Microsoft.Orleans.Persistence.Memory" Version="4.0.0-preview2" />
+    <PackageReference Include="Microsoft.Orleans.Client" Version="7.0.0-rc2" />
+    <PackageReference Include="Microsoft.Orleans.Persistence.Memory" Version="7.0.0-rc2" />
   </ItemGroup>
 
   <ItemGroup>
