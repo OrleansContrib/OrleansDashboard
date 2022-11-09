@@ -12,6 +12,6 @@
     <PackageProjectUrl>https://github.com/OrleansContrib/OrleansDashboard</PackageProjectUrl>
     <PackageTags>orleans dashboard metrics monitor</PackageTags>
     <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
-    <Version>7.0.0-preview1</Version>
+    <Version>7.0.0</Version>
   </PropertyGroup>
 </Project>
