@@ -14,7 +14,7 @@ namespace UnitTests
 
             var name = TypeFormatter.Parse(example);
 
-            Assert.Equal("System.String", name);
+            Assert.Equal("String", name);
         }
 
         [Fact]
@@ -30,7 +30,7 @@ namespace UnitTests
         [Fact]
         public void TestFriendlyNameForStrings()
         {
-            var example = "TestGrains.GenericGrain`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]";
+            var example = "TestGrains.GenericGrain`1[[System.String,mscorlib]]";
 
             var name = TypeFormatter.Parse(example);
 
@@ -40,21 +40,21 @@ namespace UnitTests
         [Fact]
         public void TestGenericWithMultipleTs()
         {
-            var example = typeof(IGenericGrain<Tuple<string, int>>).FullName;
+            var example = "TestGrains.IGenericGrain`1[[System.Tuple`2[[string],[int]]]]";
 
             var name = TypeFormatter.Parse(example);
 
-            Assert.Equal("TestGrains.IGenericGrain<Tuple<String, Int32>>", name);
+            Assert.Equal("TestGrains.IGenericGrain<Tuple<string, int>>", name);
         }
 
         [Fact]
         public void TestGenericGrainWithMultipleTs()
         {
-            var example = typeof(ITestGenericGrain<string, int>).FullName;
+            var example = "TestGrains.ITestGenericGrain`2[[string],[int]]";
 
             var name = TypeFormatter.Parse(example);
 
-            Assert.Equal("TestGrains.ITestGenericGrain<String, Int32>", name);
+            Assert.Equal("TestGrains.ITestGenericGrain<string, int>", name);
         }
 
         [Fact]

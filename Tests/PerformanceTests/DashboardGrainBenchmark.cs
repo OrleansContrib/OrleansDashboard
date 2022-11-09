@@ -4,12 +4,14 @@ using System.Linq;
 using BenchmarkDotNet.Attributes;
 using OrleansDashboard.Model;
 using OrleansDashboard.Metrics.History;
+using System.Collections;
 
 namespace PerformanceTests
 {
+    [ShortRunJob]
+    [MemoryDiagnoser]
     public class DashboardGrainBenchmark
     {
-
         [Params(10)]
         public int SiloCount { get; set; }
 
@@ -20,93 +22,82 @@ namespace PerformanceTests
         public int GrainMethodCount { get; set; }
 
         [Params(100)]
-        public int HistorySize {get;set;}
+        public int HistorySize { get; set; }
+
+        [ParamsSource(nameof(Histories))]
+        public ITraceHistory History { get; set; }
+
+        public IEnumerable<ITraceHistory> Histories
+        {
+            get
+            {
+                yield return new TraceHistory(HistorySize);
+                yield return new TraceHistoryV2(HistorySize);
+            }
+        }
 
         [GlobalSetup]
         public void Setup()
         {
-            Setup(traceHistory);
+            var startTime = DateTime.UtcNow;
+
+            Setup(startTime, History);
+
+            testTraces = Helper.CreateTraces(startTime.AddSeconds(HistorySize), SiloCount, GrainTypeCount, GrainMethodCount).ToList();
         }
 
-        // multiple implementations of trace history could be tested here
-        readonly ITraceHistory traceHistory = new TraceHistory();
-        private int time;
-        private DateTime startTime = DateTime.UtcNow;
-        
+        private List<TestTraces> testTraces;
 
         [Benchmark]
         public void Test_Add_TraceHistory()
         {
-            var now = startTime.AddSeconds(time++);
-            AddTraceData(now, traceHistory);
+            foreach (var trace in testTraces)
+            {
+                History.Add(trace.Time, trace.Silo, trace.Traces);
+            }
         }
         
         [Benchmark]
-        public void Test_QueryAll_TraceHistory()
+        public ICollection Test_QueryAll_TraceHistory()
         {
-            traceHistory.QueryAll();
+            return History.QueryAll();
         }
 
         [Benchmark]
-        public void Test_QuerySilo_TraceHistory()
+        public ICollection Test_QuerySilo_TraceHistory()
         {
-            traceHistory.QuerySilo("SILO_0");
+            return History.QuerySilo("SILO_0");
         }
 
         [Benchmark]
-        public void Test_QueryGrain_TraceHistory()
+        public ICollection Test_QueryGrain_TraceHistory()
         {
-            traceHistory.QueryGrain("GRAIN_0");
+            return History.QueryGrain("GRAIN_0");
         }
 
         [Benchmark]
-        public void Test_GroupByGrainAndSilo_TraceHistory()
+        public ICollection Test_GroupByGrainAndSilo_TraceHistory()
         {
-            traceHistory.GroupByGrainAndSilo().ToLookup(x => (x.Grain, x.SiloAddress));
+            return History.GroupByGrainAndSilo().ToList();
         }
-
         
         [Benchmark]
-        public void Test_AggregateByGrainMethod_TraceHistory()
+        public ICollection Test_AggregateByGrainMethod_TraceHistory()
         {
-            traceHistory.AggregateByGrainMethod().ToList();
+            return History.AggregateByGrainMethod().ToList();
         }
 
-
-        private void Setup(ITraceHistory history)
+        private void Setup(DateTime startTime, ITraceHistory history)
         {
-            var start = DateTime.Now.AddSeconds(-HistorySize);
             for (var timeIndex = 0; timeIndex < HistorySize; timeIndex++)
             {
-                var time = start.AddSeconds(timeIndex);
-                AddTraceData(time, history);
-            }
+                var time = startTime.AddSeconds(timeIndex);
 
-        }
-
-        private void AddTraceData(DateTime time, ITraceHistory history)
-        {
-            for (var siloIndex = 0; siloIndex < SiloCount; siloIndex++)
-            {
-                var trace = new List<SiloGrainTraceEntry>();
-                for (var grainIndex = 0; grainIndex < GrainTypeCount; grainIndex++)
+                foreach (var trace in Helper.CreateTraces(time, SiloCount, GrainTypeCount, GrainMethodCount))
                 {
-                    for (var grainMethodIndex = 0; grainMethodIndex < GrainMethodCount; grainMethodIndex++)
-                    {
-                        trace.Add(new SiloGrainTraceEntry{
-                            ElapsedTime = 10,
-                            Count = 100,
-                            Method = $"METHOD_{grainMethodIndex}",
-                            Grain = $"GRAIN_{grainIndex}",
-                            ExceptionCount = 0
-                        });
-                    }
+                    history.Add(trace.Time, trace.Silo, trace.Traces);
                 }
-                history.Add(time, $"SILO_{siloIndex}", trace.ToArray());
             }
         }
-
-
-     
     }
 }

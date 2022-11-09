@@ -36,16 +36,14 @@ namespace OrleansDashboard
             return await remindersGrain.GetReminders(pageNumber, pageSize).ConfigureAwait(false);
         }
 
-        public async Task<Immutable<SiloRuntimeStatistics[]>> HistoricalStats(string siloGrain)
+        public async Task<Immutable<SiloRuntimeStatistics[]>> HistoricalStats(string siloAddress)
         {
-            var grain = grainFactory.GetGrain<ISiloGrain>(siloGrain);
-            return await grain.GetRuntimeStatistics().ConfigureAwait(false);
+            return await Silo(siloAddress).GetRuntimeStatistics().ConfigureAwait(false);
         }
 
-        public async Task<Immutable<Dictionary<string, string>>> SiloProperties(string siloGrain)
+        public async Task<Immutable<Dictionary<string, string>>> SiloProperties(string siloAddress)
         {
-            var grain = grainFactory.GetGrain<ISiloGrain>(siloGrain);
-            return await grain.GetExtendedProperties().ConfigureAwait(false);
+            return await Silo(siloAddress).GetExtendedProperties().ConfigureAwait(false);
         }
 
         public async Task<Immutable<Dictionary<string, GrainTraceEntry>>> SiloStats(string siloAddress)
@@ -55,8 +53,7 @@ namespace OrleansDashboard
 
         public async Task<Immutable<StatCounter[]>> GetCounters(string siloAddress)
         {
-            var grain = grainFactory.GetGrain<ISiloGrain>(siloAddress);
-            return await grain.GetCounters().ConfigureAwait(false);
+            return await Silo(siloAddress).GetCounters().ConfigureAwait(false);
         }
 
         public async Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GrainStats(string grainName)
@@ -64,9 +61,24 @@ namespace OrleansDashboard
             return await dashboardGrain.GetGrainTracing(grainName).ConfigureAwait(false);
         }
 
-        public async Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods()
+        public async Task<Immutable<Dictionary<string, GrainMethodAggregate[]>>> TopGrainMethods(int take)
         {
-            return await dashboardGrain.TopGrainMethods().ConfigureAwait(false);
+            return await dashboardGrain.TopGrainMethods(take).ConfigureAwait(false);
+        }
+
+        private ISiloGrain Silo(string siloAddress)
+        {
+            return grainFactory.GetGrain<ISiloGrain>(siloAddress);
+        }
+
+        public async Task<Immutable<string>> GetGrainState(string id, string grainType)
+        {
+            return await dashboardGrain.GetGrainState(id, grainType);
+        }
+
+        public async Task<Immutable<IEnumerable<string>>> GetGrainTypes()
+        {
+            return await dashboardGrain.GetGrainTypes();
         }
     }
 }

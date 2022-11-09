@@ -12,26 +12,24 @@ namespace TestHostCohosted2
 {
     class Program
     {
+        private static readonly int GatewayPort = 30000;
+        private static readonly int SiloPort = 11111;
+        private static readonly IPAddress SiloAddress = IPAddress.Loopback;
+
         static void Main(string[] args)
         {
             Host.CreateDefaultBuilder(args)
-                .UseOrleans(builder =>
+                .UseOrleans((_, builder) =>
                 {
-                    var siloPort = 11111;
-                    var siloAddress = IPAddress.Loopback;
-
-                    int gatewayPort = 30000;
-
-                    builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort));
+                    builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(SiloAddress, SiloPort));
                     builder.UseInMemoryReminderService();
-                    builder.ConfigureEndpoints(siloAddress, siloPort, gatewayPort);
+                    builder.AddMemoryGrainStorageAsDefault();
+                    builder.ConfigureEndpoints(SiloAddress, SiloPort, GatewayPort);
                     builder.Configure<ClusterOptions>(options =>
                     {
                         options.ClusterId = "helloworldcluster";
                         options.ServiceId = "1";
                     });
-
-                    builder.ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly));
 
                     builder.UseDashboard(options =>
                     {

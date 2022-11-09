@@ -9,19 +9,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.100
+        dotnet-version: 7.0.100-rc.2.22477.23
+        
     - name: Test
       run: |
         cd Tests/UnitTests
         dotnet test
         cd ../../
+        
     - name: Build
       run: |
-        dotnet build --configuration Release
+        dotnet build ./OrleansDashboard.sln --configuration Release
+  
     - name: Publish
       run: |
         dotnet nuget push **/Release/*.*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.nuget }} --skip-duplicate
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/4.0'

@@ -58,16 +58,7 @@ namespace OrleansDashboard
             var client = this.client;
             if (client is null)
             {
-                if (grainFactory is IClusterClient { IsInitialized: false })
-                {
-                    await WriteUnavailable(context, false);
-
-                    return;
-                }
-                else
-                {
-                    this.client = client = new DashboardClient(grainFactory);
-                }
+                this.client = client = new DashboardClient(grainFactory);
             }
 
             try
@@ -212,9 +203,32 @@ namespace OrleansDashboard
 
                 if (request.Path == "/TopGrainMethods")
                 {
-                    var result = await client.TopGrainMethods();
+                    var result = await client.TopGrainMethods(take: 5);
 
                     await WriteJson(context, result.Value);
+
+                    return;
+                }
+
+                if (request.Path == "/GrainState")
+                {
+                    request.Query.TryGetValue("grainId", out var grainId);
+
+                    request.Query.TryGetValue("grainType", out var grainType);
+
+                    var result = await client.GetGrainState(grainId, grainType);
+
+                    await WriteJson(context, result);
+
+                    return;
+                }
+
+                if (request.Path == "/GrainTypes")
+                {
+
+                    var result = await client.GetGrainTypes();
+
+                    await WriteJson(context, result);
 
                     return;
                 }

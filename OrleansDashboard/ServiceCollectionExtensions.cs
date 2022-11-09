@@ -4,8 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Orleans.ApplicationParts;
-using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
 using OrleansDashboard;
@@ -21,20 +19,11 @@ namespace Orleans
 {
     public static class ServiceCollectionExtensions
     {
-        public static ISiloHostBuilder UseDashboard(this ISiloHostBuilder builder,
-            Action<DashboardOptions> configurator = null)
-        {
-            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
-            builder.ConfigureServices(services => services.AddDashboard(configurator));
-            builder.AddStartupTask<Dashboard>();
-
-            return builder;
-        }
-
         public static ISiloBuilder UseDashboard(this ISiloBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
+            builder.AddPlacementDirector<LocalPlacementStrategy, LocalPlacementDirector>();
+
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
 
@@ -45,8 +34,9 @@ namespace Orleans
             Action<DashboardOptions> configurator = null)
         {
             services.Configure(configurator ?? (x => { }));
-            services.Configure<TelemetryOptions>(options => options.AddConsumer<DashboardTelemetryConsumer>());
-
+            services.AddSingleton<DashboardTelemetryExporter>();
+            services.AddOptions<GrainProfilerOptions>();
+            
             services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
@@ -68,52 +58,39 @@ namespace Orleans
                 return c.GetRequiredService<SiloStatusOracleSiloDetailsProvider>();
             });
 
-            services.TryAddSingleton(GrainProfilerFilter.NoopOldGrainMethodFormatter);
             services.TryAddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
-
+            
             return services;
-        }
-
-        public static IClientBuilder UseDashboard(this IClientBuilder builder)
-        {
-            builder.ConfigureApplicationParts(parts => parts.AddDashboardParts());
-
-            return builder;
-        }
-
-        private static void AddDashboardParts(this IApplicationPartManager appParts)
-        {
-            appParts
-                .AddFrameworkPart(typeof(Dashboard).Assembly)
-                .AddFrameworkPart(typeof(IDashboardGrain).Assembly);
         }
 
         public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)
         {
-            if (string.IsNullOrEmpty(options?.BasePath) || options.BasePath == "/")
+            var basePath = options?.BasePath;
+
+            if (string.IsNullOrEmpty(basePath) || basePath == "/")
             {
                 app.UseMiddleware<DashboardMiddleware>();
             }
             else
             {
-                // Make sure there is a leading slash
-                var basePath = options.BasePath.StartsWith("/") ? options.BasePath : $"/{options.BasePath}";
+                // Make sure there is a leading slash                
+                if (!basePath.StartsWith("/"))
+                {
+                    basePath = $"/{options.BasePath}";
+                }
 
-                app.Map(basePath, a => a.UseMiddleware<DashboardMiddleware>());
+                app.Map(basePath, app =>
+                {
+                    app.UseMiddleware<DashboardMiddleware>();
+                });
             }
 
             return app;
         }
 
-        public static IServiceCollection AddServicesForSelfHostedDashboard(this IServiceCollection services, IClusterClient client = null,
+        public static IServiceCollection AddServicesForSelfHostedDashboard(this IServiceCollection services,
             Action<DashboardOptions> configurator = null)
         {
-            if (client != null)
-            {
-                services.AddSingleton(client);
-                services.AddSingleton<IGrainFactory>(c => c.GetRequiredService<IClusterClient>());
-            }
-
             services.Configure(configurator ?? (x => { }));
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);

@@ -1,101 +1,88 @@
-﻿using System.Net;
-using System.Threading;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Runtime;
+using System.Net;
+using System.Threading.Tasks;
 using TestGrains;
-
-// ReSharper disable MethodSupportsCancellation
 
 namespace TestHostSeparate
 {
     public static class Program
     {
-        // by default this will start the dashboard on http://localhost:5000/dashboard
-     
-        public static void Main(string[] args)
+        private static readonly int GatewayPort = 30000;
+        private static readonly int SiloPort = 11111;
+        private static readonly IPAddress SiloAddress = IPAddress.Loopback;
+
+        public static async Task Main(string[] args)
         {
-            var siloPort = 11111;
-            int gatewayPort = 30000;
-            var siloAddress = IPAddress.Loopback;
+            //
+            // In this sample we just integrate the Dashboard middleware into the client application.
+            // 
+            var siloHost =
+                Host.CreateDefaultBuilder(args)
+                    .UseOrleans((_, builder) =>
+                    {
+                        builder.UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(SiloAddress, SiloPort));
+                        builder.UseInMemoryReminderService();
+                        builder.AddMemoryGrainStorageAsDefault();
+                        builder.ConfigureEndpoints(SiloAddress, SiloPort, GatewayPort);
+                        builder.Configure<ClusterOptions>(options =>
+                        {
+                            options.ClusterId = "helloworldcluster";
+                            options.ServiceId = "1";
+                        });
 
-            var silo =
-                new SiloHostBuilder()
-                    .UseDashboard(options =>
-                    {
-                        options.HostSelf = false;
+                        builder.UseDashboard(options =>
+                        {
+                            options.HostSelf = false;
+                        });
                     })
-                    .UseDevelopmentClustering(options => options.PrimarySiloEndpoint = new IPEndPoint(siloAddress, siloPort))
-                    .UseInMemoryReminderService()
-                    .ConfigureEndpoints(siloAddress, siloPort, gatewayPort)
-                    .Configure<ClusterOptions>(options => 
+                    .ConfigureServices(services =>
                     {
-                        options.ClusterId = "helloworldcluster";
-                        options.ServiceId = "1";
-                    })
-                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
-                    .ConfigureLogging(builder =>
-                    {
-                        builder.AddConsole();
-                    })
-                    .Build();
-
-            silo.StartAsync().Wait();
-
-            var client =
-                new ClientBuilder()
-                    .UseDashboard()
-                    .UseStaticClustering(options => options.Gateways.Add((new IPEndPoint(siloAddress, gatewayPort)).ToGatewayUri()))
-                    .Configure<ClusterOptions>(options => 
-                    {
-                        options.ClusterId = "helloworldcluster";
-                        options.ServiceId = "1";
-                    })
-                    .ConfigureApplicationParts(appParts => appParts.AddApplicationPart(typeof(TestCalls).Assembly))
-                    .ConfigureLogging(builder =>
-                    {
-                        builder.AddConsole();
+                        services.AddSingleton<IHostedService, TestGrainsHostedService>();
                     })
                     .Build();
 
-            client.Connect().Wait();
+            await siloHost.StartAsync();
 
-            var cts = new CancellationTokenSource();
+            await Task.Delay(1000);
 
-            TestCalls.Make(client, cts);
-
-            WebHost.CreateDefaultBuilder(args)
-                .ConfigureServices(services =>
+            Host.CreateDefaultBuilder(args)
+                .UseOrleansClient((_, builder) =>
                 {
-                    services.AddServicesForSelfHostedDashboard(client, options =>
+                    builder.UseStaticClustering(options => options.Gateways.Add((new IPEndPoint(SiloAddress, GatewayPort)).ToGatewayUri()));
+                    builder.Configure<ClusterOptions>(options =>
                     {
-                        options.HideTrace = true;
+                        options.ClusterId = "helloworldcluster";
+                        options.ServiceId = "1";
                     });
                 })
-                .ConfigureLogging(builder =>
+                .ConfigureServices(services =>
                 {
-                    builder.AddConsole();
+                    services.AddServicesForSelfHostedDashboard();
                 })
-                .Configure(app =>
+                .ConfigureWebHostDefaults(builder =>
                 {
-                    app.UseOrleansDashboard();
-
-                    app.Map("/dashboard", d =>
+                    builder.Configure(app =>
                     {
-                        d.UseOrleansDashboard();
+                        app.UseOrleansDashboard();
+
+                        app.Map("/dashboard", d =>
+                        {
+                            d.UseOrleansDashboard();
+                        });
                     });
                 })
                 .Build()
                 .Run();
 
-            cts.Cancel();
+            await siloHost.StopAsync();
 
-            silo.StopAsync().Wait();
         }
     }
 }
