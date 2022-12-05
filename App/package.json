@@ -29,7 +29,7 @@
     "envify": "^4.1.0",
     "eslint": "^5.14.1",
     "eslint-plugin-react": "^7.11.1",
-    "mocha": "^5.2.0",
+    "mocha": "^10.1.0",
     "uglify-js": "^3.4.8",
     "uglifyify": "^5.0.1",
     "watchify": "^3.11.1"
