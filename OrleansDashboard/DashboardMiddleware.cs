@@ -12,7 +12,6 @@ using OrleansDashboard.Implementation.Assets;
 using OrleansDashboard.Model;
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
-
 namespace OrleansDashboard
 {
     public sealed class DashboardMiddleware
@@ -35,7 +34,6 @@ namespace OrleansDashboard
         private readonly RequestDelegate next;
         private readonly IGrainFactory grainFactory;
         private readonly IAssetProvider assetProvider;
-        
         private IDashboardClient client;
 
         public DashboardMiddleware(RequestDelegate next,
@@ -63,19 +61,20 @@ namespace OrleansDashboard
 
             try
             {
-
                 if (request.Path == "/" || string.IsNullOrEmpty(request.Path))
                 {
                     await WriteIndexFile(context);
 
                     return;
                 }
+
                 if (request.Path == "/favicon.ico")
                 {
                     await WriteFileAsync(context, "favicon.ico", "image/x-icon");
 
                     return;
                 }
+
                 if (request.Path == "/index.min.js")
                 {
                     await WriteFileAsync(context, "index.min.js", "application/javascript");
@@ -85,7 +84,8 @@ namespace OrleansDashboard
 
                 if (request.Path == "/version")
                 {
-                    await WriteJson(context, new { version = typeof(DashboardMiddleware).Assembly.GetName().Version.ToString() });
+                    await WriteJson(context,
+                        new {version = typeof(DashboardMiddleware).Assembly.GetName().Version.ToString()});
 
                     return;
                 }
@@ -133,13 +133,15 @@ namespace OrleansDashboard
                     catch
                     {
                         // if reminders are not configured, the call to the grain will fail
-                        await WriteJson(context, new ReminderResponse { Reminders = Array.Empty<ReminderInfo>(), Count = 0 });
+                        await WriteJson(context,
+                            new ReminderResponse {Reminders = Array.Empty<ReminderInfo>(), Count = 0});
                     }
 
                     return;
                 }
 
-                if (request.Path.StartsWithSegments("/Reminders", out var pageString1) && int.TryParse(pageString1.ToValue(), out var page))
+                if (request.Path.StartsWithSegments("/Reminders", out var pageString1) &&
+                    int.TryParse(pageString1.ToValue(), out var page))
                 {
                     try
                     {
@@ -150,7 +152,8 @@ namespace OrleansDashboard
                     catch
                     {
                         // if reminders are not configured, the call to the grain will fail
-                        await WriteJson(context, new ReminderResponse { Reminders = Array.Empty<ReminderInfo>(), Count = 0 });
+                        await WriteJson(context,
+                            new ReminderResponse {Reminders = Array.Empty<ReminderInfo>(), Count = 0});
                     }
 
                     return;
@@ -225,7 +228,6 @@ namespace OrleansDashboard
 
                 if (request.Path == "/GrainTypes")
                 {
-
                     var result = await client.GetGrainTypes();
 
                     await WriteJson(context, result.Value);
@@ -319,7 +321,7 @@ namespace OrleansDashboard
                     // We're deliberately not escaping path as we're keep things lightweight and we don't want to bring in other dependencies
                     string path => $@"<link rel=""stylesheet"" type=""text/css"" href=""{path}"" />",
                     _ => string.Empty
-                }) ;
+                });
 
                 await context.Response.WriteAsync(content);
             }
@@ -339,16 +341,17 @@ namespace OrleansDashboard
             {
                 await using (var writer = new TraceWriter(logger, context))
                 {
-                    await writer.WriteAsync(@"
-   ____       _                        _____            _     _                         _
-  / __ \     | |                      |  __ \          | |   | |                       | |
- | |  | |_ __| | ___  __ _ _ __  ___  | |  | | __ _ ___| |__ | |__   ___   __ _ _ __ __| |
- | |  | | '__| |/ _ \/ _` | '_ \/ __| | |  | |/ _` / __| '_ \| '_ \ / _ \ / _` | '__/ _` |
- | |__| | |  | |  __/ (_| | | | \__ \ | |__| | (_| \__ \ | | | |_) | (_) | (_| | | | (_| |
-  \____/|_|  |_|\___|\__,_|_| |_|___/ |_____/ \__,_|___/_| |_|_.__/ \___/ \__,_|_|  \__,_|
-
-You are connected to the Orleans Dashboard log streaming service
-").ConfigureAwait(false);
+                    await writer.WriteAsync("""
+                           ____       _                        _____            _     _                         _
+                          / __ \     | |                      |  __ \          | |   | |                       | |
+                         | |  | |_ __| | ___  __ _ _ __  ___  | |  | | __ _ ___| |__ | |__   ___   __ _ _ __ __| |
+                         | |  | | '__| |/ _ \/ _` | '_ \/ __| | |  | |/ _` / __| '_ \| '_ \ / _ \ / _` | '__/ _` |
+                         | |__| | |  | |  __/ (_| | | | \__ \ | |__| | (_| \__ \ | | | |_) | (_) | (_| | | | (_| |
+                          \____/|_|  |_|\___|\__,_|_| |_|___/ |_____/ \__,_|___/_| |_|_.__/ \___/ \__,_|_|  \__,_|
+                        
+                        You are connected to the Orleans Dashboard log streaming service
+                        """)
+                        .ConfigureAwait(false);
 
                     await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
 
