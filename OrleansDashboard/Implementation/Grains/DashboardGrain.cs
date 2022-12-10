@@ -336,10 +336,11 @@ namespace OrleansDashboard
             }).AsImmutable();
         }
 
-        public Task<Immutable<IEnumerable<string>>> GetGrainTypes()
+        public Task<Immutable<string[]>> GetGrainTypes()
         {
             return Task.FromResult(GrainStateHelper.GetGrainTypes()
                                      .Select(s => s.Namespace + "." + s.Name)
+                                     .ToArray()
                                      .AsImmutable());
         }
     }
