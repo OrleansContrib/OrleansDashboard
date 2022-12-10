@@ -319,7 +319,7 @@ namespace OrleansDashboard
                 content = content.Replace("{{CUSTOM_CSS}}", options.Value.CustomCssPath switch
                 {
                     // We're deliberately not escaping path as we're keep things lightweight and we don't want to bring in other dependencies
-                    string path => $@"<link rel=""stylesheet"" type=""text/css"" href=""{path}"" />",
+                    { } path => $@"<link rel=""stylesheet"" type=""text/css"" href=""{path}"" />",
                     _ => string.Empty
                 });
 
