@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -32,9 +33,9 @@ namespace OrleansDashboard
         private readonly IOptions<DashboardOptions> options;
         private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
-        private readonly IGrainFactory grainFactory;
         private readonly IAssetProvider assetProvider;
-        private IDashboardClient client;
+        private readonly Lazy<IDashboardClient> lazyClient;
+        private IDashboardClient Client => lazyClient.Value;
 
         public DashboardMiddleware(RequestDelegate next,
             IGrainFactory grainFactory,
@@ -45,19 +46,16 @@ namespace OrleansDashboard
             this.options = options;
             this.logger = logger;
             this.next = next;
-            this.grainFactory = grainFactory;
             this.assetProvider = assetProvider;
+            // ASP.NET Core uses a single instance of a middleware component to process multiple requests,
+            this.lazyClient = new Lazy<IDashboardClient>(
+                () => new DashboardClient(grainFactory),
+                LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         public async Task Invoke(HttpContext context)
         {
             var request = context.Request;
-
-            var client = this.client;
-            if (client is null)
-            {
-                this.client = client = new DashboardClient(grainFactory);
-            }
 
             try
             {
@@ -106,7 +104,7 @@ namespace OrleansDashboard
 
                 if (request.Path == "/DashboardCounters")
                 {
-                    var result = await client.DashboardCounters();
+                    var result = await Client.DashboardCounters();
 
                     await WriteJson(context, result.Value);
 
@@ -115,7 +113,7 @@ namespace OrleansDashboard
 
                 if (request.Path == "/ClusterStats")
                 {
-                    var result = await client.ClusterStats();
+                    var result = await Client.ClusterStats();
 
                     await WriteJson(context, result.Value);
 
@@ -126,7 +124,7 @@ namespace OrleansDashboard
                 {
                     try
                     {
-                        var result = await client.GetReminders(1, REMINDER_PAGE_SIZE);
+                        var result = await Client.GetReminders(1, REMINDER_PAGE_SIZE);
 
                         await WriteJson(context, result.Value);
                     }
@@ -145,7 +143,7 @@ namespace OrleansDashboard
                 {
                     try
                     {
-                        var result = await client.GetReminders(page, REMINDER_PAGE_SIZE);
+                        var result = await Client.GetReminders(page, REMINDER_PAGE_SIZE);
 
                         await WriteJson(context, result.Value);
                     }
@@ -161,7 +159,7 @@ namespace OrleansDashboard
 
                 if (request.Path.StartsWithSegments("/HistoricalStats", out var remaining))
                 {
-                    var result = await client.HistoricalStats(remaining.ToValue());
+                    var result = await Client.HistoricalStats(remaining.ToValue());
 
                     await WriteJson(context, result.Value);
 
@@ -170,7 +168,7 @@ namespace OrleansDashboard
 
                 if (request.Path.StartsWithSegments("/SiloProperties", out var address1))
                 {
-                    var result = await client.SiloProperties(address1.ToValue());
+                    var result = await Client.SiloProperties(address1.ToValue());
 
                     await WriteJson(context, result.Value);
 
@@ -179,7 +177,7 @@ namespace OrleansDashboard
 
                 if (request.Path.StartsWithSegments("/SiloStats", out var address2))
                 {
-                    var result = await client.SiloStats(address2.ToValue());
+                    var result = await Client.SiloStats(address2.ToValue());
 
                     await WriteJson(context, result.Value);
 
@@ -188,7 +186,7 @@ namespace OrleansDashboard
 
                 if (request.Path.StartsWithSegments("/SiloCounters", out var address3))
                 {
-                    var result = await client.GetCounters(address3.ToValue());
+                    var result = await Client.GetCounters(address3.ToValue());
 
                     await WriteJson(context, result.Value);
 
@@ -197,7 +195,7 @@ namespace OrleansDashboard
 
                 if (request.Path.StartsWithSegments("/GrainStats", out var grainName1))
                 {
-                    var result = await client.GrainStats(grainName1.ToValue());
+                    var result = await Client.GrainStats(grainName1.ToValue());
 
                     await WriteJson(context, result.Value);
 
@@ -206,7 +204,7 @@ namespace OrleansDashboard
 
                 if (request.Path == "/TopGrainMethods")
                 {
-                    var result = await client.TopGrainMethods(take: 5);
+                    var result = await Client.TopGrainMethods(take: 5);
 
                     await WriteJson(context, result.Value);
 
@@ -219,7 +217,7 @@ namespace OrleansDashboard
 
                     request.Query.TryGetValue("grainType", out var grainType);
 
-                    var result = await client.GetGrainState(grainId, grainType);
+                    var result = await Client.GetGrainState(grainId, grainType);
 
                     await WriteJson(context, result.Value);
 
@@ -228,7 +226,7 @@ namespace OrleansDashboard
 
                 if (request.Path == "/GrainTypes")
                 {
-                    var result = await client.GetGrainTypes();
+                    var result = await Client.GetGrainTypes();
 
                     await WriteJson(context, result.Value);
 
@@ -286,7 +284,7 @@ namespace OrleansDashboard
 
             var stream = OpenFile(name, assembly);
 
-            using (stream)
+            await using (stream)
             {
                 await stream.CopyToAsync(context.Response.Body);
             }
@@ -301,9 +299,9 @@ namespace OrleansDashboard
 
             var stream = OpenFile("Index.html", assembly);
 
-            using (stream)
+            await using (stream)
             {
-                var content = new StreamReader(stream).ReadToEnd();
+                var content = await new StreamReader(stream).ReadToEndAsync();
 
                 var basePath = string.IsNullOrWhiteSpace(options.Value.ScriptPath)
                     ? context.Request.PathBase.ToString()
@@ -339,9 +337,8 @@ namespace OrleansDashboard
 
             try
             {
-                await using (var writer = new TraceWriter(logger, context))
-                {
-                    await writer.WriteAsync("""
+                await using var writer = new TraceWriter(logger, context);
+                await writer.WriteAsync("""
                            ____       _                        _____            _     _                         _
                           / __ \     | |                      |  __ \          | |   | |                       | |
                          | |  | |_ __| | ___  __ _ _ __  ___  | |  | | __ _ ___| |__ | |__   ___   __ _ _ __ __| |
@@ -351,12 +348,11 @@ namespace OrleansDashboard
                         
                         You are connected to the Orleans Dashboard log streaming service
                         """)
-                        .ConfigureAwait(false);
+                    .ConfigureAwait(false);
 
-                    await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
 
-                    await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
-                }
+                await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
