@@ -60,7 +60,7 @@ module.exports = class GrainDetails extends React.Component {
                   <select value={this.state.grainType} className="form-control" onChange={this.handleGrainTypeChange}>
                     <option disabled selected value=""> -- Select an grain type -- </option>
                     {
-                      this.props.grainTypes.value.map((_item) => <option key={_item} value={_item}>{_item}</option>)
+                      this.props.grainTypes.map((_item) => <option key={_item} value={_item}>{_item}</option>)
                     }
                   </select>
                 </div>
