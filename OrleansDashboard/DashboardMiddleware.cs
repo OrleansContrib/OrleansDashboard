@@ -219,7 +219,7 @@ namespace OrleansDashboard
 
                     var result = await Client.GetGrainState(grainId, grainType);
 
-                    await WriteJson(context, result);
+                    await WriteJson(context, result.Value);
 
                     return;
                 }

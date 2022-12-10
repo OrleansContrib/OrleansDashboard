@@ -25,7 +25,7 @@ module.exports = class GrainDetails extends React.Component {
     let component = this;
 
     http.get('GrainState?grainId=' + this.state.grainId + '&grainType=' + this.state.grainType, function (err, data) {
-      component.setState({ grainState: data.value });
+      component.setState({ grainState: data });
     }).then(() => {
 
     });
