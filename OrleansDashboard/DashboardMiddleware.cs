@@ -219,7 +219,7 @@ namespace OrleansDashboard
 
                     var result = await Client.GetGrainState(grainId, grainType);
 
-                    await WriteJson(context, result.Value);
+                    await WriteJson(context, result);
 
                     return;
                 }
@@ -228,7 +228,7 @@ namespace OrleansDashboard
                 {
                     var result = await Client.GetGrainTypes();
 
-                    await WriteJson(context, result.Value);
+                    await WriteJson(context, result);
 
                     return;
                 }
@@ -271,8 +271,10 @@ namespace OrleansDashboard
             context.Response.StatusCode = 200;
             context.Response.ContentType = "text/json";
 
-            await using var writer = new Utf8JsonWriter(context.Response.BodyWriter);
-            JsonSerializer.Serialize(writer, content, Options);
+            await using (var writer = new Utf8JsonWriter(context.Response.BodyWriter))
+            {
+                JsonSerializer.Serialize(writer, content, Options);
+            }
         }
 
         private static async Task WriteFileAsync(HttpContext context, string name, string contentType)
