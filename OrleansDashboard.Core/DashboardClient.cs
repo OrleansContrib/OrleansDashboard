@@ -76,7 +76,7 @@ namespace OrleansDashboard
             return await dashboardGrain.GetGrainState(id, grainType);
         }
 
-        public async Task<Immutable<IEnumerable<string>>> GetGrainTypes()
+        public async Task<Immutable<string[]>> GetGrainTypes()
         {
             return await dashboardGrain.GetGrainTypes();
         }
