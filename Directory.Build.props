@@ -5,13 +5,13 @@
     <Authors>OrleansContrib</Authors>
     <Company>OrleansContrib</Company>
     <Copyright>Copyright © 2022</Copyright>
-    <Description>An admin dashboard for Microsoft Orleans</Description>
+    <Description>A developer dashboard for Microsoft Orleans</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageIcon>OrleansLogo.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/OrleansContrib/OrleansDashboard</PackageProjectUrl>
     <PackageTags>orleans dashboard metrics monitor</PackageTags>
     <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
-    <Version>7.0.0</Version>
+    <Version>7.0.1</Version>
   </PropertyGroup>
 </Project>
