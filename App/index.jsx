@@ -529,7 +529,7 @@ function getMenu() {
   result.push({
     name: 'Preferences',
     path: '#/preferences',
-    icon: 'fa fa-gear',
+    icon: 'fa fa-cog',
     style: { position: 'absolute', bottom: 0, left: 0, right: 0 }
   })
 
