@@ -1,6 +1,5 @@
 <Project>
   <PropertyGroup>
-    <OrleansPackageVersion Condition="'$(OrleansPackageVersion)'==''">3.1.6</OrleansPackageVersion>
     <AssemblyVersion>$(DashboardVersion)</AssemblyVersion>
     <Authors>OrleansContrib</Authors>
     <Company>OrleansContrib</Company>
@@ -12,6 +11,6 @@
     <PackageProjectUrl>https://github.com/OrleansContrib/OrleansDashboard</PackageProjectUrl>
     <PackageTags>orleans dashboard metrics monitor</PackageTags>
     <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
-    <Version>7.0.1</Version>
+    <Version>7.0.2</Version>
   </PropertyGroup>
 </Project>
