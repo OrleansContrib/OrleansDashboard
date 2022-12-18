@@ -124,6 +124,9 @@ namespace OrleansDashboard.Metrics.History
 
         public IEnumerable<TraceAggregate> GroupByGrainAndSilo()
         {
+            var time = GetRetirementWindow(DateTime.UtcNow);
+            var periodStart = time.ToPeriodNumber();
+
             return history.GroupBy(x => (x.Key.Grain, x.Key.SiloAddress)).Select(group =>
             {
                 var result = new TraceAggregate
@@ -140,6 +143,7 @@ namespace OrleansDashboard.Metrics.History
                     for (var i = 0; i < bufferCount; i++)
                     {
                         var record = bufferList[i];
+                        if (record.PeriodNumber < periodStart) continue;
 
                         result.Count += record.Count;
                         result.ExceptionCount += record.ExceptionCount;
@@ -153,6 +157,9 @@ namespace OrleansDashboard.Metrics.History
 
         public IEnumerable<GrainMethodAggregate> AggregateByGrainMethod()
         {
+            var time = GetRetirementWindow(DateTime.UtcNow);
+            var periodStart = time.ToPeriodNumber();
+
             return history.GroupBy(x => (x.Key.Grain, x.Key.Method)).Select(group =>
             {
                 var result = new GrainMethodAggregate
@@ -170,6 +177,7 @@ namespace OrleansDashboard.Metrics.History
                     for (var i = 0; i < bufferCount; i++)
                     {
                         var record = bufferList[i];
+                        if (record.PeriodNumber < periodStart) continue;
 
                         result.Count += record.Count;
                         result.ExceptionCount += record.ExceptionCount;
