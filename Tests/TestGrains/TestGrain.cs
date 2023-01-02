@@ -11,6 +11,8 @@ namespace TestGrains
         Task ExampleMethod1();
 
         Task ExampleMethod2();
+
+        Task<int> ExampleMethod3();
     }
 
     public class TestGrain : Grain, ITestGrain, IRemindable
@@ -26,10 +28,15 @@ namespace TestGrains
         {
             if (random.Next(100) > 50)
             {
-                throw new Exception();
+                //throw new Exception();
             }
 
             return Task.CompletedTask;
+        }
+
+        public Task<int> ExampleMethod3()
+        {
+            return Task.FromResult(random.Next(100));
         }
 
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
@@ -40,6 +47,11 @@ namespace TestGrains
         }
 
         public Task ReceiveReminder(string reminderName, TickStatus status)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task ThisMethodShouldNotAppearInTheDashboard()
         {
             return Task.CompletedTask;
         }

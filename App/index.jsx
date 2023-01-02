@@ -349,28 +349,51 @@ routie('/grain/:grainType', function (grainType) {
 })
 
 
+<<<<<<< HEAD
 routie('/grainDetails', function () {
+=======
+routie('/grainState/:grainType/:grainId', function(grainType, grainId) {
+>>>>>>> add initial support for grain state output
   var thisRouteIndex = ++routeIndex
   events.clearAll()
   scroll()
   renderLoading()
 
+<<<<<<< HEAD
   var grainTypes = {}
   var loadDataIsPending = false;
   var loadData = function (cb) {
     if (!loadDataIsPending) {
       http.get('GrainTypes', function (err, data) {
         grainTypes = data
+=======
+  var grainState = {}
+  var loadDataIsPending = false;
+  var loadData = function(cb) {
+    if (!loadDataIsPending) {
+      http.get('GrainState?grainId=' + grainId + '&grainType='+ grainType, function(err, data) {
+        grainState = data
+>>>>>>> add initial support for grain state output
         render()
       }).finally(() => loadDataIsPending = false);
     }
   }
 
+<<<<<<< HEAD
   render = function () {
     if (routeIndex != thisRouteIndex) return
     renderPage(
       <GrainDetails
         grainTypes={grainTypes}
+=======
+  render = function() {
+    if (routeIndex != thisRouteIndex) return
+    renderPage(
+      <GrainState
+        grainType={grainType}
+        grainId={grainId}
+        state={grainState}
+>>>>>>> add initial support for grain state output
       />,
       '#/grainState'
     )
@@ -379,7 +402,11 @@ routie('/grainDetails', function () {
   loadData()
 })
 
+<<<<<<< HEAD
 routie('/reminders/:page?', function (page) {
+=======
+routie('/reminders/:page?', function(page) {
+>>>>>>> add initial support for grain state output
   var thisRouteIndex = ++routeIndex
   events.clearAll()
   scroll()

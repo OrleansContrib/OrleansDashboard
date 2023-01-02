@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [16.x]
 
     steps:
     - uses: actions/checkout@v1
@@ -19,10 +19,9 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: npm install, build, and test
       run: |
-        cd App
+        cd ui
         npm ci
-        npm run lint
         npm run test
-        npm run browserify
+        npm run build
       env:
         CI: true

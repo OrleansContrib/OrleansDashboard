@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Concurrency;
@@ -76,7 +79,7 @@ namespace OrleansDashboard
             return await dashboardGrain.GetGrainState(id, grainType);
         }
 
-        public async Task<Immutable<string[]>> GetGrainTypes()
+        public async Task<Immutable<CallableGrainMethod[]>> GetGrainTypes()
         {
             return await dashboardGrain.GetGrainTypes();
         }
