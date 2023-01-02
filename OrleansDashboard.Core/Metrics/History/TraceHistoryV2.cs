@@ -8,10 +8,6 @@ namespace OrleansDashboard.Metrics.History
 {
     public sealed class TraceHistoryV2 : ITraceHistory
     {
-<<<<<<< HEAD
-=======
-        private const string SEPARATOR = ".";
->>>>>>> Ring buffers.
         private readonly Dictionary<HistoryKey, RingBuffer<HistoryEntry>> history = new Dictionary<HistoryKey, RingBuffer<HistoryEntry>>(100);
         private readonly int capacity;
 

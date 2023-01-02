@@ -239,7 +239,7 @@ namespace OrleansDashboard
 
                     request.Query.TryGetValue("grainType", out var grainType);
 
-                    var result = await client.GetGrainState(grainId, grainType);
+                    var result = await Client.GetGrainState(grainId, grainType);
 
                     await WriteJson(context, result);
 
