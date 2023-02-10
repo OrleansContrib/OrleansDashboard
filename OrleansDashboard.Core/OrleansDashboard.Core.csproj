@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Runtime" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Orleans.Runtime" Version="7.1.0" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.1.0" />
   </ItemGroup>
 	
   <ItemGroup>
