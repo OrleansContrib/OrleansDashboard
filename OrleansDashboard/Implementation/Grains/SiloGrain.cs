@@ -9,10 +9,10 @@ using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
-using OrleansDashboard.Implementation;
+using OrleansDashboard.Metrics;
 using OrleansDashboard.Model;
 
-namespace OrleansDashboard.Metrics.Grains
+namespace OrleansDashboard.Implementation.Grains
 {
     [LocalPlacement]
     public sealed class SiloGrain : Grain, ISiloGrain
