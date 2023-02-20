@@ -1,26 +1,23 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using OrleansDashboard.Model;
-using OrleansDashboard.Model.History;
+using OrleansDashboard.Implementation.Helpers;
+using OrleansDashboard.Metrics;
 using OrleansDashboard.Metrics.Details;
 using OrleansDashboard.Metrics.History;
 using OrleansDashboard.Metrics.TypeFormatting;
-using System.Threading;
-using OrleansDashboard.Metrics;
-using System.Dynamic;
-using System.Reflection;
-using Orleans.Core;
-using System.Text.Json;
-using OrleansDashboard.Implementation.Helpers;
-using Orleans.Serialization.TypeSystem;
+using OrleansDashboard.Model;
+using OrleansDashboard.Model.History;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Implementation.Grains
 {
     [Reentrant]
     public class DashboardGrain : Grain, IDashboardGrain

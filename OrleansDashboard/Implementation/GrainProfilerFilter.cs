@@ -5,8 +5,9 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Orleans;
+using OrleansDashboard.Metrics;
 
-namespace OrleansDashboard.Metrics
+namespace OrleansDashboard.Implementation
 {
     public class GrainProfilerFilter : IIncomingGrainCallFilter
     {

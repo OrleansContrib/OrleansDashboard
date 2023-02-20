@@ -5,7 +5,7 @@ using Orleans;
 using Orleans.Concurrency;
 using OrleansDashboard.Model;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Implementation.Grains
 {
     public class DashboardRemindersGrain : Grain, IDashboardRemindersGrain
     {
