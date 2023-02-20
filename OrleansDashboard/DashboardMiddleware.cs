@@ -47,9 +47,11 @@ namespace OrleansDashboard
         {
             this.next = next;
             this.assetProvider = assetProvider;
+            this.options = options;
+            this.logger = logger;
             // ASP.NET Core uses a single instance of a middleware component to process multiple requests,
             this.lazyClient = new Lazy<IDashboardClient>(
-                () => new DashboardClient(grainFactory),
+                () => new DashboardClient(grainFactory, siloGrainClient),
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
