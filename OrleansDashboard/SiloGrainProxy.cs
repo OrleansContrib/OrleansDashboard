@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Orleans;
 using Orleans.Concurrency;
@@ -12,20 +11,13 @@ namespace OrleansDashboard;
 [PreferLocalPlacement]
 public sealed class SiloGrainProxy : Grain, ISiloGrainProxy
 {
-    private readonly ISiloGrainClient siloGrainClient;
-    private ISiloGrainService siloGrainService;
+    private readonly ISiloGrainService siloGrainService;
 
     public SiloGrainProxy(ISiloGrainClient siloGrainClient)
-    {
-        this.siloGrainClient = siloGrainClient;
-    }
-
-    public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
         siloGrainService = siloGrainClient.GrainService(
             SiloAddress.FromParsableString(this.GetPrimaryKeyString())
         );
-        return base.OnActivateAsync(cancellationToken);
     }
 
     public Task SetVersion(string orleans, string host)
