@@ -19,7 +19,7 @@ namespace OrleansDashboard
 
         Task<Immutable<Dictionary<string,string>>> GetExtendedProperties();
 
-        Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics();
+        Task<Immutable<List<SiloRuntimeStatistics>>> GetRuntimeStatistics();
 
         Task<Immutable<StatCounter[]>> GetCounters();
     }

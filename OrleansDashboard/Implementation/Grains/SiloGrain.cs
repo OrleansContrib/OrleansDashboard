@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Orleans;
@@ -17,7 +18,7 @@ namespace OrleansDashboard.Metrics.Grains
     public sealed class SiloGrain : Grain, ISiloGrain
     {
         private const int DefaultTimerIntervalMs = 1000; // 1 second
-        private readonly Queue<SiloRuntimeStatistics> statistics = new Queue<SiloRuntimeStatistics>();
+        private readonly Channel<SiloRuntimeStatistics> statistics;
         private readonly Dictionary<string, StatCounter> counters = new Dictionary<string, StatCounter>();
         private readonly DashboardOptions options;
         private readonly ILocalSiloDetails silo;
@@ -31,6 +32,14 @@ namespace OrleansDashboard.Metrics.Grains
             this.silo = silo;
             this.profiler = profiler;
             this.options = options.Value;
+            statistics = Channel.CreateBounded<SiloRuntimeStatistics>(
+                new BoundedChannelOptions(options.Value.HistoryLength)
+                {
+                    SingleReader = true,
+                    SingleWriter = true,
+                    FullMode = BoundedChannelFullMode.DropOldest,
+                    AllowSynchronousContinuations = true,
+                });
         }
 
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
@@ -38,22 +47,20 @@ namespace OrleansDashboard.Metrics.Grains
             var id = this.GetPrimaryKeyString();
 
             // Ensure that the grain is not activated on another silo.
-            if (!string.Equals(id, silo.SiloAddress.ToParsableString()))
+            var siloAddress = silo.SiloAddress.ToParsableString();
+            if (!string.Equals(id, siloAddress))
             {
-                DeactivateOnIdle();
-                return;
+                // for now Calling DeactivateOnIdle from within OnActivateAsync is not supported so throw an exception
+                throw new InvalidOperationException(
+                    $"Silo grain {id} must not be activated on this silo {siloAddress}");
             }
 
-            foreach (var x in Enumerable.Range(1, options.HistoryLength))
-            {
-                statistics.Enqueue(null);
-            }
+            var updateInterval =
+                TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
 
-            var updateInterval =  TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
-            
             try
             {
-                timer = RegisterTimer(x => CollectStatistics((bool)x), true, updateInterval, updateInterval);
+                timer = RegisterTimer(x => CollectStatistics((bool) x), true, updateInterval, updateInterval);
 
                 await CollectStatistics(false);
             }
@@ -72,14 +79,9 @@ namespace OrleansDashboard.Metrics.Grains
             {
                 var siloAddress = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
 
-                var results = (await managementGrain.GetRuntimeStatistics(new[] { siloAddress })).FirstOrDefault();
+                var results = (await managementGrain.GetRuntimeStatistics(new[] {siloAddress})).FirstOrDefault();
 
-                statistics.Enqueue(results);
-
-                while (statistics.Count > options.HistoryLength)
-                {
-                    statistics.Dequeue();
-                }
+                await statistics.Writer.WriteAsync(results);
             }
             catch (Exception)
             {
@@ -88,6 +90,7 @@ namespace OrleansDashboard.Metrics.Grains
                 {
                     timer?.Dispose();
                     timer = null;
+                    statistics.Writer.TryComplete();
 
                     DeactivateOnIdle();
                 }
@@ -126,9 +129,15 @@ namespace OrleansDashboard.Metrics.Grains
             return Task.CompletedTask;
         }
 
-        public Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics()
+        public async Task<Immutable<List<SiloRuntimeStatistics>>> GetRuntimeStatistics()
         {
-            return Task.FromResult(statistics.ToArray().AsImmutable());
+            var result = new List<SiloRuntimeStatistics>(statistics.Reader.Count);
+            await foreach (var stat in statistics.Reader.ReadAllAsync(CancellationToken.None))
+            {
+                result.Add(stat);
+            }
+
+            return result.AsImmutable();
         }
 
         public Task<Immutable<StatCounter[]>> GetCounters()

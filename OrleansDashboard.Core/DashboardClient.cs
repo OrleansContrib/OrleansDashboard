@@ -36,7 +36,7 @@ namespace OrleansDashboard
             return await remindersGrain.GetReminders(pageNumber, pageSize).ConfigureAwait(false);
         }
 
-        public async Task<Immutable<SiloRuntimeStatistics[]>> HistoricalStats(string siloAddress)
+        public async Task<Immutable<List<SiloRuntimeStatistics>>> HistoricalStats(string siloAddress)
         {
             return await Silo(siloAddress).GetRuntimeStatistics().ConfigureAwait(false);
         }
