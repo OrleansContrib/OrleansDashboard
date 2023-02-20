@@ -1,6 +1,4 @@
-﻿using System;
-using OrleansDashboard.Metrics.TypeFormatting;
-using TestGrains;
+﻿using OrleansDashboard.Metrics.TypeFormatting;
 using Xunit;
 
 namespace UnitTests
