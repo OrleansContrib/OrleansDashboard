@@ -1,6 +1,7 @@
 using Orleans.Runtime;
 using Orleans.Services;
-using OrleansDashboard;
+
+namespace OrleansDashboard;
 
 public interface ISiloGrainClient : IGrainServiceClient<ISiloGrainService>
 {
