@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Concurrency;
@@ -26,9 +27,12 @@ namespace OrleansDashboard
         private string versionHost;
 
         public SiloGrainService(
+            GrainId grainId,
+            Silo silo,
+            ILoggerFactory loggerFactory,
             IGrainProfiler profiler,
             IOptions<DashboardOptions> options,
-            IGrainFactory grainFactory)
+            IGrainFactory grainFactory): base(grainId, silo, loggerFactory)
         {
             this.profiler = profiler;
             this.options = options.Value;
