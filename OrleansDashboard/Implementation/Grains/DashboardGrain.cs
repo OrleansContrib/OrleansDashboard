@@ -308,7 +308,7 @@ namespace OrleansDashboard
                                     if (resultProperty == null)
                                         continue;
 
-                                    await task.ConfigureAwait(false);
+                                    await task;
 
                                     result.TryAdd(method.Name, resultProperty.GetValue(task));
                                 }

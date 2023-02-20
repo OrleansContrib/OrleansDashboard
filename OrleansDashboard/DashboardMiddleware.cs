@@ -349,12 +349,11 @@ namespace OrleansDashboard
                           \____/|_|  |_|\___|\__,_|_| |_|___/ |_____/ \__,_|___/_| |_|_.__/ \___/ \__,_|_|  \__,_|
                         
                         You are connected to the Orleans Dashboard log streaming service
-                        """)
-                    .ConfigureAwait(false);
+                        """);
 
-                await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromMinutes(60), token);
 
-                await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
+                await writer.WriteAsync("Disconnecting after 60 minutes\r\n");
             }
             catch (OperationCanceledException)
             {

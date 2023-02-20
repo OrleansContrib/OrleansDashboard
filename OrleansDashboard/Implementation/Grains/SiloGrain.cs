@@ -18,8 +18,8 @@ namespace OrleansDashboard.Implementation.Grains
     public sealed class SiloGrain : Grain, ISiloGrain
     {
         private const int DefaultTimerIntervalMs = 1000; // 1 second
-        private readonly Channel<SiloRuntimeStatistics> statistics;
-        private readonly Dictionary<string, StatCounter> counters = new Dictionary<string, StatCounter>();
+        private readonly Channel<SiloRuntimeStatistics> statisticsChannel;
+        private readonly Dictionary<string, StatCounter> counters = new();
         private readonly DashboardOptions options;
         private readonly ILocalSiloDetails silo;
         private readonly IGrainProfiler profiler;
@@ -32,7 +32,7 @@ namespace OrleansDashboard.Implementation.Grains
             this.silo = silo;
             this.profiler = profiler;
             this.options = options.Value;
-            statistics = Channel.CreateBounded<SiloRuntimeStatistics>(
+            statisticsChannel = Channel.CreateBounded<SiloRuntimeStatistics>(
                 new BoundedChannelOptions(options.Value.HistoryLength)
                 {
                     SingleReader = true,
@@ -81,7 +81,7 @@ namespace OrleansDashboard.Implementation.Grains
 
                 var results = (await managementGrain.GetRuntimeStatistics(new[] {siloAddress})).FirstOrDefault();
 
-                await statistics.Writer.WriteAsync(results);
+                await statisticsChannel.Writer.WriteAsync(results);
             }
             catch (Exception)
             {
@@ -90,7 +90,7 @@ namespace OrleansDashboard.Implementation.Grains
                 {
                     timer?.Dispose();
                     timer = null;
-                    statistics.Writer.TryComplete();
+                    statisticsChannel.Writer.TryComplete();
 
                     DeactivateOnIdle();
                 }
@@ -131,8 +131,8 @@ namespace OrleansDashboard.Implementation.Grains
 
         public async Task<Immutable<List<SiloRuntimeStatistics>>> GetRuntimeStatistics()
         {
-            var result = new List<SiloRuntimeStatistics>(statistics.Reader.Count);
-            await foreach (var stat in statistics.Reader.ReadAllAsync(CancellationToken.None))
+            var result = new List<SiloRuntimeStatistics>(statisticsChannel.Reader.Count);
+            await foreach (var stat in statisticsChannel.Reader.ReadAllAsync(CancellationToken.None))
             {
                 result.Add(stat);
             }
