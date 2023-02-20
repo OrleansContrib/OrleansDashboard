@@ -23,6 +23,7 @@ namespace Orleans
         {
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
+            builder.AddGrainService<SiloGrainService>();
 
             return builder;
         }
@@ -43,8 +44,7 @@ namespace Orleans
             services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
             services.TryAddSingleton<IAssetProvider, CDNAssetProvider>();
 
-            services.AddGrainService<SiloGrainService>()
-                .AddSingleton<ISiloGrainClient, SiloGrainClient>();
+            services.AddSingleton<ISiloGrainClient, SiloGrainClient>();
 
             services.AddSingleton<ISiloDetailsProvider>(c =>
             {

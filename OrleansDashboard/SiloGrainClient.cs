@@ -11,7 +11,5 @@ public sealed class SiloGrainClient : GrainServiceClient<ISiloGrainService>, ISi
     }
 
     public ISiloGrainService GrainService(SiloAddress destination)
-    {
-        return GetGrainService(destination);
-    }
+        => GetGrainService(destination);
 }
