@@ -11,7 +11,7 @@ namespace TestGrains
 
     public class TestStateInMemoryGrain : Grain, ITestStateInMemoryGrain
     {
-        private readonly Random _random = new Random();
+        private readonly Random _random = new();
         private readonly InMemoryCounterState _state;
 
         public TestStateInMemoryGrain()

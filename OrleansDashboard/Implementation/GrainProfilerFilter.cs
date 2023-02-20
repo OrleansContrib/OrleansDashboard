@@ -17,7 +17,7 @@ namespace OrleansDashboard.Implementation
         private readonly GrainMethodFormatterDelegate formatMethodName;
         private readonly IGrainProfiler profiler;
         private readonly ILogger<GrainProfilerFilter> logger;
-        private readonly ConcurrentDictionary<MethodInfo, bool> shouldSkipCache = new ConcurrentDictionary<MethodInfo, bool>();
+        private readonly ConcurrentDictionary<MethodInfo, bool> shouldSkipCache = new();
 
         public GrainProfilerFilter(IGrainProfiler profiler, ILogger<GrainProfilerFilter> logger, GrainMethodFormatterDelegate formatMethodName)
         {

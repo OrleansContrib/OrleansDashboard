@@ -15,7 +15,7 @@ namespace TestGrains
 
     public class TestGrain : Grain, ITestGrain, IRemindable
     {
-        private readonly Random random = new Random();
+        private readonly Random random = new();
 
         public async Task ExampleMethod1()
         {

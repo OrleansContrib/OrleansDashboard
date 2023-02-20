@@ -14,7 +14,7 @@ namespace TestGrains
 
     public class TestStateGrain : Grain, ITestStateGrain
     {
-        private readonly Random random = new Random();
+        private readonly Random random = new();
 
         private readonly IPersistentState<CounterState> _counter;
 

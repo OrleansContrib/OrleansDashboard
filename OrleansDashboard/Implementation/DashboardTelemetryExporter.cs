@@ -35,7 +35,7 @@ namespace OrleansDashboard.Implementation
             }
         }
 
-        private readonly Dictionary<string, Value<double>> metrics = new Dictionary<string, Value<double>>();
+        private readonly Dictionary<string, Value<double>> metrics = new();
         private readonly ISiloGrainClient siloGrainClient;
         private readonly ILogger<DashboardTelemetryExporter> logger;
         private readonly SiloAddress siloAddress;

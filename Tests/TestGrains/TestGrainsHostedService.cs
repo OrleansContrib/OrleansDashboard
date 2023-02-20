@@ -8,7 +8,7 @@ namespace TestGrains
     public class TestGrainsHostedService : IHostedService
     {
         private readonly IGrainFactory grainFactory;
-        private readonly CancellationTokenSource stop = new CancellationTokenSource();
+        private readonly CancellationTokenSource stop = new();
 
         public TestGrainsHostedService(IGrainFactory grainFactory)
         {

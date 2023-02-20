@@ -21,7 +21,7 @@ namespace OrleansDashboard.Metrics
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IOptions<GrainProfilerOptions> options;
         private readonly IGrainFactory grainFactory;
-        private ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new ConcurrentDictionary<string, SiloGrainTraceEntry>();
+        private ConcurrentDictionary<string, SiloGrainTraceEntry> grainTrace = new();
         private Timer timer;
         private string siloAddress;
         private bool isEnabled;

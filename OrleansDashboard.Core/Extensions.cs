@@ -7,7 +7,7 @@ namespace OrleansDashboard
 {
     public static class Extensions
     {
-        private static readonly DateTime UnixStart = new DateTime(1970, 1, 1);
+        private static readonly DateTime UnixStart = new(1970, 1, 1);
 
         public static string PrimaryKeyAsString(this GrainReference grainRef)
         {
