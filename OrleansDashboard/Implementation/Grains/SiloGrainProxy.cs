@@ -6,7 +6,7 @@ using Orleans.Placement;
 using Orleans.Runtime;
 using OrleansDashboard.Model;
 
-namespace OrleansDashboard;
+namespace OrleansDashboard.Implementation.Grains;
 
 [PreferLocalPlacement]
 public sealed class SiloGrainProxy : Grain, ISiloGrainProxy
