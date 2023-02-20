@@ -21,6 +21,7 @@ namespace OrleansDashboard
         private readonly DashboardOptions options;
         private readonly IGrainProfiler profiler;
         private readonly IGrainFactory grainFactory;
+        private readonly ILogger<SiloGrainService> logger;
         private IDisposable timer;
         private string versionOrleans;
         private string versionHost;
@@ -37,12 +38,19 @@ namespace OrleansDashboard
             this.options = options.Value;
             this.grainFactory = grainFactory;
             statistics = new Queue<SiloRuntimeStatistics>(this.options.HistoryLength + 1);
+            logger = loggerFactory.CreateLogger<SiloGrainService>();
         }
 
         public override async Task Start()
         {
-            var updateInterval =
-                TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
+            foreach (var _ in Enumerable.Range(1, options.HistoryLength))
+            {
+                statistics.Enqueue(null);
+            }
+
+            var updateInterval = TimeSpan.FromMilliseconds(
+                Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs)
+            );
             try
             {
                 timer = RegisterTimer(x => CollectStatistics((bool) x), true, updateInterval, updateInterval);
@@ -51,7 +59,7 @@ namespace OrleansDashboard
             }
             catch (InvalidOperationException)
             {
-                Debug.WriteLine("Not running in Orleans runtime");
+                logger.LogWarning("Not running in Orleans runtime");
             }
 
             await base.Start();
