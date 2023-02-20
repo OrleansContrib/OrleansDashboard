@@ -9,7 +9,6 @@ namespace OrleansDashboard
 {
     public interface ISiloGrainService : IGrainService
     {
-        [OneWay]
         Task SetVersion(string orleans, string host);
 
         [OneWay]
