@@ -33,6 +33,7 @@ namespace OrleansDashboard
         private readonly IOptions<DashboardOptions> options;
         private readonly DashboardLogger logger;
         private readonly RequestDelegate next;
+        private readonly IGrainFactory grainFactory;
         private readonly IAssetProvider assetProvider;
         private readonly Lazy<IDashboardClient> lazyClient;
         private IDashboardClient Client => lazyClient.Value;
@@ -40,18 +41,18 @@ namespace OrleansDashboard
         public DashboardMiddleware(
             RequestDelegate next,
             IGrainFactory grainFactory,
-            ISiloGrainClient siloGrainClient,
             IAssetProvider assetProvider,
             IOptions<DashboardOptions> options,
             DashboardLogger logger)
         {
             this.next = next;
+            this.grainFactory = grainFactory;
             this.assetProvider = assetProvider;
             this.options = options;
             this.logger = logger;
             // ASP.NET Core uses a single instance of a middleware component to process multiple requests,
             this.lazyClient = new Lazy<IDashboardClient>(
-                () => new DashboardClient(grainFactory, siloGrainClient),
+                () => new DashboardClient(grainFactory),
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
