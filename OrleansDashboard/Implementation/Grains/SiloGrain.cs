@@ -129,15 +129,17 @@ namespace OrleansDashboard.Implementation.Grains
             return Task.CompletedTask;
         }
 
-        public async Task<Immutable<List<SiloRuntimeStatistics>>> GetRuntimeStatistics()
+        public Task<Immutable<List<SiloRuntimeStatistics>>> GetRuntimeStatistics()
         {
-            var result = new List<SiloRuntimeStatistics>(statisticsChannel.Reader.Count);
-            await foreach (var stat in statisticsChannel.Reader.ReadAllAsync(CancellationToken.None))
+            var statisticsCount = statisticsChannel.Reader.Count;
+            var result = new List<SiloRuntimeStatistics>(statisticsCount);
+            var i = 0;
+            while (i++ < statisticsCount && statisticsChannel.Reader.TryRead(out var statistics))
             {
-                result.Add(stat);
+                result.Add(statistics);
             }
 
-            return result.AsImmutable();
+            return Task.FromResult(result.AsImmutable());
         }
 
         public Task<Immutable<StatCounter[]>> GetCounters()
