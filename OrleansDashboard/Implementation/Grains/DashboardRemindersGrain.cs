@@ -11,7 +11,7 @@ namespace OrleansDashboard
     {
         private static readonly Immutable<ReminderResponse> EmptyReminders = new ReminderResponse
         {
-            Reminders = new ReminderInfo[0]
+            Reminders = Array.Empty<ReminderInfo>()
         }.AsImmutable();
 
         private readonly IReminderTable reminderTable;
