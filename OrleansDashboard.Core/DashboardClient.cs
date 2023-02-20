@@ -10,9 +10,9 @@ namespace OrleansDashboard
 {
     public class DashboardClient : IDashboardClient
     {
-        private readonly IGrainFactory grainFactory;
         private readonly IDashboardGrain dashboardGrain;
         private readonly IDashboardRemindersGrain remindersGrain;
+        private readonly IGrainFactory grainFactory;
 
         public DashboardClient(IGrainFactory grainFactory)
         {
