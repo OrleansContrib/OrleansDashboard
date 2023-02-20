@@ -4,7 +4,6 @@ using System.Globalization;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
-using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
 using OrleansDashboard.Model;
@@ -37,26 +36,23 @@ namespace OrleansDashboard.Implementation
         }
 
         private readonly Dictionary<string, Value<double>> metrics = new Dictionary<string, Value<double>>();
-        private readonly ILocalSiloDetails localSiloDetails;
-        private readonly IGrainFactory grainFactory;
+        private readonly ISiloGrainClient siloGrainClient;
         private readonly ILogger<DashboardTelemetryExporter> logger;
-        private string siloAddress;
+        private readonly SiloAddress siloAddress;
 
-        public DashboardTelemetryExporter(ILocalSiloDetails localSiloDetails, IGrainFactory grainFactory, ILogger<DashboardTelemetryExporter> logger)
+        public DashboardTelemetryExporter(
+            ILocalSiloDetails localSiloDetails,
+            ISiloGrainClient siloGrainClient,
+            ILogger<DashboardTelemetryExporter> logger)
         {
-            this.localSiloDetails = localSiloDetails;
-            this.grainFactory = grainFactory;
+            this.siloGrainClient = siloGrainClient;
             this.logger = logger;
+            siloAddress = localSiloDetails.SiloAddress;
         }
 
         public override ExportResult Export(in Batch<Metric> batch)
         {
-            if (siloAddress == null)
-            {
-                siloAddress = localSiloDetails.SiloAddress.ToParsableString();
-            }
-
-            var grain = grainFactory.GetGrain<ISiloGrain>(siloAddress);
+            var grain = siloGrainClient.GrainService(siloAddress);
 
             CollectMetricsFromBatch(batch);
 
@@ -78,7 +74,7 @@ namespace OrleansDashboard.Implementation
 
                 counters[countersIndex] =
                     new StatCounter(
-                        key, 
+                        key,
                         value.Current.ToString(CultureInfo.InvariantCulture),
                         ComputeDelta(value));
 

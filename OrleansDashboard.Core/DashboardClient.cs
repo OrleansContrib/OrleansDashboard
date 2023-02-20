@@ -12,13 +12,13 @@ namespace OrleansDashboard
     {
         private readonly IDashboardGrain dashboardGrain;
         private readonly IDashboardRemindersGrain remindersGrain;
-        private readonly IGrainFactory grainFactory;
+        private readonly ISiloGrainClient siloGrainClient;
 
-        public DashboardClient(IGrainFactory grainFactory)
+        public DashboardClient(IGrainFactory grainFactory, ISiloGrainClient siloGrainClient)
         {
-            this.grainFactory = grainFactory;
             dashboardGrain = grainFactory.GetGrain<IDashboardGrain>(0);
             remindersGrain = grainFactory.GetGrain<IDashboardRemindersGrain>(0);
+            this.siloGrainClient = siloGrainClient;
         }
 
         public async Task<Immutable<DashboardCounters>> DashboardCounters()
@@ -56,7 +56,8 @@ namespace OrleansDashboard
             return await Silo(siloAddress).GetCounters();
         }
 
-        public async Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GrainStats(string grainName)
+        public async Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GrainStats(
+            string grainName)
         {
             return await dashboardGrain.GetGrainTracing(grainName);
         }
@@ -66,9 +67,9 @@ namespace OrleansDashboard
             return await dashboardGrain.TopGrainMethods(take);
         }
 
-        private ISiloGrain Silo(string siloAddress)
+        private ISiloGrainService Silo(string siloAddress)
         {
-            return grainFactory.GetGrain<ISiloGrain>(siloAddress);
+            return siloGrainClient.GrainService(SiloAddress.FromParsableString(siloAddress));
         }
 
         public async Task<Immutable<string>> GetGrainState(string id, string grainType)

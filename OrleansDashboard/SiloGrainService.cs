@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -12,26 +11,28 @@ using Orleans.Runtime;
 using OrleansDashboard.Metrics;
 using OrleansDashboard.Model;
 
-namespace OrleansDashboard.Implementation.Grains
+namespace OrleansDashboard
 {
-    [LocalPlacement]
-    public sealed class SiloGrain : Grain, ISiloGrain
+    public sealed class SiloGrainService : GrainService, ISiloGrainService
     {
         private const int DefaultTimerIntervalMs = 1000; // 1 second
         private readonly Channel<SiloRuntimeStatistics> statisticsChannel;
         private readonly Dictionary<string, StatCounter> counters = new();
         private readonly DashboardOptions options;
-        private readonly ILocalSiloDetails silo;
         private readonly IGrainProfiler profiler;
+        private readonly IGrainFactory grainFactory;
         private IDisposable timer;
         private string versionOrleans;
         private string versionHost;
 
-        public SiloGrain(ILocalSiloDetails silo, IGrainProfiler profiler, IOptions<DashboardOptions> options)
+        public SiloGrainService(
+            IGrainProfiler profiler,
+            IOptions<DashboardOptions> options,
+            IGrainFactory grainFactory)
         {
-            this.silo = silo;
             this.profiler = profiler;
             this.options = options.Value;
+            this.grainFactory = grainFactory;
             statisticsChannel = Channel.CreateBounded<SiloRuntimeStatistics>(
                 new BoundedChannelOptions(options.Value.HistoryLength)
                 {
@@ -39,25 +40,14 @@ namespace OrleansDashboard.Implementation.Grains
                     SingleWriter = true,
                     FullMode = BoundedChannelFullMode.DropOldest,
                     AllowSynchronousContinuations = true,
-                });
+                }
+            );
         }
 
-        public override async Task OnActivateAsync(CancellationToken cancellationToken)
+        public override async Task Start()
         {
-            var id = this.GetPrimaryKeyString();
-
-            // Ensure that the grain is not activated on another silo.
-            var siloAddress = silo.SiloAddress.ToParsableString();
-            if (!string.Equals(id, siloAddress))
-            {
-                // for now Calling DeactivateOnIdle from within OnActivateAsync is not supported so throw an exception
-                throw new InvalidOperationException(
-                    $"Silo grain {id} must not be activated on this silo {siloAddress}");
-            }
-
             var updateInterval =
                 TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
-
             try
             {
                 timer = RegisterTimer(x => CollectStatistics((bool) x), true, updateInterval, updateInterval);
@@ -69,12 +59,12 @@ namespace OrleansDashboard.Implementation.Grains
                 Debug.WriteLine("Not running in Orleans runtime");
             }
 
-            await base.OnActivateAsync(cancellationToken);
+            await base.Start();
         }
 
         private async Task CollectStatistics(bool canDeactivate)
         {
-            var managementGrain = GrainFactory.GetGrain<IManagementGrain>(0);
+            var managementGrain = grainFactory.GetGrain<IManagementGrain>(0);
             try
             {
                 var siloAddress = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
@@ -91,8 +81,6 @@ namespace OrleansDashboard.Implementation.Grains
                     timer?.Dispose();
                     timer = null;
                     statisticsChannel.Writer.TryComplete();
-
-                    DeactivateOnIdle();
                 }
             }
         }

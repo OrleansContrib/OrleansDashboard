@@ -24,6 +24,7 @@ namespace OrleansDashboard.Implementation.Grains
     {
         private readonly ITraceHistory history;
         private readonly ISiloDetailsProvider siloDetailsProvider;
+        private readonly ISiloGrainClient siloGrainClient;
         private readonly DashboardCounters counters;
         private readonly GrainProfilerOptions grainProfilerOptions;
         private readonly TimeSpan updateInterval;
@@ -36,9 +37,11 @@ namespace OrleansDashboard.Implementation.Grains
         public DashboardGrain(
             IOptions<DashboardOptions> options,
             IOptions<GrainProfilerOptions> grainProfilerOptions,
-            ISiloDetailsProvider siloDetailsProvider)
+            ISiloDetailsProvider siloDetailsProvider,
+            ISiloGrainClient siloGrainClient)
         {
             this.siloDetailsProvider = siloDetailsProvider;
+            this.siloGrainClient = siloGrainClient;
 
             // Store the options to bypass the broadcase of the isEnabled flag.
             this.grainProfilerOptions = grainProfilerOptions.Value;
@@ -99,7 +102,7 @@ namespace OrleansDashboard.Implementation.Grains
 
             foreach (var siloAddress in silos.Select(x => x.SiloAddress))
             {
-                await GrainFactory.GetGrain<ISiloGrain>(siloAddress).Enable(isEnabled);
+                await siloGrainClient.GrainService(SiloAddress.FromParsableString(siloAddress)).Enable(isEnabled);
             }
         }
 
@@ -128,7 +131,8 @@ namespace OrleansDashboard.Implementation.Grains
 
                 await Task.WhenAll(activationCountTask, simpleGrainStatsTask, siloDetailsTask, detailGrainStatsTask);
 
-                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result, detailGrainStatsTask.Result);
+                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result,
+                    detailGrainStatsTask.Result);
 
                 lastRefreshTime = now;
             }
@@ -144,8 +148,10 @@ namespace OrleansDashboard.Implementation.Grains
             counters.TotalActivationCount = activationCount;
 
             counters.TotalActiveHostCount = hosts.Count(x => x.SiloStatus == SiloStatus.Active);
-            counters.TotalActivationCountHistory = counters.TotalActivationCountHistory.Enqueue(activationCount).Dequeue();
-            counters.TotalActiveHostCountHistory = counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount).Dequeue();
+            counters.TotalActivationCountHistory =
+                counters.TotalActivationCountHistory.Enqueue(activationCount).Dequeue();
+            counters.TotalActiveHostCountHistory =
+                counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount).Dequeue();
 
             var elapsedTime = Math.Min((DateTime.UtcNow - startTime).TotalSeconds, 100);
 
@@ -185,7 +191,8 @@ namespace OrleansDashboard.Implementation.Grains
             return counters.AsImmutable();
         }
 
-        public async Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(string grain)
+        public async Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(
+            string grain)
         {
             await EnsureIsActive();
             await EnsureCountersAreUpToDate();
@@ -228,14 +235,15 @@ namespace OrleansDashboard.Implementation.Grains
 
             GrainMethodAggregate[] GetErrors()
             {
-                return values.Where(x => x.ExceptionCount > 0 && x.Count > 0).OrderByDescending(x => x.ExceptionCount / x.Count).Take(take).ToArray();
+                return values.Where(x => x.ExceptionCount > 0 && x.Count > 0)
+                    .OrderByDescending(x => x.ExceptionCount / x.Count).Take(take).ToArray();
             }
 
             var result = new Dictionary<string, GrainMethodAggregate[]>
             {
-                { "calls", GetTotalCalls() },
-                { "latency", GetLatency() },
-                { "errors", GetErrors() },
+                {"calls", GetTotalCalls()},
+                {"latency", GetLatency()},
+                {"errors", GetErrors()},
             };
 
             return result.AsImmutable();
@@ -278,9 +286,9 @@ namespace OrleansDashboard.Implementation.Grains
                     {
                         object[] grainMethodParameters;
                         if (string.IsNullOrWhiteSpace(keyExtension))
-                            grainMethodParameters = new object[] { interfaceType, grainId };
+                            grainMethodParameters = new object[] {interfaceType, grainId};
                         else
-                            grainMethodParameters = new object[] { interfaceType, grainId,keyExtension };
+                            grainMethodParameters = new object[] {interfaceType, grainId, keyExtension};
 
                         var grain = getGrainMethod.Invoke(GrainFactory, grainMethodParameters);
 
@@ -294,10 +302,10 @@ namespace OrleansDashboard.Implementation.Grains
                                     &&
                                     (
                                         method.ReturnType.GetGenericArguments()
-                                                    .Any(a => propertiesAndFields.Any(f => f == a)
-                                        || method.Name == "GetState")
+                                            .Any(a => propertiesAndFields.Any(f => f == a)
+                                                      || method.Name == "GetState")
                                     )
-                                )
+                                   )
                                 {
                                     var task = (method.Invoke(grain, null) as Task);
                                     var resultProperty = task.GetType().GetProperty("Result");
@@ -324,7 +332,7 @@ namespace OrleansDashboard.Implementation.Grains
             }
             catch (Exception ex)
             {
-                result.TryAdd("error", string.Concat( ex.Message , " - " , ex?.InnerException.Message));
+                result.TryAdd("error", string.Concat(ex.Message, " - ", ex?.InnerException.Message));
             }
 
             return JsonSerializer.Serialize(result, options: new JsonSerializerOptions()
@@ -336,8 +344,8 @@ namespace OrleansDashboard.Implementation.Grains
         public Task<Immutable<string[]>> GetGrainTypes()
         {
             return Task.FromResult(GrainStateHelper.GetGrainTypes()
-                                     .Select(s => s.Namespace + "." + s.Name)
-                                     .ToArray()
+                .Select(s => s.Namespace + "." + s.Name)
+                .ToArray()
                                      .AsImmutable());
         }
     }
