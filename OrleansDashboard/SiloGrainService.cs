@@ -17,7 +17,7 @@ namespace OrleansDashboard
     public sealed class SiloGrainService : GrainService, ISiloGrainService
     {
         private const int DefaultTimerIntervalMs = 1000; // 1 second
-        private readonly Channel<SiloRuntimeStatistics> statisticsChannel;
+        private readonly Queue<SiloRuntimeStatistics> statistics;
         private readonly Dictionary<string, StatCounter> counters = new();
         private readonly DashboardOptions options;
         private readonly IGrainProfiler profiler;
@@ -32,20 +32,12 @@ namespace OrleansDashboard
             ILoggerFactory loggerFactory,
             IGrainProfiler profiler,
             IOptions<DashboardOptions> options,
-            IGrainFactory grainFactory): base(grainId, silo, loggerFactory)
+            IGrainFactory grainFactory) : base(grainId, silo, loggerFactory)
         {
             this.profiler = profiler;
             this.options = options.Value;
             this.grainFactory = grainFactory;
-            statisticsChannel = Channel.CreateBounded<SiloRuntimeStatistics>(
-                new BoundedChannelOptions(options.Value.HistoryLength)
-                {
-                    SingleReader = true,
-                    SingleWriter = true,
-                    FullMode = BoundedChannelFullMode.DropOldest,
-                    AllowSynchronousContinuations = true,
-                }
-            );
+            statistics = new Queue<SiloRuntimeStatistics>(this.options.HistoryLength + 1);
         }
 
         public override async Task Start()
@@ -75,7 +67,12 @@ namespace OrleansDashboard
 
                 var results = (await managementGrain.GetRuntimeStatistics(new[] {siloAddress})).FirstOrDefault();
 
-                await statisticsChannel.Writer.WriteAsync(results);
+                statistics.Enqueue(results);
+
+                while (statistics.Count > options.HistoryLength)
+                {
+                    statistics.Dequeue();
+                }
             }
             catch (Exception)
             {
@@ -84,7 +81,6 @@ namespace OrleansDashboard
                 {
                     timer?.Dispose();
                     timer = null;
-                    statisticsChannel.Writer.TryComplete();
                 }
             }
         }
@@ -121,17 +117,9 @@ namespace OrleansDashboard
             return Task.CompletedTask;
         }
 
-        public Task<Immutable<List<SiloRuntimeStatistics>>> GetRuntimeStatistics()
+        public Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics()
         {
-            var statisticsCount = statisticsChannel.Reader.Count;
-            var result = new List<SiloRuntimeStatistics>(statisticsCount);
-            var i = 0;
-            while (i++ < statisticsCount && statisticsChannel.Reader.TryRead(out var statistics))
-            {
-                result.Add(statistics);
-            }
-
-            return Task.FromResult(result.AsImmutable());
+            return Task.FromResult(statistics.ToArray().AsImmutable());
         }
 
         public Task<Immutable<StatCounter[]>> GetCounters()

@@ -40,7 +40,7 @@ public sealed class SiloGrainProxy : Grain, ISiloGrainProxy
         return siloGrainService.GetExtendedProperties();
     }
 
-    public Task<Immutable<List<SiloRuntimeStatistics>>> GetRuntimeStatistics()
+    public Task<Immutable<SiloRuntimeStatistics[]>> GetRuntimeStatistics()
     {
         return siloGrainService.GetRuntimeStatistics();
     }
