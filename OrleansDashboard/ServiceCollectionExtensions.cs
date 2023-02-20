@@ -21,8 +21,6 @@ namespace Orleans
         public static ISiloBuilder UseDashboard(this ISiloBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.AddPlacementDirector<LocalPlacementStrategy, LocalPlacementDirector>();
-
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
 
