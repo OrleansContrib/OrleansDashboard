@@ -45,11 +45,11 @@ namespace OrleansDashboard
             IOptions<DashboardOptions> options,
             DashboardLogger logger)
         {
+            this.options = options;
+            this.logger = logger;
             this.next = next;
             this.grainFactory = grainFactory;
             this.assetProvider = assetProvider;
-            this.options = options;
-            this.logger = logger;
             // ASP.NET Core uses a single instance of a middleware component to process multiple requests,
             this.lazyClient = new Lazy<IDashboardClient>(
                 () => new DashboardClient(grainFactory),
