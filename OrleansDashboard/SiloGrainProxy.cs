@@ -13,7 +13,7 @@ namespace OrleansDashboard;
 public sealed class SiloGrainProxy : Grain, ISiloGrainProxy
 {
     private readonly ISiloGrainClient siloGrainClient;
-    private ISiloGrainService siloGrainProxyImplementation;
+    private ISiloGrainService siloGrainService;
 
     public SiloGrainProxy(ISiloGrainClient siloGrainClient)
     {
@@ -22,7 +22,7 @@ public sealed class SiloGrainProxy : Grain, ISiloGrainProxy
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        siloGrainProxyImplementation = siloGrainClient.GrainService(
+        siloGrainService = siloGrainClient.GrainService(
             SiloAddress.FromParsableString(this.GetPrimaryKeyString())
         );
         return base.OnActivateAsync(cancellationToken);
@@ -30,31 +30,31 @@ public sealed class SiloGrainProxy : Grain, ISiloGrainProxy
 
     public Task SetVersion(string orleans, string host)
     {
-        return siloGrainProxyImplementation.SetVersion(orleans, host);
+        return siloGrainService.SetVersion(orleans, host);
     }
 
     public Task ReportCounters(Immutable<StatCounter[]> stats)
     {
-        return siloGrainProxyImplementation.ReportCounters(stats);
+        return siloGrainService.ReportCounters(stats);
     }
 
     public Task Enable(bool enabled)
     {
-        return siloGrainProxyImplementation.Enable(enabled);
+        return siloGrainService.Enable(enabled);
     }
 
     public Task<Immutable<Dictionary<string, string>>> GetExtendedProperties()
     {
-        return siloGrainProxyImplementation.GetExtendedProperties();
+        return siloGrainService.GetExtendedProperties();
     }
 
     public Task<Immutable<List<SiloRuntimeStatistics>>> GetRuntimeStatistics()
     {
-        return siloGrainProxyImplementation.GetRuntimeStatistics();
+        return siloGrainService.GetRuntimeStatistics();
     }
 
     public Task<Immutable<StatCounter[]>> GetCounters()
     {
-        return siloGrainProxyImplementation.GetCounters();
+        return siloGrainService.GetCounters();
     }
 }
