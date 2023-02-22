@@ -22,6 +22,7 @@ namespace OrleansDashboard
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IGrainFactory grainFactory;
         private readonly DashboardTelemetryExporter dashboardTelemetryExporter;
+        private readonly ISiloGrainClient siloGrainClient;
         private readonly DashboardOptions dashboardOptions;
 
         public Dashboard(
@@ -29,12 +30,14 @@ namespace OrleansDashboard
             ILocalSiloDetails localSiloDetails,
             IGrainFactory grainFactory,
             DashboardTelemetryExporter dashboardTelemetryExporter,
-            IOptions<DashboardOptions> dashboardOptions)
+            IOptions<DashboardOptions> dashboardOptions,
+            ISiloGrainClient siloGrainClient)
         {
             this.logger = logger;
             this.grainFactory = grainFactory;
             this.localSiloDetails = localSiloDetails;
             this.dashboardTelemetryExporter = dashboardTelemetryExporter;
+            this.siloGrainClient = siloGrainClient;
             this.dashboardOptions = dashboardOptions.Value;
         }
 
@@ -83,8 +86,7 @@ namespace OrleansDashboard
 
         private async Task ActivateSiloGrainAsync()
         {
-            var siloGrain = grainFactory.GetGrain<ISiloGrain>(localSiloDetails.SiloAddress.ToParsableString());
-
+            var siloGrain = siloGrainClient.GrainService(localSiloDetails.SiloAddress);
             await siloGrain.SetVersion(GetOrleansVersion(), GetHostVersion());
         }
 

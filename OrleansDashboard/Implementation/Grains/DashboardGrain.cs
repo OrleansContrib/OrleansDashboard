@@ -1,32 +1,30 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using OrleansDashboard.Model;
-using OrleansDashboard.Model.History;
+using OrleansDashboard.Implementation.Helpers;
+using OrleansDashboard.Metrics;
 using OrleansDashboard.Metrics.Details;
 using OrleansDashboard.Metrics.History;
 using OrleansDashboard.Metrics.TypeFormatting;
-using System.Threading;
-using OrleansDashboard.Metrics;
-using System.Dynamic;
-using System.Reflection;
-using Orleans.Core;
-using System.Text.Json;
-using OrleansDashboard.Implementation.Helpers;
-using Orleans.Serialization.TypeSystem;
+using OrleansDashboard.Model;
+using OrleansDashboard.Model.History;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Implementation.Grains
 {
     [Reentrant]
     public class DashboardGrain : Grain, IDashboardGrain
     {
         private readonly ITraceHistory history;
         private readonly ISiloDetailsProvider siloDetailsProvider;
+        private readonly ISiloGrainClient siloGrainClient;
         private readonly DashboardCounters counters;
         private readonly GrainProfilerOptions grainProfilerOptions;
         private readonly TimeSpan updateInterval;
@@ -39,9 +37,11 @@ namespace OrleansDashboard
         public DashboardGrain(
             IOptions<DashboardOptions> options,
             IOptions<GrainProfilerOptions> grainProfilerOptions,
-            ISiloDetailsProvider siloDetailsProvider)
+            ISiloDetailsProvider siloDetailsProvider,
+            ISiloGrainClient siloGrainClient)
         {
             this.siloDetailsProvider = siloDetailsProvider;
+            this.siloGrainClient = siloGrainClient;
 
             // Store the options to bypass the broadcase of the isEnabled flag.
             this.grainProfilerOptions = grainProfilerOptions.Value;
@@ -102,7 +102,7 @@ namespace OrleansDashboard
 
             foreach (var siloAddress in silos.Select(x => x.SiloAddress))
             {
-                await GrainFactory.GetGrain<ISiloGrain>(siloAddress).Enable(isEnabled);
+                await siloGrainClient.GrainService(SiloAddress.FromParsableString(siloAddress)).Enable(isEnabled);
             }
         }
 
@@ -131,7 +131,8 @@ namespace OrleansDashboard
 
                 await Task.WhenAll(activationCountTask, simpleGrainStatsTask, siloDetailsTask, detailGrainStatsTask);
 
-                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result, detailGrainStatsTask.Result);
+                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result,
+                    detailGrainStatsTask.Result);
 
                 lastRefreshTime = now;
             }
@@ -147,8 +148,10 @@ namespace OrleansDashboard
             counters.TotalActivationCount = activationCount;
 
             counters.TotalActiveHostCount = hosts.Count(x => x.SiloStatus == SiloStatus.Active);
-            counters.TotalActivationCountHistory = counters.TotalActivationCountHistory.Enqueue(activationCount).Dequeue();
-            counters.TotalActiveHostCountHistory = counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount).Dequeue();
+            counters.TotalActivationCountHistory =
+                counters.TotalActivationCountHistory.Enqueue(activationCount).Dequeue();
+            counters.TotalActiveHostCountHistory =
+                counters.TotalActiveHostCountHistory.Enqueue(counters.TotalActiveHostCount).Dequeue();
 
             var elapsedTime = Math.Min((DateTime.UtcNow - startTime).TotalSeconds, 100);
 
@@ -188,7 +191,8 @@ namespace OrleansDashboard
             return counters.AsImmutable();
         }
 
-        public async Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(string grain)
+        public async Task<Immutable<Dictionary<string, Dictionary<string, GrainTraceEntry>>>> GetGrainTracing(
+            string grain)
         {
             await EnsureIsActive();
             await EnsureCountersAreUpToDate();
@@ -231,14 +235,15 @@ namespace OrleansDashboard
 
             GrainMethodAggregate[] GetErrors()
             {
-                return values.Where(x => x.ExceptionCount > 0 && x.Count > 0).OrderByDescending(x => x.ExceptionCount / x.Count).Take(take).ToArray();
+                return values.Where(x => x.ExceptionCount > 0 && x.Count > 0)
+                    .OrderByDescending(x => x.ExceptionCount / x.Count).Take(take).ToArray();
             }
 
             var result = new Dictionary<string, GrainMethodAggregate[]>
             {
-                { "calls", GetTotalCalls() },
-                { "latency", GetLatency() },
-                { "errors", GetErrors() },
+                {"calls", GetTotalCalls()},
+                {"latency", GetLatency()},
+                {"errors", GetErrors()},
             };
 
             return result.AsImmutable();
@@ -281,9 +286,9 @@ namespace OrleansDashboard
                     {
                         object[] grainMethodParameters;
                         if (string.IsNullOrWhiteSpace(keyExtension))
-                            grainMethodParameters = new object[] { interfaceType, grainId };
+                            grainMethodParameters = new object[] {interfaceType, grainId};
                         else
-                            grainMethodParameters = new object[] { interfaceType, grainId,keyExtension };
+                            grainMethodParameters = new object[] {interfaceType, grainId, keyExtension};
 
                         var grain = getGrainMethod.Invoke(GrainFactory, grainMethodParameters);
 
@@ -297,10 +302,10 @@ namespace OrleansDashboard
                                     &&
                                     (
                                         method.ReturnType.GetGenericArguments()
-                                                    .Any(a => propertiesAndFields.Any(f => f == a)
-                                        || method.Name == "GetState")
+                                            .Any(a => propertiesAndFields.Any(f => f == a)
+                                                      || method.Name == "GetState")
                                     )
-                                )
+                                   )
                                 {
                                     var task = (method.Invoke(grain, null) as Task);
                                     var resultProperty = task.GetType().GetProperty("Result");
@@ -308,7 +313,7 @@ namespace OrleansDashboard
                                     if (resultProperty == null)
                                         continue;
 
-                                    await task.ConfigureAwait(false);
+                                    await task;
 
                                     result.TryAdd(method.Name, resultProperty.GetValue(task));
                                 }
@@ -327,7 +332,7 @@ namespace OrleansDashboard
             }
             catch (Exception ex)
             {
-                result.TryAdd("error", string.Concat( ex.Message , " - " , ex?.InnerException.Message));
+                result.TryAdd("error", string.Concat(ex.Message, " - ", ex?.InnerException.Message));
             }
 
             return JsonSerializer.Serialize(result, options: new JsonSerializerOptions()
@@ -339,8 +344,8 @@ namespace OrleansDashboard
         public Task<Immutable<string[]>> GetGrainTypes()
         {
             return Task.FromResult(GrainStateHelper.GetGrainTypes()
-                                     .Select(s => s.Namespace + "." + s.Name)
-                                     .ToArray()
+                .Select(s => s.Namespace + "." + s.Name)
+                .ToArray()
                                      .AsImmutable());
         }
     }

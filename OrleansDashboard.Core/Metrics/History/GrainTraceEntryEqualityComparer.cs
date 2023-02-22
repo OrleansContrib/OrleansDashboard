@@ -8,8 +8,8 @@ namespace OrleansDashboard.Metrics.History
     {
         private readonly bool withSiloAddress;
 
-        public static readonly GrainTraceEqualityComparer ByGrainAndMethod = new GrainTraceEqualityComparer(false);
-        public static readonly GrainTraceEqualityComparer ByGrainAndMethodAndSilo = new GrainTraceEqualityComparer(true);
+        public static readonly GrainTraceEqualityComparer ByGrainAndMethod = new(false);
+        public static readonly GrainTraceEqualityComparer ByGrainAndMethodAndSilo = new(true);
 
         private GrainTraceEqualityComparer(bool withSiloAddress)
         {

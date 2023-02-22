@@ -9,8 +9,8 @@ namespace OrleansDashboard.Metrics.History
     public sealed class TraceHistory : ITraceHistory
     {
         private const string SEPARATOR = ".";
-        private readonly LinkedList<GrainTraceEntry> history = new LinkedList<GrainTraceEntry>();
-        private readonly HashSet<GrainTraceEntry> allMethods = new HashSet<GrainTraceEntry>(GrainTraceEqualityComparer.ByGrainAndMethodAndSilo);
+        private readonly LinkedList<GrainTraceEntry> history = new();
+        private readonly HashSet<GrainTraceEntry> allMethods = new(GrainTraceEqualityComparer.ByGrainAndMethodAndSilo);
         private readonly int historyLength;
 
         public TraceHistory(int historyLength = 100)

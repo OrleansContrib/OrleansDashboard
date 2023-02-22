@@ -9,7 +9,7 @@ namespace OrleansDashboard.Metrics.TypeFormatting
     /// </summary>
     public class TypeFormatter
     {
-        private static readonly ConcurrentDictionary<string, string> cache = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> cache = new();
 
         public static string Parse(string typeName)
         {

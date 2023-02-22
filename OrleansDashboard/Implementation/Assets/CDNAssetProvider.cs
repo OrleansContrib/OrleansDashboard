@@ -7,7 +7,7 @@ namespace OrleansDashboard.Implementation.Assets
 {
     class CDNAssetProvider : IAssetProvider
     {
-        private static readonly Dictionary<string, string> Paths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly Dictionary<string, string> Paths = new(StringComparer.OrdinalIgnoreCase)
         {
             ["admin-lte.css"] = "//cdnjs.cloudflare.com/ajax/libs/admin-lte/2.3.11/css/AdminLTE.min.css",
             ["bootstrap.css"] = "//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css",

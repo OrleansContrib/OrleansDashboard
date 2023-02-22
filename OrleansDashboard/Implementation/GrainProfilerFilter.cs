@@ -5,8 +5,9 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Orleans;
+using OrleansDashboard.Metrics;
 
-namespace OrleansDashboard.Metrics
+namespace OrleansDashboard.Implementation
 {
     public class GrainProfilerFilter : IIncomingGrainCallFilter
     {
@@ -16,7 +17,7 @@ namespace OrleansDashboard.Metrics
         private readonly GrainMethodFormatterDelegate formatMethodName;
         private readonly IGrainProfiler profiler;
         private readonly ILogger<GrainProfilerFilter> logger;
-        private readonly ConcurrentDictionary<MethodInfo, bool> shouldSkipCache = new ConcurrentDictionary<MethodInfo, bool>();
+        private readonly ConcurrentDictionary<MethodInfo, bool> shouldSkipCache = new();
 
         public GrainProfilerFilter(IGrainProfiler profiler, ILogger<GrainProfilerFilter> logger, GrainMethodFormatterDelegate formatMethodName)
         {

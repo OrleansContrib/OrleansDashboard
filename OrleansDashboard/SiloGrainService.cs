@@ -2,77 +2,77 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
-using OrleansDashboard.Implementation;
+using OrleansDashboard.Metrics;
 using OrleansDashboard.Model;
 
-namespace OrleansDashboard.Metrics.Grains
+namespace OrleansDashboard
 {
-    [LocalPlacement]
-    public sealed class SiloGrain : Grain, ISiloGrain
+    public sealed class SiloGrainService : GrainService, ISiloGrainService
     {
         private const int DefaultTimerIntervalMs = 1000; // 1 second
-        private readonly Queue<SiloRuntimeStatistics> statistics = new Queue<SiloRuntimeStatistics>();
-        private readonly Dictionary<string, StatCounter> counters = new Dictionary<string, StatCounter>();
+        private readonly Queue<SiloRuntimeStatistics> statistics;
+        private readonly Dictionary<string, StatCounter> counters = new();
         private readonly DashboardOptions options;
-        private readonly ILocalSiloDetails silo;
         private readonly IGrainProfiler profiler;
+        private readonly IGrainFactory grainFactory;
+        private readonly ILogger<SiloGrainService> logger;
         private IDisposable timer;
         private string versionOrleans;
         private string versionHost;
 
-        public SiloGrain(ILocalSiloDetails silo, IGrainProfiler profiler, IOptions<DashboardOptions> options)
+        public SiloGrainService(
+            GrainId grainId,
+            Silo silo,
+            ILoggerFactory loggerFactory,
+            IGrainProfiler profiler,
+            IOptions<DashboardOptions> options,
+            IGrainFactory grainFactory) : base(grainId, silo, loggerFactory)
         {
-            this.silo = silo;
             this.profiler = profiler;
             this.options = options.Value;
+            this.grainFactory = grainFactory;
+            statistics = new Queue<SiloRuntimeStatistics>(this.options.HistoryLength + 1);
+            logger = loggerFactory.CreateLogger<SiloGrainService>();
         }
 
-        public override async Task OnActivateAsync(CancellationToken cancellationToken)
+        public override async Task Start()
         {
-            var id = this.GetPrimaryKeyString();
-
-            // Ensure that the grain is not activated on another silo.
-            if (!string.Equals(id, silo.SiloAddress.ToParsableString()))
-            {
-                DeactivateOnIdle();
-                return;
-            }
-
-            foreach (var x in Enumerable.Range(1, options.HistoryLength))
+            foreach (var _ in Enumerable.Range(1, options.HistoryLength))
             {
                 statistics.Enqueue(null);
             }
 
-            var updateInterval =  TimeSpan.FromMilliseconds(Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs));
-            
+            var updateInterval = TimeSpan.FromMilliseconds(
+                Math.Max(options.CounterUpdateIntervalMs, DefaultTimerIntervalMs)
+            );
             try
             {
-                timer = RegisterTimer(x => CollectStatistics((bool)x), true, updateInterval, updateInterval);
+                timer = RegisterTimer(x => CollectStatistics((bool) x), true, updateInterval, updateInterval);
 
                 await CollectStatistics(false);
             }
             catch (InvalidOperationException)
             {
-                Debug.WriteLine("Not running in Orleans runtime");
+                logger.LogWarning("Not running in Orleans runtime");
             }
 
-            await base.OnActivateAsync(cancellationToken);
+            await base.Start();
         }
 
         private async Task CollectStatistics(bool canDeactivate)
         {
-            var managementGrain = GrainFactory.GetGrain<IManagementGrain>(0);
+            var managementGrain = grainFactory.GetGrain<IManagementGrain>(0);
             try
             {
                 var siloAddress = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
 
-                var results = (await managementGrain.GetRuntimeStatistics(new[] { siloAddress })).FirstOrDefault();
+                var results = (await managementGrain.GetRuntimeStatistics(new[] {siloAddress})).FirstOrDefault();
 
                 statistics.Enqueue(results);
 
@@ -88,8 +88,6 @@ namespace OrleansDashboard.Metrics.Grains
                 {
                     timer?.Dispose();
                     timer = null;
-
-                    DeactivateOnIdle();
                 }
             }
         }

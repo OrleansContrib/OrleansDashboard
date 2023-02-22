@@ -8,7 +8,7 @@ namespace OrleansDashboard.Metrics.History
 {
     public sealed class TraceHistoryV2 : ITraceHistory
     {
-        private readonly Dictionary<HistoryKey, RingBuffer<HistoryEntry>> history = new Dictionary<HistoryKey, RingBuffer<HistoryEntry>>(100);
+        private readonly Dictionary<HistoryKey, RingBuffer<HistoryEntry>> history = new(100);
         private readonly int capacity;
 
         public TraceHistoryV2(int capacity = 100)

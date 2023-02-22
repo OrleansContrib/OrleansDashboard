@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Orleans;
-using Orleans.Runtime;
 
 namespace TestGrains
 {
@@ -13,7 +11,7 @@ namespace TestGrains
 
     public class TestStateInMemoryGrain : Grain, ITestStateInMemoryGrain
     {
-        private readonly Random _random = new Random();
+        private readonly Random _random = new();
         private readonly InMemoryCounterState _state;
 
         public TestStateInMemoryGrain()

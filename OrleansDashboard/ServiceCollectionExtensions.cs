@@ -14,7 +14,6 @@ using OrleansDashboard.Metrics;
 using OrleansDashboard.Metrics.Details;
 
 // ReSharper disable CheckNamespace
-
 namespace Orleans
 {
     public static class ServiceCollectionExtensions
@@ -22,10 +21,9 @@ namespace Orleans
         public static ISiloBuilder UseDashboard(this ISiloBuilder builder,
             Action<DashboardOptions> configurator = null)
         {
-            builder.AddPlacementDirector<LocalPlacementStrategy, LocalPlacementDirector>();
-
             builder.ConfigureServices(services => services.AddDashboard(configurator));
             builder.AddStartupTask<Dashboard>();
+            builder.AddGrainService<SiloGrainService>();
 
             return builder;
         }
@@ -36,15 +34,17 @@ namespace Orleans
             services.Configure(configurator ?? (x => { }));
             services.AddSingleton<DashboardTelemetryExporter>();
             services.AddOptions<GrainProfilerOptions>();
-            
+
             services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
             services.AddSingleton<MembershipTableSiloDetailsProvider>();
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton<ILoggerProvider>(DashboardLogger.Instance);
             services.AddSingleton<IGrainProfiler, GrainProfiler>();
-            services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>)c.GetRequiredService<IGrainProfiler>());
+            services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>) c.GetRequiredService<IGrainProfiler>());
             services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
             services.TryAddSingleton<IAssetProvider, CDNAssetProvider>();
+
+            services.AddSingleton<ISiloGrainClient, SiloGrainClient>();
 
             services.AddSingleton<ISiloDetailsProvider>(c =>
             {
@@ -59,11 +59,12 @@ namespace Orleans
             });
 
             services.TryAddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
-            
+
             return services;
         }
 
-        public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app, DashboardOptions options = null)
+        public static IApplicationBuilder UseOrleansDashboard(this IApplicationBuilder app,
+            DashboardOptions options = null)
         {
             var basePath = options?.BasePath;
 
@@ -79,10 +80,7 @@ namespace Orleans
                     basePath = $"/{options.BasePath}";
                 }
 
-                app.Map(basePath, app =>
-                {
-                    app.UseMiddleware<DashboardMiddleware>();
-                });
+                app.Map(basePath, app => { app.UseMiddleware<DashboardMiddleware>(); });
             }
 
             return app;
@@ -99,7 +97,8 @@ namespace Orleans
             return services;
         }
 
-        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services, IGrainFactory grainFactory, DashboardOptions options)
+        internal static IServiceCollection AddServicesForHostedDashboard(this IServiceCollection services,
+            IGrainFactory grainFactory, DashboardOptions options)
         {
             services.AddSingleton(DashboardLogger.Instance);
             services.AddSingleton(Options.Create(options));

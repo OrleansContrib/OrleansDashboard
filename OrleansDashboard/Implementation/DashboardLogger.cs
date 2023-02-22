@@ -8,10 +8,10 @@ namespace OrleansDashboard.Implementation
 {
     public class DashboardLogger : ILoggerProvider, ILogger
     {
-        private readonly NoopDisposable scope = new NoopDisposable();
+        private readonly NoopDisposable scope = new();
         private ImmutableArray<Action<EventId, LogLevel, string>> actions;
 
-        public static readonly DashboardLogger Instance = new DashboardLogger();
+        public static readonly DashboardLogger Instance = new();
 
         private DashboardLogger()
         {

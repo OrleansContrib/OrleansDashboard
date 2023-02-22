@@ -17,7 +17,7 @@ namespace OrleansDashboard
 {
     public sealed class DashboardMiddleware
     {
-        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions Options = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             IncludeFields = true,
@@ -37,7 +37,8 @@ namespace OrleansDashboard
         private readonly Lazy<IDashboardClient> lazyClient;
         private IDashboardClient Client => lazyClient.Value;
 
-        public DashboardMiddleware(RequestDelegate next,
+        public DashboardMiddleware(
+            RequestDelegate next,
             IGrainFactory grainFactory,
             IAssetProvider assetProvider,
             IOptions<DashboardOptions> options,
@@ -48,7 +49,7 @@ namespace OrleansDashboard
             this.next = next;
             this.assetProvider = assetProvider;
             // ASP.NET Core uses a single instance of a middleware component to process multiple requests,
-            this.lazyClient = new Lazy<IDashboardClient>(
+            lazyClient = new Lazy<IDashboardClient>(
                 () => new DashboardClient(grainFactory),
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
@@ -349,12 +350,11 @@ namespace OrleansDashboard
                           \____/|_|  |_|\___|\__,_|_| |_|___/ |_____/ \__,_|___/_| |_|_.__/ \___/ \__,_|_|  \__,_|
                         
                         You are connected to the Orleans Dashboard log streaming service
-                        """)
-                    .ConfigureAwait(false);
+                        """);
 
-                await Task.Delay(TimeSpan.FromMinutes(60), token).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromMinutes(60), token);
 
-                await writer.WriteAsync("Disconnecting after 60 minutes\r\n").ConfigureAwait(false);
+                await writer.WriteAsync("Disconnecting after 60 minutes\r\n");
             }
             catch (OperationCanceledException)
             {

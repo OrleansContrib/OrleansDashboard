@@ -5,13 +5,13 @@ using Orleans;
 using Orleans.Concurrency;
 using OrleansDashboard.Model;
 
-namespace OrleansDashboard
+namespace OrleansDashboard.Implementation.Grains
 {
     public class DashboardRemindersGrain : Grain, IDashboardRemindersGrain
     {
         private static readonly Immutable<ReminderResponse> EmptyReminders = new ReminderResponse
         {
-            Reminders = new ReminderInfo[0]
+            Reminders = Array.Empty<ReminderInfo>()
         }.AsImmutable();
 
         private readonly IReminderTable reminderTable;
