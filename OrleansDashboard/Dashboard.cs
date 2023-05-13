@@ -55,6 +55,7 @@ namespace OrleansDashboard
                         new WebHostBuilder()
                             .ConfigureServices(services =>
                             {
+                                //Add IAssetProvider [EmbeddedAssetProvider]
                                 services.AddSingleton(assetProvider);                                
                                 services.AddServicesForHostedDashboard(grainFactory, dashboardOptions);
                             })
