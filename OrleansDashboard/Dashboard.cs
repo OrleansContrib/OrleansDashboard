@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
@@ -11,6 +12,7 @@ using OpenTelemetry.Metrics;
 using Orleans;
 using Orleans.Runtime;
 using OrleansDashboard.Implementation;
+using OrleansDashboard.Implementation.Assets;
 
 namespace OrleansDashboard
 {
@@ -23,6 +25,7 @@ namespace OrleansDashboard
         private readonly IGrainFactory grainFactory;
         private readonly DashboardTelemetryExporter dashboardTelemetryExporter;
         private readonly ISiloGrainClient siloGrainClient;
+        private readonly IAssetProvider assetProvider;
         private readonly DashboardOptions dashboardOptions;
 
         public Dashboard(
@@ -31,13 +34,14 @@ namespace OrleansDashboard
             IGrainFactory grainFactory,
             DashboardTelemetryExporter dashboardTelemetryExporter,
             IOptions<DashboardOptions> dashboardOptions,
-            ISiloGrainClient siloGrainClient)
+            ISiloGrainClient siloGrainClient, IAssetProvider assetProvider)
         {
             this.logger = logger;
             this.grainFactory = grainFactory;
             this.localSiloDetails = localSiloDetails;
             this.dashboardTelemetryExporter = dashboardTelemetryExporter;
             this.siloGrainClient = siloGrainClient;
+            this.assetProvider = assetProvider;
             this.dashboardOptions = dashboardOptions.Value;
         }
 
@@ -51,6 +55,7 @@ namespace OrleansDashboard
                         new WebHostBuilder()
                             .ConfigureServices(services =>
                             {
+                                services.AddSingleton(assetProvider);                                
                                 services.AddServicesForHostedDashboard(grainFactory, dashboardOptions);
                             })
                             .Configure(app =>

@@ -36,6 +36,7 @@ namespace TestHost
                     {
                         options.HostSelf = true;
                     });
+                    
                 })
                 .ConfigureServices(services =>
                 {
