@@ -3,12 +3,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 
 namespace OrleansDashboard;
 
-internal class BasicAuthMiddleware
+internal sealed class BasicAuthMiddleware
 {
     private const string BasicAuthorizationPrefix = "Basic ";
     private readonly RequestDelegate next;
@@ -40,8 +41,8 @@ internal class BasicAuthMiddleware
         }
 
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        context.Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = "Unauthorized";
-        context.Response.Headers.Add("WWW-Authenticate", new[] { "Basic realm=\"OrleansDashboard\"" });
+        context.Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = ReasonPhrases.GetReasonPhrase(context.Response.StatusCode);
+        context.Response.Headers.Add(HeaderNames.WWWAuthenticate, new[] { "Basic realm=\"OrleansDashboard\"" });
 
         return Task.CompletedTask;
     }
