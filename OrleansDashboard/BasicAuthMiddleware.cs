@@ -24,7 +24,7 @@ internal sealed class BasicAuthMiddleware
     public Task Invoke(HttpContext context)
     {
         if (context.Request.Headers.TryGetValue(HeaderNames.Authorization, out var authorizationHeader) &&
-            authorizationHeader[0]!.StartsWith("Basic", StringComparison.InvariantCulture))
+            authorizationHeader[0]!.StartsWith(BasicAuthorizationPrefix, StringComparison.InvariantCulture))
         {
             var authorizationEncoded = authorizationHeader[0][BasicAuthorizationPrefix.Length..].Trim();
             var authorizationBytes = Convert.FromBase64String(authorizationEncoded);
