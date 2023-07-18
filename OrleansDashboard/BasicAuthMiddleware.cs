@@ -3,43 +3,47 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 
-namespace OrleansDashboard
+namespace OrleansDashboard;
+
+internal sealed class BasicAuthMiddleware
 {
-    internal class BasicAuthMiddleware
+    private const string BasicAuthorizationPrefix = "Basic ";
+    private readonly RequestDelegate next;
+    private readonly DashboardOptions options;
+
+    public BasicAuthMiddleware(RequestDelegate next, IOptions<DashboardOptions> options)
     {
-        private readonly RequestDelegate next;
-        private readonly DashboardOptions options;
+        this.next = next;
+        this.options = options.Value;
+    }
 
-        public BasicAuthMiddleware(RequestDelegate next, IOptions<DashboardOptions> options)
+    public Task Invoke(HttpContext context)
+    {
+        if (context.Request.Headers.TryGetValue(HeaderNames.Authorization, out var authorizationHeader) &&
+            authorizationHeader[0]!.StartsWith(BasicAuthorizationPrefix, StringComparison.InvariantCulture))
         {
-            this.next = next;
-            this.options = options.Value;
-        }
+            var authorizationEncoded = authorizationHeader[0][BasicAuthorizationPrefix.Length..].Trim();
+            var authorizationBytes = Convert.FromBase64String(authorizationEncoded);
 
-        public Task Invoke(HttpContext context)
-        {
-            if (context.Request.Headers.TryGetValue("Authorization", out var authorizationHeader))
+            var decodedSpan = Encoding.UTF8.GetString(authorizationBytes).AsSpan();
+            var separatorIndex = decodedSpan.IndexOf(":");
+
+            if (separatorIndex > 0 &&
+                decodedSpan[..separatorIndex].SequenceEqual(options.Username) &&
+                decodedSpan[(separatorIndex + 1)..].SequenceEqual(options.Password))
             {
-                var authorizationEncoded = authorizationHeader.ToString().Replace("Basic", string.Empty).Trim();
-                var authorizationBytes = Convert.FromBase64String(authorizationEncoded);
-
-                var decodedString = Encoding.UTF8.GetString(authorizationBytes);
-
-                var parts = decodedString.Split(':');
-
-                if (parts.Length == 2 && parts[0] == options.Username && parts[1] == options.Password)
-                {
-                    return next(context);
-                }
+                return next(context);
             }
-
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = "Unauthorized";
-            context.Response.Headers.Add("WWW-Authenticate", new[] { "Basic realm=\"OrleansDashboard\"" });
-
-            return Task.CompletedTask;
         }
+
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = ReasonPhrases.GetReasonPhrase(context.Response.StatusCode);
+        context.Response.Headers.Add(HeaderNames.WWWAuthenticate, new[] { "Basic realm=\"OrleansDashboard\"" });
+
+        return Task.CompletedTask;
     }
 }
