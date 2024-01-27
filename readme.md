@@ -98,7 +98,7 @@ The dashboard supports the following properties for the configuration:
 * `Username` : Set a username for accessing the dashboard (basic auth).
 * `Password` : Set a password for accessing the dashboard (basic auth).
 * `Host` : Host name to bind the web server to (default is *).
-* `Port` : Set the the number for the dashboard to listen on (default is 8080).
+* `Port` : Set the port number for the dashboard to listen on (default is 8080).
 * `HostSelf` : Set the dashboard to host it's own http server (default is true).
 * `CounterUpdateIntervalMs` : The update interval in milliseconds between sampling counters (default is 1000).
 
