@@ -3,6 +3,7 @@
 namespace OrleansDashboard.Model
 {
     [GenerateSerializer]
+    [Immutable]
     public readonly struct StatCounter
     {
         [Id(0)]

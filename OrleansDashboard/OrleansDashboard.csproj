@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   
   <ItemGroup>
@@ -25,9 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Reminders" Version="7.2.0" />
-    <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.2.0" />
-    <PackageReference Include="OpenTelemetry" Version="1.5.1" />
+    <PackageReference Include="Microsoft.Orleans.Reminders" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="8.0.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>

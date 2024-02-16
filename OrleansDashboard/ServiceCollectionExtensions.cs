@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -75,7 +76,7 @@ namespace Orleans
             else
             {
                 // Make sure there is a leading slash                
-                if (!basePath.StartsWith("/"))
+                if (!basePath.StartsWith('/'))
                 {
                     basePath = $"/{options.BasePath}";
                 }

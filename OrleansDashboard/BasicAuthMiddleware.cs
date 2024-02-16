@@ -14,6 +14,7 @@ internal sealed class BasicAuthMiddleware
     private const string BasicAuthorizationPrefix = "Basic ";
     private readonly RequestDelegate next;
     private readonly DashboardOptions options;
+    internal static readonly string[] WWWAuthenticateHeaderValue = ["Basic realm=\"OrleansDashboard\""];
 
     public BasicAuthMiddleware(RequestDelegate next, IOptions<DashboardOptions> options)
     {
@@ -42,7 +43,7 @@ internal sealed class BasicAuthMiddleware
 
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         context.Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = ReasonPhrases.GetReasonPhrase(context.Response.StatusCode);
-        context.Response.Headers.Add(HeaderNames.WWWAuthenticate, new[] { "Basic realm=\"OrleansDashboard\"" });
+        context.Response.Headers[HeaderNames.WWWAuthenticate] = WWWAuthenticateHeaderValue;
 
         return Task.CompletedTask;
     }
