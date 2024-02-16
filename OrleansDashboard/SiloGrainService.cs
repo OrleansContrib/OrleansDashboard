@@ -72,7 +72,7 @@ namespace OrleansDashboard
             {
                 var siloAddress = SiloAddress.FromParsableString(this.GetPrimaryKeyString());
 
-                var results = (await managementGrain.GetRuntimeStatistics(new[] {siloAddress})).FirstOrDefault();
+                var results = (await managementGrain.GetRuntimeStatistics([siloAddress])).FirstOrDefault();
 
                 statistics.Enqueue(results);
 
