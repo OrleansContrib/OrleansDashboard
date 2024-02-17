@@ -13,4 +13,8 @@
     <RepositoryUrl>https://github.com/OrleansContrib/OrleansDashboard</RepositoryUrl>
     <Version>8.0.0</Version>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <OrleansPackageVersion>8.0.0</OrleansPackageVersion>
+  </PropertyGroup>
 </Project>
