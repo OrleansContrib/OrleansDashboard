@@ -4,10 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Runtime;
+using OrleansDashboard.Implementation.Assets;
 
 namespace OrleansDashboard
 {
@@ -17,6 +19,7 @@ namespace OrleansDashboard
         private readonly ILogger<Dashboard> logger;
         private readonly ILocalSiloDetails localSiloDetails;
         private readonly IGrainFactory grainFactory;
+        private readonly IAssetProvider assetProvider;
         private readonly DashboardOptions dashboardOptions;
 
         public static int HistoryLength => 100;
@@ -25,11 +28,13 @@ namespace OrleansDashboard
             ILogger<Dashboard> logger,
             ILocalSiloDetails localSiloDetails,
             IGrainFactory grainFactory,
-            IOptions<DashboardOptions> dashboardOptions)
+            IOptions<DashboardOptions> dashboardOptions,
+            IAssetProvider assetProvider)
         {
             this.logger = logger;
             this.grainFactory = grainFactory;
             this.localSiloDetails = localSiloDetails;
+            this.assetProvider = assetProvider;
             this.dashboardOptions = dashboardOptions.Value;
         }
 
@@ -43,6 +48,8 @@ namespace OrleansDashboard
                         new WebHostBuilder()
                             .ConfigureServices(services =>
                             {
+                                //Add IAssetProvider [EmbeddedAssetProvider]
+                                services.AddSingleton(assetProvider);
                                 services.AddServicesForHostedDashboard(grainFactory, dashboardOptions);
                             })
                             .Configure(app =>
