@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 using OrleansDashboard;
 using Orleans.TestingHost;
@@ -38,7 +39,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public async void TestWithGetStateMethod()
+        public async Task TestWithGetStateMethod()
         {
             var dashboardGrain = _cluster.GrainFactory.GetGrain<IDashboardGrain>(1);
             var stateGrain = _cluster.GrainFactory.GetGrain<ITestStateInMemoryGrain>(123);
@@ -53,7 +54,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public async void TestWithIStorageField()
+        public async Task TestWithIStorageField()
         {
             var dashboardGrain = _cluster.GrainFactory.GetGrain<IDashboardGrain>(1);
             var stateGrain = _cluster.GrainFactory.GetGrain<ITestStateGrain>(123);
