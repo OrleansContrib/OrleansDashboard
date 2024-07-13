@@ -63,7 +63,7 @@ namespace OrleansDashboard.Implementation.Grains
             {
                 var interval = TimeSpan.FromMinutes(1);
 
-                RegisterTimer(async x =>
+                this.RegisterGrainTimer(async x =>
                 {
                     var timeSinceLastQuery = DateTimeOffset.UtcNow - lastQuery;
 
@@ -72,7 +72,7 @@ namespace OrleansDashboard.Implementation.Grains
                         isEnabled = false;
                         await BroadcaseEnabled();
                     }
-                }, null, interval, interval);
+                }, new() { DueTime = interval, Period = interval, Interleave = true, KeepAlive = true });
             }
 
             return base.OnActivateAsync(cancellationToken);
@@ -241,9 +241,9 @@ namespace OrleansDashboard.Implementation.Grains
 
             var result = new Dictionary<string, GrainMethodAggregate[]>
             {
-                {"calls", GetTotalCalls()},
-                {"latency", GetLatency()},
-                {"errors", GetErrors()},
+                { "calls", GetTotalCalls() },
+                { "latency", GetLatency() },
+                { "errors", GetErrors() },
             };
 
             return result.AsImmutable();
@@ -286,9 +286,9 @@ namespace OrleansDashboard.Implementation.Grains
                     {
                         object[] grainMethodParameters;
                         if (string.IsNullOrWhiteSpace(keyExtension))
-                            grainMethodParameters = new object[] {interfaceType, grainId};
+                            grainMethodParameters = new object[] { interfaceType, grainId };
                         else
-                            grainMethodParameters = new object[] {interfaceType, grainId, keyExtension};
+                            grainMethodParameters = new object[] { interfaceType, grainId, keyExtension };
 
                         var grain = getGrainMethod.Invoke(GrainFactory, grainMethodParameters);
 
@@ -346,7 +346,7 @@ namespace OrleansDashboard.Implementation.Grains
             return Task.FromResult(GrainStateHelper.GetGrainTypes()
                 .Select(s => s.Namespace + "." + s.Name)
                 .ToArray()
-                                     .AsImmutable());
+                .AsImmutable());
         }
     }
 }

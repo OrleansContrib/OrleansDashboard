@@ -15,6 +15,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <OrleansPackageVersion>8.0.0</OrleansPackageVersion>
+    <OrleansPackageVersion>8.2.0</OrleansPackageVersion>
   </PropertyGroup>
 </Project>
