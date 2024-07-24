@@ -4,21 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Orleans.Runtime;
+using Orleans.Serialization.Configuration;
 
 namespace OrleansDashboard.Implementation.Helpers
 {
     internal static class GrainStateHelper
     {
-        public static IEnumerable<Type> GetGrainTypes()
-        {
-            return AppDomain.CurrentDomain.GetAssemblies()
-                                     .SelectMany(s => s.GetTypes())
-                                     .Where(w => w.IsAssignableTo(typeof(IGrain))
-                                               && !w.Namespace.StartsWith("Orleans")
-                                               && w.IsClass
-                                               && !w.IsGenericType);
-        }
-
         public static (object, string) GetGrainId(string id, Type implementationType)
         {
             object grainId = null;
@@ -102,14 +94,10 @@ namespace OrleansDashboard.Implementation.Helpers
             }
         }
 
-        public static Type GetGrainType(string grainType)
+        public static Type GetGrainType(string grainType, TypeManifestOptions typeManifestOptions)
         {
-            var _grainType = grainType.Split(".").Last();
-
-            return AppDomain.CurrentDomain.GetAssemblies()
-                                .SelectMany(s => s.GetTypes())
-                                .Where(w => w.Name.Equals(_grainType))
-                                .FirstOrDefault();
+            return typeManifestOptions.InterfaceImplementations
+                .FirstOrDefault(w => w.FullName.Equals(grainType));
         }
     }
 }

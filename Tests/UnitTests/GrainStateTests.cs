@@ -30,12 +30,12 @@ namespace UnitTests
         }
 
         [Fact]
-        public void TestGetGrainsTypes()
+        public async Task TestGetGrainsTypes()
         {
-            var types = GrainStateHelper.GetGrainTypes()
-                        .Select(s => s.Namespace + "." + s.Name);
+            var dashboardGrain = _cluster.GrainFactory.GetGrain<IDashboardGrain>(1);
+            var types = await dashboardGrain.GetGrainTypes();
 
-            Assert.Contains("TestGrains.TestStateInMemoryGrain", types);
+            Assert.Contains("TestGrains.TestStateInMemoryGrain", types.Value);
         }
 
         [Fact]
