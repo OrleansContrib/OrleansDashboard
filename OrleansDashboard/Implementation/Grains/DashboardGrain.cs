@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Concurrency;
 using Orleans.Runtime;
+using Orleans.Serialization.Configuration;
 using OrleansDashboard.Implementation.Helpers;
 using OrleansDashboard.Metrics;
 using OrleansDashboard.Metrics.Details;
@@ -27,6 +28,7 @@ namespace OrleansDashboard.Implementation.Grains
         private readonly ISiloGrainClient siloGrainClient;
         private readonly DashboardCounters counters;
         private readonly GrainProfilerOptions grainProfilerOptions;
+        private readonly TypeManifestOptions typeManifestOptions;
         private readonly TimeSpan updateInterval;
         private bool isUpdating;
         private DateTime startTime = DateTime.UtcNow;
@@ -37,6 +39,7 @@ namespace OrleansDashboard.Implementation.Grains
         public DashboardGrain(
             IOptions<DashboardOptions> options,
             IOptions<GrainProfilerOptions> grainProfilerOptions,
+            IOptions<TypeManifestOptions> typeManifestOptions,
             ISiloDetailsProvider siloDetailsProvider,
             ISiloGrainClient siloGrainClient)
         {
@@ -45,6 +48,7 @@ namespace OrleansDashboard.Implementation.Grains
 
             // Store the options to bypass the broadcase of the isEnabled flag.
             this.grainProfilerOptions = grainProfilerOptions.Value;
+            this.typeManifestOptions = typeManifestOptions.Value;
 
             // Do not allow smaller timers than 1000ms = 1sec.
             updateInterval = TimeSpan.FromMilliseconds(Math.Max(options.Value.CounterUpdateIntervalMs, 1000));
@@ -268,7 +272,7 @@ namespace OrleansDashboard.Implementation.Grains
 
             try
             {
-                var implementationType = GrainStateHelper.GetGrainType(grainType);
+                var implementationType = GrainStateHelper.GetGrainType(grainType, typeManifestOptions);
 
                 var mappedGrainId = GrainStateHelper.GetGrainId(id, implementationType);
                 object grainId = mappedGrainId.Item1;
@@ -343,8 +347,8 @@ namespace OrleansDashboard.Implementation.Grains
 
         public Task<Immutable<string[]>> GetGrainTypes()
         {
-            return Task.FromResult(GrainStateHelper.GetGrainTypes()
-                .Select(s => s.Namespace + "." + s.Name)
+            return Task.FromResult(typeManifestOptions.InterfaceImplementations
+                .Select(s => s.FullName)
                 .ToArray()
                 .AsImmutable());
         }
