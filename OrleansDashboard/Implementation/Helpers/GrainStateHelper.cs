@@ -92,11 +92,5 @@ namespace OrleansDashboard.Implementation.Helpers
                                       && w.GetParameters()[2].ParameterType == typeof(string));
             }
         }
-
-        public static Type GetGrainType(string grainType, TypeManifestOptions typeManifestOptions)
-        {
-            return typeManifestOptions.InterfaceImplementations
-                .FirstOrDefault(w => w.FullName.Equals(grainType));
-        }
     }
 }
