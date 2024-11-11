@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Orleans.Serialization.Configuration;
 
 namespace OrleansDashboard.Implementation.Helpers
 {
@@ -91,12 +90,6 @@ namespace OrleansDashboard.Implementation.Helpers
                                       && w.GetParameters()[1].ParameterType == grainId.GetType()
                                       && w.GetParameters()[2].ParameterType == typeof(string));
             }
-        }
-
-        public static Type GetGrainType(string grainType, TypeManifestOptions typeManifestOptions)
-        {
-            return typeManifestOptions.InterfaceImplementations
-                .FirstOrDefault(w => w.FullName.Equals(grainType));
         }
     }
 }

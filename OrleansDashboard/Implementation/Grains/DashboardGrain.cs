@@ -272,7 +272,8 @@ namespace OrleansDashboard.Implementation.Grains
 
             try
             {
-                var implementationType = GrainStateHelper.GetGrainType(grainType, typeManifestOptions);
+                var implementationType = typeManifestOptions.InterfaceImplementations
+                    .FirstOrDefault(w => w.FullName.Equals(grainType));
 
                 var mappedGrainId = GrainStateHelper.GetGrainId(id, implementationType);
                 object grainId = mappedGrainId.Item1;
