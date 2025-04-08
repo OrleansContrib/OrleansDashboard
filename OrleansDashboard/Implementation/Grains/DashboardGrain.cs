@@ -131,12 +131,10 @@ namespace OrleansDashboard.Implementation.Grains
                 var activationCountTask = metricsGrain.GetTotalActivationCount();
                 var simpleGrainStatsTask = metricsGrain.GetSimpleGrainStatistics();
                 var siloDetailsTask = siloDetailsProvider.GetSiloDetails();
-                var detailGrainStatsTask = metricsGrain.GetDetailedGrainStatistics();
 
-                await Task.WhenAll(activationCountTask, simpleGrainStatsTask, siloDetailsTask, detailGrainStatsTask);
+                await Task.WhenAll(activationCountTask, simpleGrainStatsTask, siloDetailsTask);
 
-                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result,
-                    detailGrainStatsTask.Result);
+                RecalculateCounters(activationCountTask.Result, siloDetailsTask.Result, simpleGrainStatsTask.Result);
 
                 lastRefreshTime = now;
             }
@@ -147,7 +145,7 @@ namespace OrleansDashboard.Implementation.Grains
         }
 
         internal void RecalculateCounters(int activationCount, SiloDetails[] hosts,
-            IList<SimpleGrainStatistic> simpleGrainStatistics, DetailedGrainStatistic[] detailGrainStatistics)
+            IList<SimpleGrainStatistic> simpleGrainStatistics)
         {
             counters.TotalActivationCount = activationCount;
 
