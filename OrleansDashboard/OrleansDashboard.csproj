@@ -27,7 +27,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Reminders" Version="$(OrleansPackageVersion)" />
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="$(OrleansPackageVersion)" />
-    <PackageReference Include="OpenTelemetry" Version="1.9.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.12.0" />
   </ItemGroup>
 
   <ItemGroup>
